@@ -1,0 +1,6 @@
+dev:
+  cmos:
+    host: 10.17.219.173
+    user: app-cmos
+    password: Zxcv123!
+    db: DBMKP
