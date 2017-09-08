@@ -22,38 +22,37 @@ with connect_cds_db() as conn:
     ORDER BY pidnew
     '''
     cds_cursor.execute(query)
-    sql = """
-      insert into ProductMappingCDS(
+    data = cds_cursor.fetchall()
+
+with connect_t1c_db() as t1c:
+  t1c_cursor = t1c.cursor()
+  t1c_cursor.execute('''
+  TRUNCATE TABLE ProductMappingCDS
+  ''')
+
+  sql = """
+      INSERT INTO ProductMappingCDS(
         PID,ProductNameEN,ProductNameTH,Global_Cate_ID,GlobalnameEN,GlobalNameTH,
         Local_Cate_ID,LocalNameEN,LocalNameTH,Brand_ID,BrandNameEN,BrandNameTH,Barcode
       ) values {}
-      """
-    # sql = """
-    #   insert into ProductMappingCDS(
-    #     PID,ProductNameEN,ProductNameTH,Global_Cate_ID,GlobalnameEN,GlobalNameTH,
-    #     Local_Cate_ID,LocalNameEN,LocalNameTH,Brand_ID,BrandNameEN,BrandNameTH,Barcode
-    #   ) values (%s, %s, %s, null, null, null, %s, %s, %s, %s, %s, %s, null)
-    #   """
-    with connect_t1c_db() as t1c:
-      t1c_cursor = t1c.cursor()
-      data = cds_cursor.fetchall()
-      print("Total Product : ",len(data))
-      for i in range(0,len(data),1000):
-        print("Progress : ",i)
-        query = ",".join(["""('%s', '%s', '%s', null, null, null, '%s', '%s', '%s', '%s', '%s', '%s', null)""" %
-          (row['Pid'],
-          row['ProductNameEN'].replace("'","''"),
-          row['ProductNameTH'].replace("'","''"),
-          row['Local_Cate_ID'],
-          row['LocalNameEN'].replace("'","''"),
-          row['LocalNameTH'].replace("'","''"),
-          row['Brand_ID'],
-          row['BrandNameEN'].replace("'","''"),
-          row['BrandNameTH'].replace("'","''")) for row in data[i:i+1000]])
-        try:
-          t1c_cursor.execute(sql.format(query))
-        except:
-          print(query)
-          raise
-        t1c.commit()
-        print("Finished")
+  """
+  print("Total Product : ",len(data))
+  for i in range(0,len(data),1000):
+    print("Progress : ",i)
+    query = ",".join(["""('%s', '%s', '%s', null, null, null, '%s', '%s', '%s', '%s', '%s', '%s', null)""" %
+      (row['Pid'],
+      row['ProductNameEN'].replace("'","''"),
+      row['ProductNameTH'].replace("'","''"),
+      row['Local_Cate_ID'],
+      row['LocalNameEN'].replace("'","''"),
+      row['LocalNameTH'].replace("'","''"),
+      row['Brand_ID'],
+      row['BrandNameEN'].replace("'","''"),
+      row['BrandNameTH'].replace("'","''")) for row in data[i:i+1000]])
+    try:
+      t1c_cursor.execute(sql.format(query))
+    except:
+      print(query)
+      raise
+    t1c.commit()
+  print("Finished")
