@@ -103,3 +103,6 @@ ENV/
 
 # End of https://www.gitignore.io/api/python
 output/
+
+# PyCharm
+.idea/
