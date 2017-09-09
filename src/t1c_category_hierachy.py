@@ -3,18 +3,18 @@ from datetime import datetime, timedelta
 
 
 def connect_cds_db():
-    return pymssql.connect("10.17.220.55", "central", "Cen@tral")
+  return pymssql.connect("10.17.220.55", "central", "Cen@tral")
 
 
 def connect_t1c_db():
-    return pymssql.connect("10.17.220.181", "sa", "Asdf123!")
+  return pymssql.connect("10.17.220.181", "sa", "Asdf123!")
 
 
 start_time = datetime.now()
 
 with connect_cds_db() as conn:
-    cds_cursor = conn.cursor()
-    query = '''
+  cds_cursor = conn.cursor()
+  query = '''
     select isnull(level0.DepartmentId, 0) as Level0ID,
       isnull(level0.DisplayName, '') as CategoryLevel0,
       isnull(level1.DepartmentId, 0) as Level1ID,
@@ -39,9 +39,9 @@ with connect_cds_db() as conn:
     ON level3.DepartmentId = level4.ParentId
     ORDER BY Level0ID ASC;
     '''
-    cds_cursor.execute(query)
-    data = cds_cursor.fetchall()
-    print("Total %d records" % len(data))
+  cds_cursor.execute(query)
+  data = cds_cursor.fetchall()
+  print("Total %d records" % len(data))
 
 with connect_t1c_db() as t1c:
   t1c_cursor = t1c.cursor()
@@ -56,7 +56,6 @@ with connect_t1c_db() as t1c:
 
   t1c_cursor.executemany(insert_sql, data)
   t1c.commit()
-
 
 end_time = datetime.now()
 execution_time = (end_time - start_time).seconds

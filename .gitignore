@@ -103,6 +103,10 @@ ENV/
 
 # End of https://www.gitignore.io/api/python
 output/
+<<<<<<< Updated upstream
 
 # PyCharm
 .idea/
+=======
+.DS_Store
+>>>>>>> Stashed changes

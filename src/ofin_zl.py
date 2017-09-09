@@ -88,7 +88,8 @@ def generate_report(output_path, date, data):
              line['Description']))
         line_count = line_count + 1
 
-      val_writer.write('%-14s%-10s' % (ZL_name_dat, '{:0>10}'.format(str(line_count))))
+      val_writer.write('%-14s%-10s' % (ZL_name_dat,
+                                       '{:0>10}'.format(str(line_count))))
       print('Create Files ZL .DAT & .VAL Complete..')
     except Exception as e:
       print('Create Files ZL .DAT & .VAL Error .. : ')

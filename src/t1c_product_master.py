@@ -1,13 +1,17 @@
 import pymssql
 
+
 def connect_cds_db():
-    return pymssql.connect("10.17.220.55", "central", "Cen@tral", "DBCDSContent")
+  return pymssql.connect("10.17.220.55", "central", "Cen@tral", "DBCDSContent")
+
+
 def connect_t1c_db():
-    return pymssql.connect("10.17.220.181", "sa", "Asdf123!", "DBSync")
+  return pymssql.connect("10.17.220.181", "sa", "Asdf123!", "DBSync")
+
 
 with connect_cds_db() as conn:
-    cds_cursor = conn.cursor(as_dict=True)
-    query = '''
+  cds_cursor = conn.cursor(as_dict=True)
+  query = '''
     SELECT pidnew AS Pid,DocnameEn AS ProductNameEN,Docname AS ProductNameTH,
         d.departmentID AS Local_Cate_ID,d.DisplayNameEN AS LocalNameEN, d.DisplayName AS LocalNameTH,
         tbbrand.Brandid as Brand_ID,tbbrand.DisplaynameEn AS BrandNameEN,tbbrand.DisplayName AS BrandNameTH
@@ -21,8 +25,8 @@ with connect_cds_db() as conn:
     WHERE tbproduct.isFirstStockGR = 1 AND len(pidnew) > 0
     ORDER BY pidnew
     '''
-    cds_cursor.execute(query)
-    data = cds_cursor.fetchall()
+  cds_cursor.execute(query)
+  data = cds_cursor.fetchall()
 
 with connect_t1c_db() as t1c:
   t1c_cursor = t1c.cursor()
@@ -36,19 +40,18 @@ with connect_t1c_db() as t1c:
         Local_Cate_ID,LocalNameEN,LocalNameTH,Brand_ID,BrandNameEN,BrandNameTH,Barcode
       ) values {}
   """
-  print("Total Product : ",len(data))
-  for i in range(0,len(data),1000):
-    print("Progress : ",i)
-    query = ",".join(["""('%s', '%s', '%s', null, null, null, '%s', '%s', '%s', '%s', '%s', '%s', null)""" %
-      (row['Pid'],
-      row['ProductNameEN'].replace("'","''"),
-      row['ProductNameTH'].replace("'","''"),
-      row['Local_Cate_ID'],
-      row['LocalNameEN'].replace("'","''"),
-      row['LocalNameTH'].replace("'","''"),
-      row['Brand_ID'],
-      row['BrandNameEN'].replace("'","''"),
-      row['BrandNameTH'].replace("'","''")) for row in data[i:i+1000]])
+  print("Total Product : ", len(data))
+  for i in range(0, len(data), 1000):
+    print("Progress : ", i)
+    query = ",".join([
+        """('%s', '%s', '%s', null, null, null, '%s', '%s', '%s', '%s', '%s', '%s', null)"""
+        % (row['Pid'], row['ProductNameEN'].replace("'", "''"),
+           row['ProductNameTH'].replace("'", "''"), row['Local_Cate_ID'],
+           row['LocalNameEN'].replace("'", "''"),
+           row['LocalNameTH'].replace("'", "''"), row['Brand_ID'],
+           row['BrandNameEN'].replace("'", "''"),
+           row['BrandNameTH'].replace("'", "''")) for row in data[i:i + 1000]
+    ])
     try:
       t1c_cursor.execute(sql.format(query))
     except:

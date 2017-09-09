@@ -2,7 +2,7 @@ import os
 from datetime import datetime, timedelta
 import pymssql
 
-_date = datetime.strptime('2017-08-29', '%Y-%m-%d')
+_date = datetime.strptime('2017-08-02', '%Y-%m-%d')
 
 
 def connect_db():
@@ -186,7 +186,8 @@ def generate_report(output_path, date, data):
              line['Description']))
         line_count = line_count + 1
 
-      writerVAL.write('%-14s%-10s' % (ZN_name_dat, '{:0>10}'.format(str(line_count))))
+      writerVAL.write('%-14s%-10s' % (ZN_name_dat,
+                                      '{:0>10}'.format(str(line_count))))
       print('Create Files ZN .DAT & .VAL Complete..')
     except Exception as e:
       print('Create Files ZN .DAT & .VAL Error .. : ')
