@@ -12,7 +12,7 @@ def connect_db():
 def getorderid_genARTranMST(curr_date, order_type):
   with connect_db() as conn:
     with conn.cursor(as_dict=True) as cursor:
-      if order_type != "Normal":
+      if order_type == "Preorder":
         command = '''
                   select orderid from tborderhead t1
                     inner join  tbcustpayment t2 on t1.paymenttype = t2.paymenttype

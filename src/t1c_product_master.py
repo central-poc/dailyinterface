@@ -14,7 +14,8 @@ with connect_cds_db() as conn:
   query = '''
     SELECT pidnew AS Pid,DocnameEn AS ProductNameEN,Docname AS ProductNameTH,
         d.departmentID AS Local_Cate_ID,d.DisplayNameEN AS LocalNameEN, d.DisplayName AS LocalNameTH,
-        tbbrand.Brandid as Brand_ID,tbbrand.DisplaynameEn AS BrandNameEN,tbbrand.DisplayName AS BrandNameTH
+        tbbrand.Brandid as Brand_ID,tbbrand.DisplaynameEn AS BrandNameEN,
+        tbbrand.DisplayName AS BrandNameTH, isnull(tbproduct.Barcode, '') as Barcode
     FROM tbproduct
     JOIN tbbrand
         ON tbproduct.brandid = tbbrand.brandid
@@ -36,24 +37,27 @@ with connect_t1c_db() as t1c:
 
   sql = """
       INSERT INTO ProductMappingCDS(
-        PID,ProductNameEN,ProductNameTH,Global_Cate_ID,GlobalnameEN,GlobalNameTH,
-        Local_Cate_ID,LocalNameEN,LocalNameTH,Brand_ID,BrandNameEN,BrandNameTH,Barcode
+        PID,ProductNameEN,ProductNameTH,
+        Local_Cate_ID,LocalNameEN,LocalNameTH,
+        Brand_ID,BrandNameEN,BrandNameTH,Barcode
       ) values {}
   """
   print("Total Product : ", len(data))
   for i in range(0, len(data), 1000):
     print("Progress : ", i)
     query = ",".join([
-        """('%s', '%s', '%s', null, null, null, '%s', '%s', '%s', '%s', '%s', '%s', null)"""
-        % (row['Pid'], row['ProductNameEN'].replace("'", "''"),
-           row['ProductNameTH'].replace("'", "''"), row['Local_Cate_ID'],
-           row['LocalNameEN'].replace("'", "''"),
-           row['LocalNameTH'].replace("'", "''"), row['Brand_ID'],
-           row['BrandNameEN'].replace("'", "''"),
-           row['BrandNameTH'].replace("'", "''")) for row in data[i:i + 1000]
+        """('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')""" %
+        (row['Pid'], row['ProductNameEN'].replace("'", "''"),
+         row['ProductNameTH'].replace("'", "''"), row['Local_Cate_ID'],
+         row['LocalNameEN'].replace("'", "''"),
+         row['LocalNameTH'].replace("'", "''"), row['Brand_ID'],
+         row['BrandNameEN'].replace("'", "''"),
+         row['BrandNameTH'].replace("'", "''"), row["Barcode"])
+        for row in data[i:i + 1000]
     ])
     try:
       t1c_cursor.execute(sql.format(query))
+      #print (sql.format(query))
     except:
       print(query)
       raise
