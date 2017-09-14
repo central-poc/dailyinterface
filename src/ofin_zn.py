@@ -27,7 +27,7 @@ def getorderid_genARTranMST(curr_date, order_type):
                     inner join  tbcustpayment t2 on t1.paymenttype = t2.paymenttype
                     where IsOnlinePayment = 'Yes'
                     and	IsGenSale = 'No'
-                    and OrderType = 'Normal'
+                    and OrderType in ('Normal', 'ByOrder')
                     and cast(PaymentDate as date) = cast('{}' as date)'''.format(
             curr_date)
 
