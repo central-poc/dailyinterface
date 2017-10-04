@@ -1,15 +1,24 @@
 import os
 from datetime import datetime, timedelta
+import _mssql
 import pymssql
 
-_date = datetime.strptime('2017-08-02', '%Y-%m-%d')
+_date = datetime.strptime('2017-09-25', '%Y-%m-%d')
 
 
 def connect_db():
-  return pymssql.connect('10.17.220.173', 'coreii', 'co@2ii!', 'DBMKP')
+  return pymssql.connect('10.17.219.173', 'coreii', 'co@2ii!', 'DBMKP')
 
 
-def getorderid_genARTranMST(curr_date, order_type):
+def mssql_db():
+  return _mssql.connect(
+      server='10.17.219.173',
+      user='coreii',
+      password='co@2ii!',
+      database='DBMKP')
+
+
+def get_orders_by_date_type(curr_date, order_type):
   with connect_db() as conn:
     with conn.cursor(as_dict=True) as cursor:
       if order_type == "Preorder":
@@ -32,47 +41,46 @@ def getorderid_genARTranMST(curr_date, order_type):
             curr_date)
 
       cursor.execute(command)
-      dt = [row for row in cursor]
-  return dt
+      data = [row for row in cursor]
+  return data
 
 
-def genARTranMST(orderid, is_prepaid):
+def execute_ar_transaction(orderid, is_prepaid):
+  with mssql_db() as conn:
+    sql = """
+      DECLARE @out INT;
+      EXEC dbo.spc_GenARTranMST %s, %s, %s, %s, %s, @out OUT;
+      SELECT @out;
+    """
+    return conn.execute_scalar(sql, (
+        orderid,
+        'Server',
+        is_prepaid,
+        'Sale',
+        'No', ))
+
+
+def get_return_agent():
   with connect_db() as conn:
     with conn.cursor(as_dict=True) as cursor:
-      cursor.callproc('spc_GenARTranMST', (
-          orderid,
-          'Server',
-          is_prepaid,
-          'Sale',
-          'No', ))
-      return cursor.fetchone()
-
-
-def get_return_agent(flag):
-  with connect_db() as conn:
-    with conn.cursor(as_dict=True) as cursor:
-      if flag:
-        command = '''
-                    select suborderid
-                        from TBSubOrderHead
-                        where status in ('ReadyToShip', 'Shipping', 'Delivery')
-                        and IsGenRTC = 'No'
-                        and shippingid <> 4
-                        and netamt <> oldnetamt
-                '''
-      else:
-        command = '''
-                    select t1.suborderid
-                        from TBSubOrderHead t1
-                        inner join  tbcustpayment t2 on t1.paymenttype = t2.paymenttype
-                        where t2.IsOnlinePayment = 'Yes'
-                        and t1.status = 'Canceled'
-                        and t1.IsGenRTC = 'No'
-                '''
-
+      command = '''
+        select suborderid
+              from TBSubOrderHead
+              where status in ('ReadyToShip', 'Shipping', 'Delivery')
+              and IsGenRTC = 'No'
+              and shippingid <> 4
+              and netamt <> oldnetamt
+        union all
+        select t1.suborderid
+            from TBSubOrderHead t1
+            inner join  tbcustpayment t2 on t1.paymenttype = t2.paymenttype
+            where t2.IsOnlinePayment = 'Yes'
+            and t1.status = 'Canceled'
+            and t1.IsGenRTC = 'No'
+      '''
       cursor.execute(command)
-      dt = [row for row in cursor]
-  return dt
+      data = [row for row in cursor]
+  return data
 
 
 def get_return_agentservice():
@@ -85,30 +93,21 @@ def get_return_agentservice():
                 AND IsGenRTC = 'No'
             '''
       cursor.execute(command)
-      dt = [row for row in cursor]
-  return dt
+      data = [row for row in cursor]
+  return data
 
 
-def gen_return_agent(suborderid, flag=False):
-  with connect_db() as conn:
-    with conn.cursor(as_dict=True) as cursor:
-      parameter = (suborderid, )
-      if flag:
-        parameter = parameter + ('SER', )
-      else:
-        parameter = parameter + ('INV', )
-      cursor.callproc('SPC_GENTBReturnAgent', parameter)
+def execut_return_agent(suborderid, return_type):
+  with mssql_db() as conn:
+    sql = "EXEC dbo.SPC_GENTBReturnAgent %s, %s;"
+    conn.execute_scalar(sql, (
+        suborderid,
+        return_type, ))
 
 
-def gen_receipt_and_adjust(curr_date):
-  with connect_db() as conn:
-    with conn.cursor(as_dict=True) as cursor:
-      cursor.callproc('spc_OFIN_CustomerReceiptAndAdjust', (curr_date, ))
-
-
-def check_debit_equal_to_credit(dtZN):
-  sum_debit = sum([row['Debit'] for row in dtZN])
-  sum_credit = sum([row['Credit'] for row in dtZN])
+def is_debit_equals_credit(data_zn):
+  sum_debit = sum([row['Debit'] for row in data_zn])
+  sum_credit = sum([row['Credit'] for row in data_zn])
 
   if sum_debit > sum_credit:
     print('ReceiptAndAdjust_ZN : Debit > Credit : %.2f' %
@@ -121,8 +120,8 @@ def check_debit_equal_to_credit(dtZN):
   return True
 
 
-def check_all_records_has_CPCID(dtZN):
-  is_CPCID_empty_or_null = [1 if not row['CPCID'] else 0 for row in dtZN]
+def check_all_records_has_CPCID(data_zn):
+  is_CPCID_empty_or_null = [1 if not row['CPCID'] else 0 for row in data_zn]
 
   if sum(is_CPCID_empty_or_null) > 0:
     print('CPCID is null')
@@ -130,20 +129,20 @@ def check_all_records_has_CPCID(dtZN):
   return True
 
 
-def validate_dtZN(dtZN):
-  return check_debit_equal_to_credit(dtZN) & check_all_records_has_CPCID(dtZN)
+def validate_data(data_zn):
+  return is_debit_equals_credit(data_zn) & check_all_records_has_CPCID(data_zn)
 
 
-def generate_data(date):
-  with connect_db() as conn:
-    with conn.cursor(as_dict=True) as cursor:
-      cursor.callproc('spc_OFIN_CustomerReceiptAndAdjust', (date, ))
-      data = [row for row in cursor]
+def generate_temp_data(curr_date):
+  with mssql_db() as conn:
+    sql = "EXEC dbo.spc_OFIN_CustomerReceiptAndAdjust %s;"
+    conn.execute_row(sql, (curr_date, ))
+    data = [row for row in conn]
 
-      cursor.execute('Select * From TBOFINCustomerReceiptAndAdjust_Temp')
-      dtZN = [row for row in cursor]
+    conn.execute_query('Select * From TBOFINCustomerReceiptAndAdjust_Temp')
+    data_zn = [row for row in conn]
 
-  return data, dtZN
+  return data, data_zn
 
 
 def get_next_seq(files, prefix_filename, prefix_length):
@@ -159,7 +158,7 @@ def get_next_seq(files, prefix_filename, prefix_length):
       print('GenSeqNumber Error %s' % str(e))
 
 
-def generate_report(output_path, date, data):
+def generate_data_file(output_path, date, data):
   date = date.strftime('%y%m%d')
   prefix_filename_ZN = 'ZN' + date
   seq = get_next_seq(
@@ -197,50 +196,45 @@ def generate_report(output_path, date, data):
 def main():
   curr_date = _date
   last_date = _date
+  str_date = last_date.strftime('%Y-%m-%d')
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
-  target_dir = 'D' + last_date.strftime('%Y-%m-%d')
+  target_dir = 'D' + str_date
   target_path = os.path.join(parent_path, 'output', target_dir)
   if not os.path.exists(target_path):
     os.makedirs(target_path)
 
   try:
-    dt_orderid_normal = getorderid_genARTranMST(last_date, "Normal")
+    orders_normal = get_orders_by_date_type(str_date, "Normal")
     suborders_normal = [
-        row['orderid'] for row in dt_orderid_normal
-        if genARTranMST(row['orderid'], "No") != 0
+        row['orderid'] for row in orders_normal
+        if execute_ar_transaction(row['orderid'], "No") != 0
     ]
 
-    dt_orderid_preorder = getorderid_genARTranMST(last_date, "Preorder")
+    orders_preorder = get_orders_by_date_type(str_date, "Preorder")
     suborders_preorder = [
-        row['orderid'] for row in dt_orderid_preorder
-        if genARTranMST(row['orderid'], "Yes") != 0
+        row['orderid'] for row in orders_preorder
+        if execute_ar_transaction(row['orderid'], "Yes") != 0
     ]
 
-    suborders = suborders_normal + suborders_preorder
-    if suborders:
+    error_suborders = suborders_normal + suborders_preorder
+    if error_suborders:
       print(
           'CMOS Interface To Oracle (OFIN) ({}) : Text ZN Error SubOrderId {}'
           .format(datetime.now(), ','.join(suborders)))
 
-    dt_suborders = get_return_agent(False)
-    [gen_return_agent(suborderid['suborderid']) for suborderid in dt_suborders]
+    returns = get_return_agent()
+    [execut_return_agent(row['suborderid'], "INV") for row in returns]
 
-    dt_suborders = get_return_agent(True)
-    [gen_return_agent(suborderid['suborderid']) for suborderid in dt_suborders]
+    returns = get_return_agentservice()
+    [execut_return_agent(row['ServiceNo'], "SER") for row in returns]
 
-    dt_suborders = get_return_agentservice()
-    [
-        gen_return_agent(suborderid['ServiceNo'], True)
-        for suborderid in dt_suborders
-    ]
+    data, data_zn = generate_temp_data(str_date)
 
-    data, dtZN = generate_data(last_date)
-
-    if not validate_dtZN(dtZN):
+    if not validate_data(data_zn):
       return
 
-    generate_report(target_path, curr_date, data)
+    generate_data_file(target_path, curr_date, data)
 
   except Exception as e:
     print('Get Data ZN From Stored Procedure Error: %s' % str(e))
