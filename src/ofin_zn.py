@@ -1,47 +1,41 @@
 import os
 from datetime import datetime, timedelta
 import _mssql
-import pymssql
 
-_date = datetime.strptime('2017-09-25', '%Y-%m-%d')
-
-
-def connect_db():
-  return pymssql.connect('10.17.219.173', 'coreii', 'co@2ii!', 'DBMKP')
+_date = datetime.strptime('2017-08-27', '%Y-%m-%d')
 
 
 def mssql_db():
   return _mssql.connect(
-      server='10.17.219.173',
+      server='10.17.220.173',
       user='coreii',
       password='co@2ii!',
       database='DBMKP')
 
 
 def get_orders_by_date_type(curr_date, order_type):
-  with connect_db() as conn:
-    with conn.cursor(as_dict=True) as cursor:
-      if order_type == "Preorder":
-        command = '''
-                  select orderid from tborderhead t1
-                    inner join  tbcustpayment t2 on t1.paymenttype = t2.paymenttype
-                    where IsOnlinePayment = 'Yes'
-                    and	IsGenSale = 'No'
-                    and OrderType = 'Preorder'
-                    and cast(PaymentDate as date) = cast('{}' as date)'''.format(
-            curr_date)
-      else:
-        command = '''
-                  select orderid from tborderhead t1
-                    inner join  tbcustpayment t2 on t1.paymenttype = t2.paymenttype
-                    where IsOnlinePayment = 'Yes'
-                    and	IsGenSale = 'No'
-                    and OrderType in ('Normal', 'ByOrder')
-                    and cast(PaymentDate as date) = cast('{}' as date)'''.format(
-            curr_date)
+  with mssql_db() as conn:
+    if order_type == "Preorder":
+      command = '''
+                select orderid from tborderhead t1
+                  inner join  tbcustpayment t2 on t1.paymenttype = t2.paymenttype
+                  where IsOnlinePayment = 'Yes'
+                  and	IsGenSale = 'No'
+                  and OrderType = 'Preorder'
+                  and cast(PaymentDate as date) = cast('{}' as date)'''.format(
+          curr_date)
+    else:
+      command = '''
+                select orderid from tborderhead t1
+                  inner join  tbcustpayment t2 on t1.paymenttype = t2.paymenttype
+                  where IsOnlinePayment = 'Yes'
+                  and	IsGenSale = 'No'
+                  and OrderType in ('Normal', 'ByOrder')
+                  and cast(PaymentDate as date) = cast('{}' as date)'''.format(
+          curr_date)
 
-      cursor.execute(command)
-      data = [row for row in cursor]
+    conn.execute_query(command)
+    data = [row for row in conn]
   return data
 
 
@@ -52,48 +46,47 @@ def execute_ar_transaction(orderid, is_prepaid):
       EXEC dbo.spc_GenARTranMST %s, %s, %s, %s, %s, @out OUT;
       SELECT @out;
     """
-    return conn.execute_scalar(sql, (
+    out = conn.execute_scalar(sql, (
         orderid,
         'Server',
         is_prepaid,
         'Sale',
         'No', ))
+  return out
 
 
 def get_return_agent():
-  with connect_db() as conn:
-    with conn.cursor(as_dict=True) as cursor:
-      command = '''
-        select suborderid
-              from TBSubOrderHead
-              where status in ('ReadyToShip', 'Shipping', 'Delivery')
-              and IsGenRTC = 'No'
-              and shippingid <> 4
-              and netamt <> oldnetamt
-        union all
-        select t1.suborderid
-            from TBSubOrderHead t1
-            inner join  tbcustpayment t2 on t1.paymenttype = t2.paymenttype
-            where t2.IsOnlinePayment = 'Yes'
-            and t1.status = 'Canceled'
-            and t1.IsGenRTC = 'No'
-      '''
-      cursor.execute(command)
-      data = [row for row in cursor]
+  with mssql_db() as conn:
+    command = '''
+      select suborderid
+            from TBSubOrderHead
+            where status in ('ReadyToShip', 'Shipping', 'Delivery')
+            and IsGenRTC = 'No'
+            and shippingid <> 4
+            and netamt <> oldnetamt
+      union all
+      select t1.suborderid
+          from TBSubOrderHead t1
+          inner join  tbcustpayment t2 on t1.paymenttype = t2.paymenttype
+          where t2.IsOnlinePayment = 'Yes'
+          and t1.status = 'Canceled'
+          and t1.IsGenRTC = 'No'
+    '''
+    conn.execute_query(command)
+    data = [row for row in conn]
   return data
 
 
 def get_return_agentservice():
-  with connect_db() as conn:
-    with conn.cursor(as_dict=True) as cursor:
-      command = '''
-                SELECT ServiceNo
-                FROM TBOtherServiceHead
-                WHERE Status = 'Canceled'
-                AND IsGenRTC = 'No'
-            '''
-      cursor.execute(command)
-      data = [row for row in cursor]
+  with mssql_db() as conn:
+    command = '''
+              SELECT ServiceNo
+              FROM TBOtherServiceHead
+              WHERE Status = 'Canceled'
+              AND IsGenRTC = 'No'
+          '''
+    conn.execute_query(command)
+    data = [row for row in conn]
   return data
 
 
@@ -103,6 +96,17 @@ def execut_return_agent(suborderid, return_type):
     conn.execute_scalar(sql, (
         suborderid,
         return_type, ))
+
+
+def generate_temp_data(curr_date):
+  with mssql_db() as conn:
+    sql = "EXEC dbo.spc_OFIN_CustomerReceiptAndAdjust %s;"
+    conn.execute_row(sql, (curr_date, ))
+
+    conn.execute_query('Select * From TBOFINCustomerReceiptAndAdjust_Temp')
+    data = [row for row in conn]
+
+  return data
 
 
 def is_debit_equals_credit(data_zn):
@@ -120,8 +124,8 @@ def is_debit_equals_credit(data_zn):
   return True
 
 
-def check_all_records_has_CPCID(data_zn):
-  is_CPCID_empty_or_null = [1 if not row['CPCID'] else 0 for row in data_zn]
+def check_all_records_has_CPCID(data):
+  is_CPCID_empty_or_null = [1 if not row['CPCID'] else 0 for row in data]
 
   if sum(is_CPCID_empty_or_null) > 0:
     print('CPCID is null')
@@ -129,20 +133,8 @@ def check_all_records_has_CPCID(data_zn):
   return True
 
 
-def validate_data(data_zn):
-  return is_debit_equals_credit(data_zn) & check_all_records_has_CPCID(data_zn)
-
-
-def generate_temp_data(curr_date):
-  with mssql_db() as conn:
-    sql = "EXEC dbo.spc_OFIN_CustomerReceiptAndAdjust %s;"
-    conn.execute_row(sql, (curr_date, ))
-    data = [row for row in conn]
-
-    conn.execute_query('Select * From TBOFINCustomerReceiptAndAdjust_Temp')
-    data_zn = [row for row in conn]
-
-  return data, data_zn
+def validate_data(data):
+  return is_debit_equals_credit(data) & check_all_records_has_CPCID(data)
 
 
 def get_next_seq(files, prefix_filename, prefix_length):
@@ -229,9 +221,9 @@ def main():
     returns = get_return_agentservice()
     [execut_return_agent(row['ServiceNo'], "SER") for row in returns]
 
-    data, data_zn = generate_temp_data(str_date)
+    data = generate_temp_data(str_date)
 
-    if not validate_data(data_zn):
+    if not validate_data(data):
       return
 
     generate_data_file(target_path, curr_date, data)
