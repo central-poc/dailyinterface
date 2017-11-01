@@ -57,9 +57,7 @@ with connect_t1c_db() as t1c:
     ])
     try:
       t1c_cursor.execute(sql.format(query))
-      #print (sql.format(query))
     except:
-      print(query)
       raise
     t1c.commit()
   print("Finished")
