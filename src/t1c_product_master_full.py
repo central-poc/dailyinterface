@@ -8,7 +8,7 @@ import uuid
 with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as conn:
   cds_cursor = conn.cursor(as_dict=True)
   query = """
-    SELECT top 500
+    SELECT TOP 100
       '1' as LNIdentifier,
       concat('CGO_', NewID()) as SourceTransID,
       p.pidnew as PID,
@@ -34,7 +34,7 @@ with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as 
       substring(REPLACE(REPLACE(p.displayname, CHAR(13), ''), CHAR(10), ''), 1, 255) as PrimaryDesc,
       substring(REPLACE(REPLACE(p.displaynameEN, CHAR(13), ''), CHAR(10), ''), 1, 100) as SecondaryDesc,
       case 
-        when p.status = 1 and p.isfirststockgr = 1 and getdate() between p.EffectiveDate and p.ExpiredDate
+        when p.status in (1, 6, 9) and p.isfirststockgr = 1 and getdate() between p.EffectiveDate and p.ExpiredDate
         then 'A' else 'I'
       end as Status,
       b.brandjdaid as BrandID,
@@ -61,7 +61,10 @@ with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as 
     inner join TBJDAHierarchy c on c.businessunitid = m.businessunitid and c.idept = m.idept and c.isdept = m.isdept and c.iclass = m.iclass and c.isclass = 0
     inner join TBJDAHierarchy sc on sc.businessunitid = m.businessunitid and sc.idept = m.idept and sc.isdept = m.isdept and sc.iclass = m.iclass and sc.isclass = m.isclass
     WHERE 1 = 1
-    and p.status = 1 and p.isfirststockgr = 1 and getdate() between p.EffectiveDate and p.ExpiredDate
+    and len(p.pidnew) > 0
+    --and p.status = 1 
+    --and p.isfirststockgr = 1 
+    --and getdate() between p.EffectiveDate and p.ExpiredDate
     ORDER BY p.pidnew
   """
   cds_cursor.execute(query)
