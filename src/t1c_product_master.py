@@ -12,19 +12,35 @@ def connect_t1c_db():
 with connect_cds_db() as conn:
   cds_cursor = conn.cursor(as_dict=True)
   query = '''
-    SELECT pidnew AS Pid,DocnameEn AS ProductNameEN,Docname AS ProductNameTH,
-        d.departmentID AS Local_Cate_ID,d.DisplayNameEN AS LocalNameEN, d.DisplayName AS LocalNameTH,
-        tbbrand.Brandid as Brand_ID,tbbrand.DisplaynameEn AS BrandNameEN,
-        tbbrand.DisplayName AS BrandNameTH, isnull(tbproduct.Barcode, '') as Barcode
-    FROM tbproduct
-    JOIN tbbrand
-        ON tbproduct.brandid = tbbrand.brandid
-    JOIN tbproductGroup pg
-        ON tbproduct.productgroupid = pg.productgroupid
-    JOIN tbdepartment d
-        ON pg.departmentid = d.departmentid
-    WHERE tbproduct.isFirstStockGR = 1 AND len(pidnew) > 0
-    ORDER BY pidnew
+    SELECT
+        pidnew AS Pid,
+        DocnameEn AS ProductNameEN,
+        Docname AS ProductNameTH,
+        d.departmentID AS Local_Cate_ID,
+        d.DisplayNameEN AS LocalNameEN,
+        d.DisplayName AS LocalNameTH,
+        tbbrand.Brandid as Brand_ID,
+        tbbrand.DisplaynameEn AS BrandNameEN,
+        tbbrand.DisplayName AS BrandNameTH,
+        isnull(tbproduct.Barcode, '') as Barcode
+    FROM
+        tbproduct
+    JOIN
+        tbbrand
+    ON
+        tbproduct.brandid = tbbrand.brandid
+    JOIN
+        tbproductGroup pg
+    ON
+        tbproduct.productgroupid = pg.productgroupid
+    JOIN
+        tbdepartment d
+    ON
+        pg.departmentid = d.departmentid
+    WHERE
+        tbproduct.isFirstStockGR = 1 AND len(pidnew) > 0
+    ORDER BY
+        pidnew
     '''
   cds_cursor.execute(query)
   data = cds_cursor.fetchall()
