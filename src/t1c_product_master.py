@@ -4,7 +4,7 @@ import pymssql
 def connect_cds_db():
   return pymssql.connect("10.17.220.55", "central", "Cen@tral", "DBCDSContent")
 
-def connect_rds_db():
+def connect_rbs_db():
   return pymssql.connect("mssql.production.thecentral.com", "coreapi", "coreapi", "DBMKPOnline")
 
 def connect_t1c_db():
@@ -14,7 +14,7 @@ def connect_t1c_db():
 with connect_cds_db() as conn:
   cds_cursor = conn.cursor(as_dict=True)
   query = '''
-    SELECT 
+    SELECT
         pidnew AS Pid,
         DocnameEn AS ProductNameEN,
         Docname AS ProductNameTH,
@@ -54,7 +54,7 @@ with connect_cds_db() as conn:
   cds_data = cds_cursor.fetchall()
 
 
-with connect_rds_db() as conn:
+with connect_rbs_db() as conn:
   rbs_cursor = conn.cursor(as_dict=True)
   query = '''
   SELECT
