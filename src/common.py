@@ -1,4 +1,6 @@
 import time
+import requests, json
+import urllib.parse
 import yaml
 
 
@@ -18,3 +20,15 @@ def config(env):
     cfg = yaml.load(ymlfile)
 
   return cfg[env]
+
+def notifyLine(message):
+  print(message)
+  LINE_ACCESS_TOKEN = "5FJgfpvf4Jgljm8AQ9H6DHFt858TasxjDtf80uYMcMk"
+  LINE_HEADERS = {
+    'Content-Type': 'application/x-www-form-urlencoded',
+    "Authorization": "Bearer " + LINE_ACCESS_TOKEN
+  }
+  LINE_NOTI_URL = "https://notify-api.line.me/api/notify"
+  msg = urllib.parse.urlencode({"message": message})
+  response = requests.post(url=LINE_NOTI_URL, headers=LINE_HEADERS, data=msg)
+  print('Response HTTP Status Code: {status_code}'.format(status_code=response.status_code))

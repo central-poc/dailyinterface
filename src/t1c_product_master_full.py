@@ -4,8 +4,8 @@ import os
 import pymssql
 import uuid
 
-
-with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as conn:
+with pymssql.connect("10.17.251.160", "central", "Cen@tral",
+                     "DBCDSContent") as conn:
   cds_cursor = conn.cursor(as_dict=True)
   query = """
     SELECT TOP 100
@@ -87,13 +87,15 @@ datfile = '%s_%s.dat.0001' % (interface_name, filedatetime)
 filepath = os.path.join(target_path, datfile)
 with open(filepath, 'w') as outfile:
   outfile.write('0|%d\n' % total_row)
-  writer = csv.DictWriter(outfile, fieldnames=headers, delimiter='|', skipinitialspace=True)
+  writer = csv.DictWriter(
+      outfile, fieldnames=headers, delimiter='|', skipinitialspace=True)
   for d in data:
-    d['SourceTransID'] = 'CGO_%s' %  uid
+    d['SourceTransID'] = 'CGO_%s' % uid
     writer.writerow(d)
   outfile.write('9|End')
 
 ctrlfile = '%s_%s.ctrl' % (interface_name, filedatetime)
 filepath = os.path.join(target_path, ctrlfile)
 with open(filepath, 'w') as outfile:
-  outfile.write('%s|CGO|Online|1|%d|%s|CGO|||' % (interface_name, total_row, filedatetime))
+  outfile.write('%s|CGO|Online|1|%d|%s|CGO|||' % (interface_name, total_row,
+                                                  filedatetime))
