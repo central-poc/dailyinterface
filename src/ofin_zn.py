@@ -2,12 +2,12 @@ import os
 from datetime import datetime, timedelta
 import _mssql
 
-_date = datetime.strptime('2017-08-27', '%Y-%m-%d')
+_date = datetime.strptime('2017-11-17', '%Y-%m-%d')
 
 
 def mssql_db():
   return _mssql.connect(
-      server='10.17.220.173',
+      server='10.17.221.173',
       user='coreii',
       password='co@2ii!',
       database='DBMKP')

@@ -2,11 +2,11 @@ import os
 import pymssql
 from datetime import datetime, timedelta
 
-_date = datetime.strptime('2017-08-30', '%Y-%m-%d')
+_date = datetime.strptime('2017-11-19', '%Y-%m-%d')
 
 
 def connect_db():
-  return pymssql.connect('10.17.220.173', 'coreii', 'co@2ii!', 'DBMKP')
+  return pymssql.connect('10.17.221.173', 'coreii', 'co@2ii!', 'DBMKP')
 
 
 def check_debit_equal_to_credit(dtZL):
