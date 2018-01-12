@@ -1,5 +1,6 @@
-import time
+import pysftp
 import requests, json
+import time
 import urllib.parse
 import yaml
 
@@ -21,6 +22,7 @@ def config(env):
 
   return cfg[env]
 
+
 def notifyLine(message):
   print(message)
   LINE_ACCESS_TOKEN = "5FJgfpvf4Jgljm8AQ9H6DHFt858TasxjDtf80uYMcMk"
@@ -32,3 +34,16 @@ def notifyLine(message):
   msg = urllib.parse.urlencode({"message": message})
   response = requests.post(url=LINE_NOTI_URL, headers=LINE_HEADERS, data=msg)
   print('Response HTTP Status Code: {status_code}'.format(status_code=response.status_code))
+
+
+def sftp(source, destination):
+  print('copy: {} to: {}'.format(source, destination))
+  cnopts = pysftp.CnOpts()
+  cnopts.hostkeys = None
+  with pysftp.Connection('110.164.67.39', username='cgoftptest', password='tsetptfogc', cnopts=cnopts) as sftp:
+    sftp.put_d(source, destination)
+
+
+if __name__ == '__main__':
+  destination = '/inbound/BCH_SBL_ProductMasterFull/req'
+  sftp('/Users/adisorn/Documents/workspace/cng/code/dailyinterface/output/siebel', destination)
