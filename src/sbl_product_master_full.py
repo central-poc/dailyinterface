@@ -17,27 +17,18 @@ if not os.path.exists(target_path):
 interface_name = 'BCH_CGO_T1C_ProductMasterFull'
 filedatetime = datetime.now().strftime('%d%m%Y_%H%M%S')
 
-per_page = 10
+per_page = 10000
 
 with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as conn:
   with conn.cursor(as_dict=True) as cursor:
-    query = """
-      select count(p.pidnew) as c
-      from dbo.tbproduct p
-      where 1 = 1
-      and len(p.pidnew) > 0
-      and p.status in (1, 6, 9) 
-      and p.isfirststockgr = 1
-      and getdate() between p.EffectiveDate and p.ExpiredDate
+    start_time = datetime.now()
+    sql = """
+      if object_id('dbo.temp_siebel_product', 'U') is not null
+        drop table dbo.temp_siebel_product
     """
-    cursor.execute(query)
-    data = cursor.fetchone()
-    rows = data['c']
-    pages = math.ceil(rows / per_page)
-    print("rows: {}, pages: {}".format(rows, pages))
-    for page in range(1, pages + 1):
-      start_time = datetime.now()
-      query = """
+    cursor.execute(sql)
+    sql = """
+      select s.* into dbo.temp_siebel_product from (
         select
           '1' as LNIdentifier,
           concat('CGO-', p.pidnew, '-', NewID()) as SourceTransID,
@@ -92,18 +83,37 @@ with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as 
         and p.status in (1, 6, 9) 
         and p.isfirststockgr = 1
         and getdate() between p.EffectiveDate and p.ExpiredDate
-        order by p.pidnew
+      ) s
+      order by s.pid
+    """
+    cursor.execute(sql)
+    sql = "create index idx_siebel_product_pid ON dbo.temp_siebel_product (pid)"
+    cursor.execute(sql)
+    elapsed_time = (datetime.now() - start_time).seconds
+    print("Prepared in {} s.".format(elapsed_time))
+
+    sql = "select count(pid) as c from dbo.temp_siebel_product"
+    cursor.execute(sql)
+    data = cursor.fetchone()
+    rows = data['c']
+    pages = math.ceil(rows / per_page)
+    print("rows: {}, pages: {}".format(rows, pages))
+    for page in range(0, pages):
+      start_time = datetime.now()
+      sql = """
+        select * from dbo.temp_siebel_product
+        order by pid
         offset {} rows fetch next {} rows only
       """
-      cursor.execute(query.format(per_page*page, per_page))
+      cursor.execute(sql.format(per_page*page, per_page))
       data = cursor.fetchall()
 
       elapsed_time = (datetime.now() - start_time).seconds
-      print("Success query in {} s.".format(elapsed_time))
+      print("Page-{} in {} s.".format(page+1, elapsed_time))
 
       headers = data[0]
       total_row = len(data)
-      datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime, page)
+      datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime, page+1)
       filepath = os.path.join(target_path, datfile)
       with open(filepath, 'w') as outfile:
         outfile.write("0|{}\n".format(total_row))
@@ -113,12 +123,15 @@ with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as 
           writer.writerow(d)
         outfile.write('9|End')
 
-start_time = datetime.now()
 ctrlfile = "{}_{}.ctrl".format(interface_name, filedatetime)
 filepath = os.path.join(target_path, ctrlfile)
+attribute1 = ""
+attribute2 = ""
 with open(filepath, 'w') as outfile:
-  outfile.write("{}|CGO|Online|{}|{}|{}|CGO|||".format(interface_name, pages, rows, filedatetime))
+  outfile.write("{}|CGO|Online|{}|{}|{}|CGO|{}|{}".format(
+    interface_name, pages, rows, filedatetime, attribute1, attribute2))
 
+start_time = datetime.now()
 destination = '/inbound/BCH_SBL_ProductMasterFull/req'
 sftp(target_path, destination)
 elapsed_time = (datetime.now() - start_time).seconds
