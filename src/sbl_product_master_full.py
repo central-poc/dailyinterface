@@ -9,7 +9,7 @@ import uuid
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
-target_dir = 'siebel'
+target_dir = 'siebel/full'
 target_path = os.path.join(parent_path, 'output', target_dir)
 if not os.path.exists(target_path):
   os.makedirs(target_path)
