@@ -17,6 +17,8 @@ _file_name = ""
 enum_bu = ['B2S', 'CDS', 'CGO', 'MSL', 'RBS', 'SSP']
 enum_shopgroup = ['BU', 'IN', 'ME']
 _time = datetime.strptime('2017-11-03 10:00', '%Y-%m-%d %H:%M')
+_t_index = 1
+_p_index = 1
 
 # time = datetime.now()
 
@@ -26,6 +28,7 @@ def connect_db():
 def generate_text_t1c():
   dt_batch_date_get()
   sale_transaction(_file_name)
+  gen_ctrl_text()
 
 def dt_batch_date_get():
   global _file_name
@@ -41,8 +44,10 @@ def sale_transaction(file_name):
   sale_transactions = get_sale_tran()
   total = len(sale_transactions)
   with open(CFG_SALES_TRANSACTION_PATH + file_name, 'a') as text_file:
+    text_file.write(('0|%d' % (len(sale_transactions)))+ os.linesep)
     for transaction in sale_transactions:
       text_file.write(transaction + os.linesep)
+    text_file.write('9|END')
 
   total_row = total_row+total
   print('--- End: SaleTransaction ---')
@@ -118,12 +123,12 @@ def get_sale_tran():
     """
     cursor.execute(query)
     return [
-        gen_sale_tran_data(data, index + 1 )
-        for index, data in enumerate(cursor)
+        gen_sale_tran_data(data)
+        for data in cursor
     ]
 
-
-def gen_sale_tran_data(data, index):
+def gen_sale_tran_data(data):
+  global _t_index, _p_index
   store_number = get_option_str(data['StoreNo'])
 
   inv_no = get_option_str(data['InvNo'])
@@ -155,7 +160,12 @@ def gen_sale_tran_data(data, index):
 
   mobile_no = '0' * 10
   user_id = 'POS'
-  item_seq_no = str(index)
+  if trans_sub_type == 'T':
+      item_seq_no = str(_t_index)
+      _t_index = _t_index+ 1
+  else :
+      item_seq_no = str(_p_index)
+      _p_index = _p_index+ 1
 
   pid = get_option_str(data['PID'])
   product_code = pid
@@ -250,9 +260,6 @@ def get_option_str(data):
 
 def get_batch_date():
   return _time - timedelta(days=1)
-
-def get_sql_batch_date():
-  return _time
 
 def create_directory(path):
   if not os.path.exists(path):
