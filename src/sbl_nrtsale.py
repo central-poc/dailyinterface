@@ -5,189 +5,156 @@ import os
 from datetime import datetime, timedelta
 import random
 
-CFG_SALES_TRANSACTION_PATH = "SaleTransaction/"
-
-partner_code = 'CGO-PARTNER-CODE'
-total_row = 0
-
-_year = ""
-_month = ""
-_day = ""
-_file_name = ""
-enum_bu = ['B2S', 'CDS', 'CGO', 'MSL', 'RBS', 'SSP']
-enum_shopgroup = ['BU', 'IN', 'ME']
-_time = datetime.strptime('2017-11-03 10:00', '%Y-%m-%d %H:%M')
-_t_index = 1
-_p_index = 1
-
-# time = datetime.now()
-
-def connect_db():
-  return pymssql.connect("10.17.220.173", "app-t1c", "Zxcv123!", "DBMKP")
 
 def generate_text_t1c():
-  dt_batch_date_get()
-  sale_transaction(_file_name)
-  gen_ctrl_text()
-
-def dt_batch_date_get():
-  global _file_name
-  dt_batch_date = get_batch_date()
-  month = '{:02}'.format(dt_batch_date.month)
-  day = '{:02}'.format(dt_batch_date.day)
-  year = str(dt_batch_date.year)[2:4]
-  _file_name = 'BCH_CGO_T1C_NRTSales_{}{}{}.dat'.format(year, month, day)
-
-def sale_transaction(file_name):
-  print('--- Begin: SaleTransaction ---')
-  global total_row
   sale_transactions = get_sale_tran()
-  total = len(sale_transactions)
-  with open(CFG_SALES_TRANSACTION_PATH + file_name, 'a') as text_file:
-    text_file.write(('0|%d' % (len(sale_transactions)))+ os.linesep)
+  total_row = len(sale_transactions)
+
+  dir_path = os.path.dirname(os.path.realpath(__file__))
+  parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
+  target_dir = 'siebel/nrtsale'
+  target_path = os.path.join(parent_path, 'output', target_dir)
+  if not os.path.exists(target_path):
+    os.makedirs(target_path)
+
+  interface_name = 'BCH_CGO_T1C_NRTSales'
+  now = datetime.now()
+  batchdatetime = now.strftime('%d%m%Y_%H:%M:%S:%f')[:-3]
+  filedatetime = now.strftime('%d%m%Y_%H%M%S')
+  datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime, 1)
+  filepath = os.path.join(target_path, datfile)
+
+  with open(filepath, 'w') as text_file:
+    text_file.write('0|{}\n'.format(total_row))
     for transaction in sale_transactions:
-      text_file.write(transaction + os.linesep)
+      text_file.write('{}\n'.format(transaction))
     text_file.write('9|END')
 
-  total_row = total_row+total
-  print('--- End: SaleTransaction ---')
+  ctrlfile = '{}_{}.ctrl'.format(interface_name, filedatetime)
+  filepath = os.path.join(target_path, ctrlfile)
+  attribute1 = ""
+  attribute2 = ""
+  with open(filepath, 'w') as outfile:
+    outfile.write('{}|CGO|001|1|{}|{}|CGO|{}|{}'.format(
+      interface_name, total_row, batchdatetime, attribute1, attribute2))
 
 def get_sale_tran():
-  with connect_db() as conn:
-    cursor = conn.cursor(as_dict=True)
-    query = """
-        SELECT
-         S.AccountCode as StoreNo,
-         S.StroeCode as POSNo,
-         Head.ShopID,
-         Head.InvNo,
-         Head.InvDate,
-         Head.CreateOn,
-         Head.PaymentDate as BusinessDate,
-         Head.DeliveryDate,
-         '01' AS TransType,
-         Detail.PID,
-         Detail.Quantity,
-         Detail.UnitPrice ,
-         Detail.UnitPrice - (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS UnitSalesPrice,
-         Detail.SeqNo,
-         Head.VatAmt ,
-         (Detail.UnitPrice * Detail.Quantity) - (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS NetAmt,
-         (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
-         ProMas.ProdBarcode,
-         Head.T1CNoEarn,
-         Head.RedeemAmt,
-         Head.PaymentRefNo,
-         Head.TrackingId as DisplayReceipt
-        FROM TBSubOrderHead Head
-        INNER JOIN TBShopMaster S on S.ShopID = Head.ShopID
-        INNER JOIN TBSubOrderDetail Detail ON Head.Suborderid = Detail.Suborderid
-        LEFT JOIN TBProductMaster ProMas ON Detail.PID = ProMas.PID
-        WHERE cast(Head.InvDate as date) = cast(getdate() - 1 as date)
-        AND Head.InvNo != ''
+  with pymssql.connect("10.17.220.173", "app-t1c", "Zxcv123!", "DBMKP") as conn:
+    with conn.cursor(as_dict=True) as cursor:
+      query = """
+          SELECT
+          concat(Head.ShopID, '-', NewID()) as SourceTransID,
+          S.AccountCode as StoreNo,
+          S.StroeCode as POSNo,
+          Head.ShopID,
+          Head.InvNo,
+          format(Head.InvDate, 'ddMMyyyy', 'en-us') as InvDate,
+          format(Head.PaymentDate, 'ddMMyyyy', 'en-us') as BusinessDate,
+          format(Head.DeliveryDate, 'ddMMyyyy', 'en-us') as DeliveryDate,
+          '01' AS TransType,
+          format(Head.suborderdate, 'ddMMyyyy_HH:mm:ss:fff', 'en-us') as TransDate,
+          Detail.PID,
+          Detail.Quantity,
+          Detail.UnitPrice ,
+          Detail.UnitPrice - (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS UnitSalesPrice,
+          Detail.SeqNo,
+          Head.VatAmt ,
+          (Detail.UnitPrice * Detail.Quantity) - (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS NetAmt,
+          (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
+          ProMas.ProdBarcode,
+          Head.T1CNoEarn,
+          Head.ShipMobileNo as Mobile,
+          Head.RedeemAmt,
+          Head.PaymentRefNo,
+          Head.TrackingId as DisplayReceipt
+          FROM TBSubOrderHead Head
+          INNER JOIN TBShopMaster S on S.ShopID = Head.ShopID
+          INNER JOIN TBSubOrderDetail Detail ON Head.Suborderid = Detail.Suborderid
+          LEFT JOIN TBProductMaster ProMas ON Detail.PID = ProMas.PID
+          WHERE cast(Head.InvDate as date) = cast(getdate() - 1 as date)
+          AND Head.InvNo != ''
 
-        UNION ALL
+          UNION ALL
 
-        SELECT
-         S.AccountCode as StoreNo,
-         S.StroeCode as POSNo,
-         Head.ShopID,
-         Head.CnNo AS InvNo,
-         CONVERT(VARCHAR(19),Head.CnDate,111) AS InvDate,
-         Head.CreateOn,
-         Head.CnDate as BusinessDate,
-         Head.CnDate as DeliveryDate,
-         '07' AS TransType,
-         Detail.PID,
-         Detail.Quantity,
-         Detail.UnitPrice ,
-         Detail.UnitPrice - (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS UnitSalesPrice,
-         Detail.SeqNo,
-         Head.VatAmt ,
-         (Detail.UnitPrice * Detail.Quantity) - (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS NetAmt,
-         (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
-         ProMas.ProdBarcode,
-         Head.T1CNoEarn,
-         Head.RedeemAmt,
-         Head.PaymentRefNo,
-         Head.SubSRNo as DisplayReceipt
-        FROM TBSubSaleReturnHead Head
-        INNER JOIN TBShopMaster S on S.ShopID = Head.ShopID
-        INNER JOIN TBSubSaleReturnDetail Detail ON Head.SubSRNo = Detail.SubSRNo
-        LEFT JOIN TBProductMaster ProMas ON Detail.PID = ProMas.PID
-        WHERE Head.SubSaleReturnType IN ('CN', 'Exchange')
-        AND Head.Status = 'Complete'
-        AND Head.CnNo != ''
-        AND cast(Head.InvDate as date) = cast(getdate() - 1 as date)
-        ORDER BY InvNo
-    """
-    cursor.execute(query)
-    return [
-        gen_sale_tran_data(data)
-        for data in cursor
-    ]
+          SELECT
+          concat(Head.ShopID, '-', NewID()) as SourceTransID,
+          S.AccountCode as StoreNo,
+          S.StroeCode as POSNo,
+          Head.ShopID,
+          Head.CnNo AS InvNo,
+          format(Head.CnDate, 'ddMMyyyy', 'en-us') AS InvDate,
+          format(Head.CnDate, 'ddMMyyyy', 'en-us') AS BusinessDate,
+          format(Head.CnDate, 'ddMMyyyy', 'en-us') AS DeliveryDate,
+          '07' AS TransType,
+          format(Head.subsrdate, 'ddMMyyyy_HH:mm:ss:fff', 'en-us') as TransDate,
+          Detail.PID,
+          Detail.Quantity,
+          Detail.UnitPrice ,
+          Detail.UnitPrice - (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS UnitSalesPrice,
+          Detail.SeqNo,
+          Head.VatAmt ,
+          (Detail.UnitPrice * Detail.Quantity) - (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS NetAmt,
+          (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
+          ProMas.ProdBarcode,
+          Head.T1CNoEarn,
+          Head.ShipMobileNo as Mobile,
+          Head.RedeemAmt,
+          Head.PaymentRefNo,
+          Head.SubSRNo as DisplayReceipt
+          FROM TBSubSaleReturnHead Head
+          INNER JOIN TBShopMaster S on S.ShopID = Head.ShopID
+          INNER JOIN TBSubSaleReturnDetail Detail ON Head.SubSRNo = Detail.SubSRNo
+          LEFT JOIN TBProductMaster ProMas ON Detail.PID = ProMas.PID
+          WHERE Head.SubSaleReturnType IN ('CN', 'Exchange')
+          AND Head.Status = 'Complete'
+          AND Head.CnNo != ''
+          AND cast(Head.InvDate as date) = cast(getdate() - 1 as date)
+      """
+      cursor.execute(query)
+      return [gen_sale_tran_data(data) for data in cursor]
 
 def gen_sale_tran_data(data):
-  global _t_index, _p_index
-  store_number = get_option_str(data['StoreNo'])
-
-  inv_no = get_option_str(data['InvNo'])
-  bu = inv_no[0:3]
-
-  source_trans_id = partner_code + store_number + datetime.strptime(data['InvDate'],
-                                         '%Y-%m-%d').strftime('%Y%m%d')
-  transaction_date = datetime.strptime(data['InvDate'],
-                                         '%Y-%m-%d').strftime('%Y%m%d')
-
-  transaction_time = data['CreateOn'].strftime('%H%M')
-
-  trans_type = get_option_str(data['TransType'])
-  trans_date = transaction_date + transaction_time
-
-  pos_number = get_option_str(data['POSNo'])
-
-  ticket_running_number = get_tracking_number(inv_no)
-  receipt_number = store_number + pos_number + ticket_running_number \
-        + transaction_date
-
-  business_date = get_option_str(data['BusinessDate'])
-  inv_date = transaction_date
-  delivery_date = get_option_str(data['DeliveryDate'])
+  _t_index = 1
+  _p_index = 1
+  source_trans_id = data['SourceTransID']
+  store_number = data['StoreNo']
+  pos_number = data['POSNo']
+  receipt_number = data['InvNo']
+  trans_type = data['TransType']
+  trans_date = data['TransDate']
+  business_date = data['BusinessDate']
+  inv_date = data['InvDate']
+  delivery_date = data['DeliveryDate']
   earn_online_flag = 'N'
-  t1c_card_no = get_option_str(data['T1CNoEarn'])
-  redeem_amt = get_option_str(data['RedeemAmt'])
+  t1c_card_no = data['T1CNoEarn']
+  mobile_no = data['Mobile']
+  user_id = 'POS'
+  redeem_amt = str(data['RedeemAmt'])
   trans_sub_type = 'T' if t1c_card_no != '' or redeem_amt != '0.000' else 'P'
 
-  mobile_no = '0' * 10
-  user_id = 'POS'
   if trans_sub_type == 'T':
       item_seq_no = str(_t_index)
-      _t_index = _t_index+ 1
+      _t_index = _t_index + 1
   else :
       item_seq_no = str(_p_index)
-      _p_index = _p_index+ 1
+      _p_index = _p_index + 1
 
-  pid = get_option_str(data['PID'])
-  product_code = pid
-  product_barcode = get_option_str(data['ProdBarcode'])
-
-  quantity = get_option_str(data['Quantity'])
-
-  price_unit = get_option_str(data['UnitPrice'])
-  price_total = get_option_str(data['Quantity'] * data['UnitPrice'])
-
-  net_price_unit = get_option_str(data['UnitSalesPrice'])
-  net_price_total = get_option_str(data['NetAmt'])
-
-  discount_total = get_option_str(
-      data['TransactionDiscountAmount'])
-
-  vat_amount = get_option_str(data['VatAmt'])
+  product_code = str(data['PID'])
+  product_barcode = str(data['ProdBarcode'])
+  quantity = str(data['Quantity'])
+  price_unit = str(data['UnitPrice'])
+  price_total = str(data['Quantity'] * data['UnitPrice'])
+  net_price_unit = str(data['UnitSalesPrice'])
+  net_price_total = str(data['NetAmt'])
+  discount_total = str(data['TransactionDiscountAmount'])
+  vat_amount = str(data['VatAmt'])
   tender_type = '' if trans_sub_type == 'P' else 'T1PM' if redeem_amt != '0.000' else 'CASH'
-  tender_ref_no = '' if trans_sub_type == 'P' else t1c_card_no if redeem_amt != '0.000' else get_option_str(data['PaymentRefNo'])
+  tender_ref_no = '' if trans_sub_type == 'P' else t1c_card_no if redeem_amt != '0.000' else data['PaymentRefNo']
   original_receipt_no = ''
-  original_item_seq_no = get_option_str(data['SeqNo'])
-  display_receipt_no = get_option_str(data['DisplayReceipt'])
+  original_item_seq_no = ''
+  display_receipt_no = data['DisplayReceipt']
+  return_all_flag = ''
+  sbl_cancel_redeem = ''
 
   res = []
   res.append('1')
@@ -220,51 +187,9 @@ def gen_sale_tran_data(data):
   res.append(original_receipt_no)
   res.append(original_item_seq_no)
   res.append(display_receipt_no)
-  # + return_all_flag + sblc_ncl_redeem_txn_id
-  # if len(raw_sale_tran) == 281:
+  res.append(return_all_flag)
+  res.append(sbl_cancel_redeem)
   return "|".join(res)
 
-def gen_ctrl_text():
-  global total_row
-  interface_name = 'BCH_PRT_T1C_NRTSales'
-  filedatetime = datetime.now().strftime('%d%m%Y_%H:%M:%S')
-  ctrlfile = '%s_%s.ctrl' % (interface_name, filedatetime)
-  filepath = os.path.join(CFG_SALES_TRANSACTION_PATH, ctrlfile)
-  with open(filepath, 'w') as outfile:
-    outfile.write('%s|%s|Online|1|%d|%s|CGO|||' % (interface_name, partner_code, total_row,
-                                                  filedatetime))
-
-def get_tracking_number(inv_no):
-  pad_char = '0'
-  suffix = inv_no[6:13]
-  bu = inv_no[0:3]
-  if len(inv_no) < 8:
-    if bu == 'CDS':
-      pad_char = '1'
-    elif bu == 'CNC':
-      pad_char = '2'
-    elif bu == 'ABB':
-      pad_char = '3'
-    elif bu == 'RBS' or bu == 'CNR':
-      pad_char = '4'
-    elif bu == 'SSP' or bu == 'CNS':
-      pad_char = '5'
-    elif bu == 'B2S' or bu == 'CNB':
-      pad_char = '6'
-    else:
-      pad_char = '0'
-  return ('{:' + pad_char + '>8}').format(suffix)
-
-def get_option_str(data):
-  return '' if data == None else str(data)
-
-def get_batch_date():
-  return _time - timedelta(days=1)
-
-def create_directory(path):
-  if not os.path.exists(path):
-    os.makedirs(path)
-
 if __name__ == "__main__":
-  create_directory('SaleTransaction')
   generate_text_t1c()
