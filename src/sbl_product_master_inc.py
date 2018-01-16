@@ -15,7 +15,9 @@ if not os.path.exists(target_path):
   os.makedirs(target_path)
 
 interface_name = 'BCH_CGO_T1C_ProductMasterIncre'
-filedatetime = datetime.now().strftime('%d%m%Y_%H%M%S')
+now = datetime.now()
+batchdatetime = now.strftime('%d%m%Y_%H:%M:%S:%f')[:-3]
+filedatetime = now.strftime('%d%m%Y_%H%M%S')
 
 per_page = 10000
 
@@ -130,7 +132,7 @@ attribute1 = ""
 attribute2 = ""
 with open(filepath, 'w') as outfile:
   outfile.write("{}|CGO|Online|{}|{}|{}|CGO|{}|{}".format(
-    interface_name, pages, rows, filedatetime, attribute1, attribute2))
+    interface_name, pages, rows, batchdatetime, attribute1, attribute2))
 
 start_time = datetime.now()
 destination = '/inbound/BCH_SBL_ProductMasterIncre/req'
