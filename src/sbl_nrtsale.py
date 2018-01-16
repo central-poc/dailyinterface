@@ -156,7 +156,7 @@ def gen_sale_tran_data(data):
   earn_online_flag = 'N'
   t1c_card_no = get_option_str(data['T1CNoEarn'])
   redeem_amt = get_option_str(data['RedeemAmt'])
-  trans_sub_type = 'T' if t1c_card_no != '' or redeem_amt != "0.000'" else 'P'
+  trans_sub_type = 'T' if t1c_card_no != '' or redeem_amt != '0.000' else 'P'
 
   mobile_no = '0' * 10
   user_id = 'POS'
