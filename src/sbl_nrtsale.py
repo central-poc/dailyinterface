@@ -1,8 +1,9 @@
+from common import sftp
+from datetime import datetime, timedelta
 import pymssql
 import sys
 import csv
 import os
-from datetime import datetime, timedelta
 import random
 
 
@@ -37,6 +38,9 @@ def generate_text_t1c():
   with open(filepath, 'w') as outfile:
     outfile.write('{}|CGO|001|1|{}|{}|CGO|{}|{}'.format(
       interface_name, total_row, batchdatetime, attribute1, attribute2))
+
+  destination = '/inbound/BCH_SBL_NRTSales/req'
+  sftp(target_path, destination)
 
 def get_sale_tran():
   with pymssql.connect("10.17.220.173", "app-t1c", "Zxcv123!", "DBMKP") as conn:
