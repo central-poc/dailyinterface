@@ -41,8 +41,8 @@ with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as 
           '' as DIVCode,
           '' as DIVNameEN,
           '' as DIVNameTH,
-          m.IDept as DeptID,
-          substring(REPLACE(REPLACE(d.DeptName, CHAR(13), ''), CHAR(10), ''), 1, 60) as DeptNameEN, 
+          concat(bu.BU,m.IDept) as DeptID,
+          substring(REPLACE(REPLACE(d.DeptName, CHAR(13), ''), CHAR(10), ''), 1, 60) as DeptNameEN,
           substring(REPLACE(REPLACE(d.DeptName, CHAR(13), ''), CHAR(10), ''), 1, 60) as DeptNameTH,
           m.ISDept as SubDeptID,
           substring(REPLACE(REPLACE(sd.DeptName, CHAR(13), ''), CHAR(10), ''), 1, 60) as SubDeptNameEN,
@@ -82,7 +82,7 @@ with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as 
         inner join tbjdahierarchy sc on sc.businessunitid = m.businessunitid and sc.idept = m.idept and sc.isdept = m.isdept and sc.iclass = m.iclass and sc.isclass = m.isclass
         where 1 = 1
         and len(p.pidnew) > 0
-        and p.status in (1, 6, 9) 
+        and p.status in (1, 6, 9)
         and p.isfirststockgr = 1
         and getdate() between p.EffectiveDate and p.ExpiredDate
       ) s
