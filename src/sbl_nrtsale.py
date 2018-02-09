@@ -32,16 +32,16 @@ def generate_text_t1c():
             text_file.write('{}\n'.format(transaction))
         text_file.write('9|END')
 
-    # ctrlfile = '{}_{}.ctrl'.format(interface_name, filedatetime)
-    # filepath = os.path.join(target_path, ctrlfile)
-    # attribute1 = ""
-    # attribute2 = ""
-    # with open(filepath, 'w') as outfile:
-    #   outfile.write('{}|CGO|001|1|{}|{}|CGO|{}|{}'.format(
-    #     interface_name, total_row, batchdatetime, attribute1, attribute2))
+    ctrlfile = '{}_{}.ctrl'.format(interface_name, filedatetime)
+    filepath = os.path.join(target_path, ctrlfile)
+    attribute1 = ""
+    attribute2 = ""
+    with open(filepath, 'w') as outfile:
+      outfile.write('{}|CGO|001|1|{}|{}|CGO|{}|{}'.format(
+        interface_name, total_row, batchdatetime, attribute1, attribute2))
 
-    # destination = '/inbound/BCH_SBL_NRTSales/req'
-    # sftp(target_path, destination)
+    destination = '/inbound/BCH_SBL_NRTSales/req'
+    sftp(target_path, destination)
 
 
 def get_sale_tran():
