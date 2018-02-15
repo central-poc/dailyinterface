@@ -41,7 +41,7 @@ with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as 
           '' as DIVCode,
           '' as DIVNameEN,
           '' as DIVNameTH,
-          concat(bu.BU,m.IDept) as DeptID,
+          concat(case bu WHEN 'MSL' THEN 'M&S' ELSE bu END,m.IDept) as DeptID,
           substring(REPLACE(REPLACE(d.DeptName, CHAR(13), ''), CHAR(10), ''), 1, 60) as DeptNameEN,
           substring(REPLACE(REPLACE(d.DeptName, CHAR(13), ''), CHAR(10), ''), 1, 60) as DeptNameTH,
           m.ISDept as SubDeptID,
@@ -74,6 +74,7 @@ with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as 
           'ProductService' as SourceSystem,
           'N' as PointExclusionFlag
         from tbproduct p
+        inner join TBBusinessUnit bu on p.BusinessUnitId = bu.BusinessUnitId
         inner join tbproductmapping m on m.pidnew = p.pidnew
         inner join tbjdabrand b on b.brandjdaid = m.brandjdaid and b.businessunitid = m.businessunitid
         inner join tbjdahierarchy d on d.businessunitid = m.businessunitid and d.idept = m.idept and d.isdept = 0 and d.iclass = 0 and d.isclass = 0
@@ -92,7 +93,7 @@ with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as 
     sql = "create index idx_siebel_product_pid ON dbo.temp_siebel_product (pid)"
     cursor.execute(sql)
     elapsed_time = (datetime.now() - start_time).seconds
-    print("Prepared in {} s.".format(elapsed_time))
+    print("Prepared in {}    s.".format(elapsed_time))
 
     sql = "select count(pid) as c from dbo.temp_siebel_product"
     cursor.execute(sql)
