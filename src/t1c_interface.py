@@ -19,6 +19,7 @@ _file_name = ""
 enum_bu = ['B2S', 'CDS', 'CGO', 'MSL', 'RBS', 'SSP']
 enum_shopgroup = ['BU', 'IN', 'ME']
 _time = datetime.strptime('2017-10-06 10:00', '%Y-%m-%d %H:%M')
+order_ids = []
 
 # time = datetime.now()
 
@@ -191,7 +192,9 @@ def get_sale_tran(shop_id, shop_group, store_number):
   with connect_db() as conn:
     cursor = conn.cursor(as_dict=True)
     query = """
-      SELECT Head.ShopID,
+      SELECT top 1
+          Head.Suborderid as id,
+          Head.ShopID,
           Head.ShopGroup,
           Head.SubOrderId,
           (case when Head.shopGroup = 'ME' then Concat('0', substring(Head.subOrderId,1,12)) else Head.InvNo end) as InvNo,
@@ -215,11 +218,13 @@ def get_sale_tran(shop_id, shop_group, store_number):
       INNER JOIN TBSubOrderDetail Detail ON Head.Suborderid = Detail.Suborderid
       LEFT JOIN TBProductMaster ProMas ON Detail.PID = ProMas.PID
       LEFT JOIN [dbo].[cmeEmp] emp ON Head.CreateBy = emp.eEMailInternal
-      WHERE Head.InvDate = CONVERT(VARCHAR(19),DateAdd(dd,-1,%(batch_date)s),111)
+      WHERE Head.IsGenT1c = 'No'
       AND Head.InvNo != ''
       AND head.ShopGroup = %(ShopGroup)s {0}
       UNION ALL
-      SELECT Head.shopid,
+      SELECT top 1
+          Head.SubSRNo as id,
+          Head.shopid,
           Head.ShopGroup,
           Head.SubOrderId,
           Head.CnNo AS InvNo,
@@ -242,11 +247,11 @@ def get_sale_tran(shop_id, shop_group, store_number):
       FROM TBSubSaleReturnHead Head
       INNER JOIN TBSubSaleReturnDetail Detail ON Head.SubSRNo = Detail.SubSRNo
       LEFT JOIN TBProductMaster ProMas ON Detail.PID = ProMas.PID
-      LEFT JOIN [dbo].[cmeEmp] emp ON Head.CreateBy = emp.eEMailInternal 
+      LEFT JOIN [dbo].[cmeEmp] emp ON Head.CreateBy = emp.eEMailInternal
       WHERE Head.SubSaleReturnType IN ('CN', 'Exchange')
-      AND Head.Status = 'Complete'
+      AND Head.Status = 'Completed'
       AND Head.CnNo != ''
-      AND CONVERT(VARCHAR(19),Head.CnDate,111) =CONVERT(VARCHAR(19),DateAdd(dd,-1,%(batch_date)s),111)
+      AND Head.IsGenT1c = 'No'
       AND Head.ShopGroup = %(ShopGroup)s {0}
       ORDER BY InvNo
     """
@@ -255,7 +260,7 @@ def get_sale_tran(shop_id, shop_group, store_number):
     else:
       query = query.format('')
     cursor.execute(query,
-                   dict(ShopGroup=shop_group, batch_date=get_sql_batch_date()))
+                   dict(ShopGroup=shop_group))
     return [
         gen_sale_tran_data(data, index + 1, store_number)
         for index, data in enumerate(cursor)
@@ -263,6 +268,8 @@ def get_sale_tran(shop_id, shop_group, store_number):
 
 
 def gen_sale_tran_data(data, index, store_number):
+  global order_ids
+  order_ids.append(data['id'])
   store_number = store_number.zfill(5)
 
   if data['InvDate'] == None:
@@ -413,7 +420,9 @@ def tender_non_member(bu, store_number, shop_id, shop_group, file_name):
 def get_tender_mem(shop_id, shop_group, store_number):
   with connect_db() as conn:
     cursor = conn.cursor(as_dict=True)
-    query = """SELECT Head.ShopID,
+    query = """SELECT top 1
+                  Head.Suborderid as id,
+                  Head.ShopID,
                   Head.ShopGroup,
                   (CASE WHEN Head.shopGroup = 'ME' THEN Concat('0', SUBSTRING(Head.subOrderId,1,12)) else Head.InvNo end) as InvNo,
                   Head.InvDate,
@@ -429,12 +438,14 @@ def get_tender_mem(shop_id, shop_group, store_number):
                   Head.T1CNoEarn
 							FROM TBsubOrderHead Head
 							INNER JOIN TBOrderHead OrderHead ON Head.OrderId = OrderHead.OrderId
-							WHERE Head.invDate = CONVERT(VARCHAR(19), DateAdd(dd,-1,%(batch_date)s), 111)
+							WHERE Head.IsGenT1c = 'No'
               AND Head.InvNo != ''
               AND Head.T1CNoEarn != ''
               AND Head.ShopGroup = %(shop_group)s {0}
               UNION ALL
-              SELECT Head.ShopID,
+              SELECT top 1
+                  Head.Suborderid as id,
+                  Head.ShopID,
                   Head.ShopGroup,
                   (case when Head.shopGroup = 'ME' then Concat('0', substring(Head.subOrderId,1,12)) else Head.InvNo end) as InvNo,
                   Head.InvDate,
@@ -449,14 +460,16 @@ def get_tender_mem(shop_id, shop_group, store_number):
                   (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
                   Head.T1CNoEarn
               FROM TBsubOrderHead Head
-              INNER JOIN TBOrderHead OrderHead ON Head.OrderId = OrderHead.OrderId 
-              WHERE Head.invDate = CONVERT(VARCHAR(19), DateAdd(dd,-1,%(batch_date)s), 111)
+              INNER JOIN TBOrderHead OrderHead ON Head.OrderId = OrderHead.OrderId
+              WHERE Head.IsGenT1c = 'No'
               AND Head.InvNo != ''
               AND Head.T1CNoEarn != ''
               AND Head.redeempoint <> 0
               AND Head.ShopGroup = %(shop_group)s {0}
               UNION ALL
-              SELECT Head.ShopID,
+              SELECT top 1
+                  Head.SubSRNo as id,
+                  Head.ShopID,
                   Head.ShopGroup,
                   Head.CnNo AS InvNo,
                   CONVERT(VARCHAR(19), Head.CnDate, 111) AS InvDate,
@@ -471,9 +484,9 @@ def get_tender_mem(shop_id, shop_group, store_number):
                   (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
                   Head.T1CNoEarn
               FROM TBSubSaleReturnHead Head WHERE Head.SubSaleReturnType IN ('CN', 'Exchange')
-              AND Head.Status = 'Complete'
+              AND Head.Status = 'Completed'
               AND Head.CnNo != ''
-              AND CONVERT(VARCHAR(19), Head.CnDate, 111) = CONVERT(VARCHAR(19), DateAdd(dd,-1,%(batch_date)s), 111)
+              AND Head.IsGenT1c = 'No'
               AND Head.T1CNoEarn <> ''
               AND Head.ShopGroup = %(shop_group)s {0}
 							ORDER BY InvNo"""
@@ -482,8 +495,7 @@ def get_tender_mem(shop_id, shop_group, store_number):
     else:
       query = query.format('')
     cursor.execute(query,
-                   dict(
-                       shop_group=shop_group, batch_date=get_sql_batch_date()))
+                   dict(shop_group=shop_group))
     return [
         gen_tender(data, index + 1, store_number)
         for index, data in enumerate(cursor)
@@ -491,6 +503,8 @@ def get_tender_mem(shop_id, shop_group, store_number):
 
 
 def gen_tender(data, index, store_number):
+  global order_ids
+  order_ids.append(data['id'])
   store_number.zfill(5)
   transaction_date = ' ' * 8 if data['InvDate'] == None else datetime.strptime(
       data['InvDate'], '%Y-%m-%d').strftime('%Y%m%d')
@@ -568,7 +582,9 @@ def get_option_number(data):
 def get_tender_non_mem(shop_id, shop_group, store_number):
   with connect_db() as conn:
     cursor = conn.cursor(as_dict=True)
-    query = """SELECT Head.ShopID,
+    query = """SELECT top 1
+                  Head.Suborderid as id,
+                  Head.ShopID,
                   Head.ShopGroup,
                   (case when Head.shopGroup = 'ME' then Concat('0', substring(Head.subOrderId,1,12)) else Head.InvNo end) as InvNo,
                   Head.InvDate,
@@ -584,11 +600,13 @@ def get_tender_non_mem(shop_id, shop_group, store_number):
                   Head.T1CNoEarn
 							FROM TBsubOrderHead Head
 							INNER JOIN TBOrderHead OrderHead ON Head.OrderId = OrderHead.OrderId
-							WHERE Head.invDate = CONVERT(VARCHAR(19),DateAdd(dd,-1,%(batch_date)s),111)
+							WHERE Head.IsGenT1c = 'No'
               AND Head.InvNo != ''
               AND Head.ShopGroup = %(shop_group)s {0}
               UNION ALL
-              SELECT Head.ShopID,
+              SELECT top 1
+                  Head.Suborderid as id,
+                  Head.ShopID,
                   Head.ShopGroup,
                   (case when Head.shopGroup = 'ME' then Concat('0', substring(Head.subOrderId,1,12)) else Head.InvNo end) as InvNo,
                   Head.InvDate,
@@ -603,13 +621,15 @@ def get_tender_non_mem(shop_id, shop_group, store_number):
                   (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
                   Head.T1CNoEarn
               FROM TBsubOrderHead Head
-              INNER JOIN TBOrderHead OrderHead ON Head.OrderId = OrderHead.OrderId 
-              WHERE Head.invDate = CONVERT(VARCHAR(19),DateAdd(dd,-1,%(batch_date)s),111)
+              INNER JOIN TBOrderHead OrderHead ON Head.OrderId = OrderHead.OrderId
+              WHERE Head.IsGenT1c = 'No'
               AND Head.InvNo != ''
               AND Head.redeempoint <> 0
               AND Head.ShopGroup = %(shop_group)s {0}
               UNION ALL
-              SELECT Head.ShopID,
+              SELECT
+                  Head.SubSRNo as id,
+                  Head.ShopID,
                   Head.ShopGroup,
                   Head.CnNo AS InvNo,
                   CONVERT(VARCHAR(19),Head.CnDate,111) AS InvDate,
@@ -624,9 +644,9 @@ def get_tender_non_mem(shop_id, shop_group, store_number):
                   (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
                   Head.T1CNoEarn
               FROM TBSubSaleReturnHead Head WHERE Head.SubSaleReturnType IN ('CN', 'Exchange')
-              AND Head.Status = 'Complete'
+              AND Head.Status = 'Completed'
               AND Head.CnNo != ''
-              AND CONVERT(VARCHAR(19),Head.CnDate,111) = CONVERT(VARCHAR(19),DateAdd(dd,-1,%(batch_date)s),111)
+              AND Head.IsGenT1c = 'No'
               AND Head.ShopGroup = %(shop_group)s {0}
 							ORDER BY InvNo"""
     if shop_group == 'BU':
@@ -635,7 +655,7 @@ def get_tender_non_mem(shop_id, shop_group, store_number):
       query = query.format('')
     cursor.execute(query,
                    dict(
-                       shop_group=shop_group, batch_date=get_sql_batch_date()))
+                       shop_group=shop_group))
     return [
         gen_tender(data, index + 1, store_number)
         for index, data in enumerate(cursor)
@@ -686,6 +706,30 @@ def create_directory(path):
   if not os.path.exists(path):
     os.makedirs(path)
 
+def update_order():
+    sale = []
+    sr = []
+    for id in order_ids:
+        if id[:2] == 'CR':
+            sr.append(id)
+        else:
+            sale.append(id)
+    query ="""
+    BEGIN TRANSACTION A
+        BEGIN TRY
+            UPDATE TBSubOrderHead SET IsGenT1c = 'Yes' WHERE Suborderid in ('%s');
+            UPDATE TBSubSaleReturnHead SET IsGenT1c = 'Yes' WHERE SubSRNo in ('%s')
+            COMMIT TRANSACTION A
+        END TRY
+        BEGIN CATCH
+            ROLLBACK TRANSACTION A
+        END CATCH
+    GO
+    """ % ("','".join(sale),"','".join(sr))
+    print(query)
+    # with connect_db() as conn:
+    #     with conn.cursor(as_dict=True) as cursor:
+    #         cursor.execute(query)
 
 if __name__ == "__main__":
   create_directory('SaleTransaction')
@@ -694,3 +738,4 @@ if __name__ == "__main__":
   create_directory('ReportT1CPath')
   generate_text()
   generate_report()
+  update_order()

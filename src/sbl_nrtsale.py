@@ -7,6 +7,7 @@ import os
 import random
 import uuid
 
+order_ids = []
 
 def generate_text_t1c():
     sale_transactions = gen_tender(get_sale_tran())
@@ -49,7 +50,8 @@ def get_sale_tran():
                          "DBMKP") as conn:
         with conn.cursor(as_dict=True) as cursor:
             query = """
-          SELECT TOP 10
+          SELECT
+          Head.Suborderid as id,
           S.AccountCode as StoreNo,
           S.StroeCode as POSNo,
           Head.ShopID,
@@ -82,12 +84,13 @@ def get_sale_tran():
           INNER JOIN TBShopMaster S on S.ShopID = Head.ShopID
           INNER JOIN TBSubOrderDetail Detail ON Head.Suborderid = Detail.Suborderid
           LEFT JOIN TBProductMaster ProMas ON Detail.PID = ProMas.PID
-          WHERE cast(Head.InvDate as date) = cast(getdate() - 1 as date)
+          WHERE Head.IsGenT1c = 'No'
           AND Head.InvNo != ''
 
           UNION ALL
 
           SELECT
+          Head.SubSRNo as id,
           S.AccountCode as StoreNo,
           S.StroeCode as POSNo,
           Head.ShopID,
@@ -120,16 +123,18 @@ def get_sale_tran():
           INNER JOIN TBShopMaster S on S.ShopID = Head.ShopID
           INNER JOIN TBSubSaleReturnDetail Detail ON Head.SubSRNo = Detail.SubSRNo
           LEFT JOIN TBProductMaster ProMas ON Detail.PID = ProMas.PID
-          WHERE Head.SubSaleReturnType IN ('CN', 'Exchange')
+          WHERE --Head.IsGenT1c = 'No' AND
+          Head.SubSaleReturnType IN ('CN', 'Exchange')
           AND Head.Status = 'Complete'
           AND Head.CnNo != ''
-          AND cast(Head.InvDate as date) = cast(getdate() - 1 as date)
       """
             cursor.execute(query)
             return [gen_sale_tran_data(data) for data in cursor]
 
 
 def gen_sale_tran_data(data):
+    global order_ids
+    order_ids.append(data['id'])
     source_trans_id = ''
     store_number = data['StoreNo']
     pos_number = data['POSNo']
@@ -214,7 +219,6 @@ def gen_tender(input):
     values = set(map(lambda x: x[4], input))
     groups = [[y for y in input if y[4] == x] for x in values]
     for g in groups:
-        print(len(g))
         if g[0][34] == 0:
             g.append(tender(g[0][:], g[0][33]))
         else:
@@ -248,6 +252,31 @@ def tender(data, amount):
     t[16:26] = ["", "", "1", "", "", "", t[33], "", "", t[32]]
     return t
 
+def update_order():
+    sale = []
+    sr = []
+    for id in order_ids:
+        if id[:2] == 'CR':
+            sr.append(id)
+        else:
+            sale.append(id)
+    query ="""
+    BEGIN TRANSACTION A
+        BEGIN TRY
+            UPDATE TBSubOrderHead SET IsGenT1c = 'Yes' WHERE Suborderid in ('%s');
+            UPDATE TBSubSaleReturnHead SET IsGenT1c = 'Yes' WHERE SubSRNo in ('%s')
+            COMMIT TRANSACTION A
+        END TRY
+        BEGIN CATCH
+            ROLLBACK TRANSACTION A
+        END CATCH
+    GO
+    """ % ("','".join(sale),"','".join(sr))
+    print(query)
+    # with connect_db() as conn:
+    #     with conn.cursor(as_dict=True) as cursor:
+    #         cursor.execute(query)
 
 if __name__ == "__main__":
     generate_text_t1c()
+    update_order()
