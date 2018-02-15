@@ -190,63 +190,66 @@ def upload_file_to_ftp(file_path, ftp_server, ftp_user_name, ftp_password,
 def get_sale_tran(shop_id, shop_group, store_number):
   with connect_db() as conn:
     cursor = conn.cursor(as_dict=True)
-    query = """SELECT Head.ShopID,
-							       Head.ShopGroup,
-							       Head.SubOrderId,
-							       (case when Head.shopGroup = 'ME' then Concat('0', substring(Head.subOrderId,1,12)) else Head.InvNo end) as InvNo,
-							       Head.InvDate,
-							       Head.CreateOn,
-							       '00' AS SaleType,
-							       Head.Status,
-							       Detail.PID,
-							       Detail.Quantity,
-							       Detail.UnitPrice ,
-							       Detail.UnitPrice - (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS UnitSalesPrice,
-							       Head.VatAmt ,
-							       emp.eEmpID AS CreateBy,
-							       (Detail.UnitPrice * Detail.Quantity) - (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS NetAmt,
-							       (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS ItemDiscountAmount,
-							       (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
-							       ProMas.DEPT,
-							       ProMas.SUB_DPT,
-							       Head.T1CNoEarn
-							FROM TBSubOrderHead Head
-							INNER JOIN TBSubOrderDetail Detail ON Head.Suborderid = Detail.Suborderid
-							LEFT JOIN TBProductMaster ProMas ON Detail.PID = ProMas.PID
-							LEFT JOIN [dbo].[cmeEmp] emp ON Head.CreateBy = emp.eEMailInternal
-							WHERE Head.InvDate = CONVERT(VARCHAR(19),DateAdd(dd,-1,%(batch_date)s),111)
-							  AND Head.InvNo != ''
-							  AND head.ShopGroup = %(ShopGroup)s {0}
-							  UNION ALL
-							  SELECT Head.shopid,
-							         Head.ShopGroup,
-							         Head.SubOrderId,
-							         Head.CnNo AS InvNo,
-							         CONVERT(VARCHAR(19),Head.CnDate,111) AS InvDate,
-							         Head.CreateOn,
-							         '20' AS SaleType,
-							         Head.Status,
-							         Detail.PID,
-							         Detail.Quantity,
-							         Detail.UnitPrice ,
-							         Detail.UnitPrice - (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS UnitSalesPrice,
-							         Head.VatAmt ,
-							         emp.eEmpID AS CreateBy,
-							         (Detail.UnitPrice * Detail.Quantity) - (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS NetAmt,
-							         (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS ItemDiscountAmount,
-							         (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
-							         ProMas.DEPT,
-							         ProMas.SUB_DPT,
-							         Head.T1CNoEarn
-							  FROM TBSubSaleReturnHead Head
-							  INNER JOIN TBSubSaleReturnDetail Detail ON Head.SubSRNo = Detail.SubSRNo
-							  LEFT JOIN TBProductMaster ProMas ON Detail.PID = ProMas.PID
-							  LEFT JOIN [dbo].[cmeEmp] emp ON Head.CreateBy = emp.eEMailInternal WHERE Head.SubSaleReturnType IN ('CN', 'Exchange')
-							  AND Head.Status = 'Complete'
-							  AND Head.CnNo != ''
-							  AND CONVERT(VARCHAR(19),Head.CnDate,111) =CONVERT(VARCHAR(19),DateAdd(dd,-1,%(batch_date)s),111)
-							  AND Head.ShopGroup = %(ShopGroup)s {0}
-							ORDER BY InvNo"""
+    query = """
+      SELECT Head.ShopID,
+          Head.ShopGroup,
+          Head.SubOrderId,
+          (case when Head.shopGroup = 'ME' then Concat('0', substring(Head.subOrderId,1,12)) else Head.InvNo end) as InvNo,
+          Head.InvDate,
+          Head.CreateOn,
+          '00' AS SaleType,
+          Head.Status,
+          Detail.PID,
+          Detail.Quantity,
+          Detail.UnitPrice ,
+          Detail.UnitPrice - (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS UnitSalesPrice,
+          Head.VatAmt ,
+          emp.eEmpID AS CreateBy,
+          (Detail.UnitPrice * Detail.Quantity) - (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS NetAmt,
+          (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS ItemDiscountAmount,
+          (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
+          ProMas.DEPT,
+          ProMas.SUB_DPT,
+          Head.T1CNoEarn
+      FROM TBSubOrderHead Head
+      INNER JOIN TBSubOrderDetail Detail ON Head.Suborderid = Detail.Suborderid
+      LEFT JOIN TBProductMaster ProMas ON Detail.PID = ProMas.PID
+      LEFT JOIN [dbo].[cmeEmp] emp ON Head.CreateBy = emp.eEMailInternal
+      WHERE Head.InvDate = CONVERT(VARCHAR(19),DateAdd(dd,-1,%(batch_date)s),111)
+      AND Head.InvNo != ''
+      AND head.ShopGroup = %(ShopGroup)s {0}
+      UNION ALL
+      SELECT Head.shopid,
+          Head.ShopGroup,
+          Head.SubOrderId,
+          Head.CnNo AS InvNo,
+          CONVERT(VARCHAR(19),Head.CnDate,111) AS InvDate,
+          Head.CreateOn,
+          '20' AS SaleType,
+          Head.Status,
+          Detail.PID,
+          Detail.Quantity,
+          Detail.UnitPrice ,
+          Detail.UnitPrice - (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS UnitSalesPrice,
+          Head.VatAmt ,
+          emp.eEmpID AS CreateBy,
+          (Detail.UnitPrice * Detail.Quantity) - (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS NetAmt,
+          (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS ItemDiscountAmount,
+          (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
+          ProMas.DEPT,
+          ProMas.SUB_DPT,
+          Head.T1CNoEarn
+      FROM TBSubSaleReturnHead Head
+      INNER JOIN TBSubSaleReturnDetail Detail ON Head.SubSRNo = Detail.SubSRNo
+      LEFT JOIN TBProductMaster ProMas ON Detail.PID = ProMas.PID
+      LEFT JOIN [dbo].[cmeEmp] emp ON Head.CreateBy = emp.eEMailInternal 
+      WHERE Head.SubSaleReturnType IN ('CN', 'Exchange')
+      AND Head.Status = 'Complete'
+      AND Head.CnNo != ''
+      AND CONVERT(VARCHAR(19),Head.CnDate,111) =CONVERT(VARCHAR(19),DateAdd(dd,-1,%(batch_date)s),111)
+      AND Head.ShopGroup = %(ShopGroup)s {0}
+      ORDER BY InvNo
+    """
     if shop_group == 'BU':
       query = query.format('{} ({})'.format(' AND Head.ShopID in ', shop_id))
     else:
@@ -411,67 +414,68 @@ def get_tender_mem(shop_id, shop_group, store_number):
   with connect_db() as conn:
     cursor = conn.cursor(as_dict=True)
     query = """SELECT Head.ShopID,
-							       Head.ShopGroup,
-							       (CASE WHEN Head.shopGroup = 'ME' THEN Concat('0', SUBSTRING(Head.subOrderId,1,12)) else Head.InvNo end) as InvNo,
-							       Head.InvDate,
-							       Head.CreateOn,
-							       '00' AS SaleType,
-							       'CASH' AS TenderType,
-							       Head.Status ,
-							       Head.VatAmt,
-							       Head.NetAmt,
-							       Head.redeemamt,
-							       OrderHead.NetAmt AS TotalNetAmt ,
-							       (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
-							       Head.T1CNoEarn
+                  Head.ShopGroup,
+                  (CASE WHEN Head.shopGroup = 'ME' THEN Concat('0', SUBSTRING(Head.subOrderId,1,12)) else Head.InvNo end) as InvNo,
+                  Head.InvDate,
+                  Head.CreateOn,
+                  '00' AS SaleType,
+                  'CASH' AS TenderType,
+                  Head.Status ,
+                  Head.VatAmt,
+                  Head.NetAmt,
+                  Head.redeemamt,
+                  OrderHead.NetAmt AS TotalNetAmt ,
+                  (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
+                  Head.T1CNoEarn
 							FROM TBsubOrderHead Head
 							INNER JOIN TBOrderHead OrderHead ON Head.OrderId = OrderHead.OrderId
 							WHERE Head.invDate = CONVERT(VARCHAR(19), DateAdd(dd,-1,%(batch_date)s), 111)
-							  AND Head.InvNo != ''
-							  AND Head.T1CNoEarn != ''
-							  AND Head.ShopGroup = %(shop_group)s {0}
-							  UNION ALL
-							  SELECT Head.ShopID,
-							         Head.ShopGroup,
-							         (case when Head.shopGroup = 'ME' then Concat('0', substring(Head.subOrderId,1,12)) else Head.InvNo end) as InvNo,
-							         Head.InvDate,
-							         Head.CreateOn,
-							         '00' AS SaleType,
-							         'T1PM' AS TenderType,
-							         Head.Status ,
-							         Head.VatAmt,
-							         Head.NetAmt,
-							         Head.redeemamt,
-							         OrderHead.NetAmt AS TotalNetAmt ,
-							         (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
-							         Head.T1CNoEarn
-							  FROM TBsubOrderHead Head
-							  INNER JOIN TBOrderHead OrderHead ON Head.OrderId = OrderHead.OrderId WHERE Head.invDate = CONVERT(VARCHAR(19), DateAdd(dd,-1,%(batch_date)s), 111)
-							  AND Head.InvNo != ''
-							  AND Head.T1CNoEarn != ''
-							  AND Head.redeempoint <> 0
-							  AND Head.ShopGroup = %(shop_group)s {0}
-							  UNION ALL
-							  SELECT Head.ShopID,
-							         Head.ShopGroup,
-							         Head.CnNo AS InvNo,
-							         CONVERT(VARCHAR(19), Head.CnDate, 111) AS InvDate,
-							         Head.CreateOn,
-							         '20' AS SaleType,
-							         'CASH' AS TenderType,
-							         Head.Status ,
-							         Head.VatAmt,
-							         Head.NetAmt,
-							         '0' AS redeemamt,
-							         '0' AS TotalNetAmt ,
-							         (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
-							         Head.T1CNoEarn
-							  FROM TBSubSaleReturnHead Head WHERE Head.SubSaleReturnType IN ('CN', 'Exchange')
-							  AND Head.Status = 'Complete'
-							  AND Head.CnNo != ''
-							  AND CONVERT(VARCHAR(19), Head.CnDate, 111) = CONVERT(VARCHAR(19), DateAdd(dd,-1,%(batch_date)s), 111)
-							  AND Head.T1CNoEarn <> ''
-							  AND Head.ShopGroup = %(shop_group)s {0}
+              AND Head.InvNo != ''
+              AND Head.T1CNoEarn != ''
+              AND Head.ShopGroup = %(shop_group)s {0}
+              UNION ALL
+              SELECT Head.ShopID,
+                  Head.ShopGroup,
+                  (case when Head.shopGroup = 'ME' then Concat('0', substring(Head.subOrderId,1,12)) else Head.InvNo end) as InvNo,
+                  Head.InvDate,
+                  Head.CreateOn,
+                  '00' AS SaleType,
+                  'T1PM' AS TenderType,
+                  Head.Status ,
+                  Head.VatAmt,
+                  Head.NetAmt,
+                  Head.redeemamt,
+                  OrderHead.NetAmt AS TotalNetAmt ,
+                  (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
+                  Head.T1CNoEarn
+              FROM TBsubOrderHead Head
+              INNER JOIN TBOrderHead OrderHead ON Head.OrderId = OrderHead.OrderId 
+              WHERE Head.invDate = CONVERT(VARCHAR(19), DateAdd(dd,-1,%(batch_date)s), 111)
+              AND Head.InvNo != ''
+              AND Head.T1CNoEarn != ''
+              AND Head.redeempoint <> 0
+              AND Head.ShopGroup = %(shop_group)s {0}
+              UNION ALL
+              SELECT Head.ShopID,
+                  Head.ShopGroup,
+                  Head.CnNo AS InvNo,
+                  CONVERT(VARCHAR(19), Head.CnDate, 111) AS InvDate,
+                  Head.CreateOn,
+                  '20' AS SaleType,
+                  'CASH' AS TenderType,
+                  Head.Status ,
+                  Head.VatAmt,
+                  Head.NetAmt,
+                  '0' AS redeemamt,
+                  '0' AS TotalNetAmt ,
+                  (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
+                  Head.T1CNoEarn
+              FROM TBSubSaleReturnHead Head WHERE Head.SubSaleReturnType IN ('CN', 'Exchange')
+              AND Head.Status = 'Complete'
+              AND Head.CnNo != ''
+              AND CONVERT(VARCHAR(19), Head.CnDate, 111) = CONVERT(VARCHAR(19), DateAdd(dd,-1,%(batch_date)s), 111)
+              AND Head.T1CNoEarn <> ''
+              AND Head.ShopGroup = %(shop_group)s {0}
 							ORDER BY InvNo"""
     if shop_group == 'BU':
       query = query.format('{} ({})'.format(' AND Head.ShopID IN ', shop_id))
@@ -565,64 +569,65 @@ def get_tender_non_mem(shop_id, shop_group, store_number):
   with connect_db() as conn:
     cursor = conn.cursor(as_dict=True)
     query = """SELECT Head.ShopID,
-							       Head.ShopGroup,
-							       (case when Head.shopGroup = 'ME' then Concat('0', substring(Head.subOrderId,1,12)) else Head.InvNo end) as InvNo,
-							       Head.InvDate,
-							       Head.CreateOn,
-							       '00' AS SaleType,
-							       'CASH' AS TenderType,
-							       Head.Status ,
-							       Head.VatAmt,
-							       Head.NetAmt,
-							       Head.redeemamt,
-							       OrderHead.NetAmt AS TotalNetAmt ,
-							       (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
-							       Head.T1CNoEarn
+                  Head.ShopGroup,
+                  (case when Head.shopGroup = 'ME' then Concat('0', substring(Head.subOrderId,1,12)) else Head.InvNo end) as InvNo,
+                  Head.InvDate,
+                  Head.CreateOn,
+                  '00' AS SaleType,
+                  'CASH' AS TenderType,
+                  Head.Status ,
+                  Head.VatAmt,
+                  Head.NetAmt,
+                  Head.redeemamt,
+                  OrderHead.NetAmt AS TotalNetAmt ,
+                  (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
+                  Head.T1CNoEarn
 							FROM TBsubOrderHead Head
 							INNER JOIN TBOrderHead OrderHead ON Head.OrderId = OrderHead.OrderId
 							WHERE Head.invDate = CONVERT(VARCHAR(19),DateAdd(dd,-1,%(batch_date)s),111)
-							  AND Head.InvNo != ''
-							  AND Head.ShopGroup = %(shop_group)s {0}
-							  UNION ALL
-							  SELECT Head.ShopID,
-							         Head.ShopGroup,
-							         (case when Head.shopGroup = 'ME' then Concat('0', substring(Head.subOrderId,1,12)) else Head.InvNo end) as InvNo,
-							         Head.InvDate,
-							         Head.CreateOn,
-							         '00' AS SaleType,
-							         'T1PM' AS TenderType,
-							         Head.Status ,
-							         Head.VatAmt,
-							         Head.NetAmt,
-							         Head.redeemamt,
-							         OrderHead.NetAmt AS TotalNetAmt ,
-							         (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
-							         Head.T1CNoEarn
-							  FROM TBsubOrderHead Head
-							  INNER JOIN TBOrderHead OrderHead ON Head.OrderId = OrderHead.OrderId WHERE Head.invDate = CONVERT(VARCHAR(19),DateAdd(dd,-1,%(batch_date)s),111)
-							  AND Head.InvNo != ''
-							  AND Head.redeempoint <> 0
-							  AND Head.ShopGroup = %(shop_group)s {0}
-							  UNION ALL
-							  SELECT Head.ShopID,
-							         Head.ShopGroup,
-							         Head.CnNo AS InvNo,
-							         CONVERT(VARCHAR(19),Head.CnDate,111) AS InvDate,
-							         Head.CreateOn,
-							         '20' AS SaleType,
-							         'CASH' AS TenderType,
-							         Head.Status ,
-							         Head.VatAmt,
-							         Head.NetAmt,
-							         '0' AS redeemamt,
-							         '0' AS TotalNetAmt ,
-							         (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
-							         Head.T1CNoEarn
-							  FROM TBSubSaleReturnHead Head WHERE Head.SubSaleReturnType IN ('CN', 'Exchange')
-							  AND Head.Status = 'Complete'
-							  AND Head.CnNo != ''
-							  AND CONVERT(VARCHAR(19),Head.CnDate,111) = CONVERT(VARCHAR(19),DateAdd(dd,-1,%(batch_date)s),111)
-							  AND Head.ShopGroup = %(shop_group)s {0}
+              AND Head.InvNo != ''
+              AND Head.ShopGroup = %(shop_group)s {0}
+              UNION ALL
+              SELECT Head.ShopID,
+                  Head.ShopGroup,
+                  (case when Head.shopGroup = 'ME' then Concat('0', substring(Head.subOrderId,1,12)) else Head.InvNo end) as InvNo,
+                  Head.InvDate,
+                  Head.CreateOn,
+                  '00' AS SaleType,
+                  'T1PM' AS TenderType,
+                  Head.Status ,
+                  Head.VatAmt,
+                  Head.NetAmt,
+                  Head.redeemamt,
+                  OrderHead.NetAmt AS TotalNetAmt ,
+                  (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
+                  Head.T1CNoEarn
+              FROM TBsubOrderHead Head
+              INNER JOIN TBOrderHead OrderHead ON Head.OrderId = OrderHead.OrderId 
+              WHERE Head.invDate = CONVERT(VARCHAR(19),DateAdd(dd,-1,%(batch_date)s),111)
+              AND Head.InvNo != ''
+              AND Head.redeempoint <> 0
+              AND Head.ShopGroup = %(shop_group)s {0}
+              UNION ALL
+              SELECT Head.ShopID,
+                  Head.ShopGroup,
+                  Head.CnNo AS InvNo,
+                  CONVERT(VARCHAR(19),Head.CnDate,111) AS InvDate,
+                  Head.CreateOn,
+                  '20' AS SaleType,
+                  'CASH' AS TenderType,
+                  Head.Status ,
+                  Head.VatAmt,
+                  Head.NetAmt,
+                  '0' AS redeemamt,
+                  '0' AS TotalNetAmt ,
+                  (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
+                  Head.T1CNoEarn
+              FROM TBSubSaleReturnHead Head WHERE Head.SubSaleReturnType IN ('CN', 'Exchange')
+              AND Head.Status = 'Complete'
+              AND Head.CnNo != ''
+              AND CONVERT(VARCHAR(19),Head.CnDate,111) = CONVERT(VARCHAR(19),DateAdd(dd,-1,%(batch_date)s),111)
+              AND Head.ShopGroup = %(shop_group)s {0}
 							ORDER BY InvNo"""
     if shop_group == 'BU':
       query = query.format('{} ({})'.format(' AND Head.ShopID IN ', shop_id))
