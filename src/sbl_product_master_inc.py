@@ -41,22 +41,22 @@ with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as 
           '' as DIVCode,
           '' as DIVNameEN,
           '' as DIVNameTH,
-          m.IDept as DeptID,
-          substring(REPLACE(REPLACE(d.DeptName, CHAR(13), ''), CHAR(10), ''), 1, 60) as DeptNameEN, 
+          concat(case bu WHEN 'MSL' THEN 'M&S' ELSE bu END,m.IDept) as DeptID,
+          substring(REPLACE(REPLACE(d.DeptName, CHAR(13), ''), CHAR(10), ''), 1, 60) as DeptNameEN,
           substring(REPLACE(REPLACE(d.DeptName, CHAR(13), ''), CHAR(10), ''), 1, 60) as DeptNameTH,
-          m.ISDept as SubDeptID,
+          concat(case bu WHEN 'MSL' THEN 'M&S' ELSE bu END,m.ISDept) as SubDeptID,
           substring(REPLACE(REPLACE(sd.DeptName, CHAR(13), ''), CHAR(10), ''), 1, 60) as SubDeptNameEN,
           substring(REPLACE(REPLACE(sd.DeptName, CHAR(13), ''), CHAR(10), ''), 1, 60) as SubDeptNameTH,
-          m.IClass as ClassID,
+          concat(case bu WHEN 'MSL' THEN 'M&S' ELSE bu END,m.IClass) as ClassID,
           substring(REPLACE(REPLACE(c.DeptName, CHAR(13), ''), CHAR(10), ''), 1, 100) as ClassNameEN,
           substring(REPLACE(REPLACE(c.DeptName, CHAR(13), ''), CHAR(10), ''), 1, 100) as ClassNameTH,
-          m.ISClass as SubClassID,
+          concat(case bu WHEN 'MSL' THEN 'M&S' ELSE bu END,m.ISClass) as SubClassID,
           substring(REPLACE(REPLACE(sc.DeptName, CHAR(13), ''), CHAR(10), ''), 1, 100) as SubClassNameEN,
           substring(REPLACE(REPLACE(sc.DeptName, CHAR(13), ''), CHAR(10), ''), 1, 100) as SubClassNameTH,
           '' as ProductLine,
           substring(REPLACE(REPLACE(p.displayname, CHAR(13), ''), CHAR(10), ''), 1, 255) as PrimaryDesc,
           substring(REPLACE(REPLACE(p.displaynameEN, CHAR(13), ''), CHAR(10), ''), 1, 100) as SecondaryDesc,
-          case 
+          case
             when p.status = 1 and p.isfirststockgr = 1 and getdate() between p.EffectiveDate and p.ExpiredDate
             then 'A' else 'I'
           end as Status,

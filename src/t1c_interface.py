@@ -192,7 +192,7 @@ def get_sale_tran(shop_id, shop_group, store_number):
   with connect_db() as conn:
     cursor = conn.cursor(as_dict=True)
     query = """
-      SELECT top 1
+      SELECT
           Head.Suborderid as id,
           Head.ShopID,
           Head.ShopGroup,
@@ -222,7 +222,7 @@ def get_sale_tran(shop_id, shop_group, store_number):
       AND Head.InvNo != ''
       AND head.ShopGroup = %(ShopGroup)s {0}
       UNION ALL
-      SELECT top 1
+      SELECT
           Head.SubSRNo as id,
           Head.shopid,
           Head.ShopGroup,
@@ -420,7 +420,7 @@ def tender_non_member(bu, store_number, shop_id, shop_group, file_name):
 def get_tender_mem(shop_id, shop_group, store_number):
   with connect_db() as conn:
     cursor = conn.cursor(as_dict=True)
-    query = """SELECT top 1
+    query = """SELECT
                   Head.Suborderid as id,
                   Head.ShopID,
                   Head.ShopGroup,
@@ -443,7 +443,7 @@ def get_tender_mem(shop_id, shop_group, store_number):
               AND Head.T1CNoEarn != ''
               AND Head.ShopGroup = %(shop_group)s {0}
               UNION ALL
-              SELECT top 1
+              SELECT
                   Head.Suborderid as id,
                   Head.ShopID,
                   Head.ShopGroup,
@@ -582,7 +582,7 @@ def get_option_number(data):
 def get_tender_non_mem(shop_id, shop_group, store_number):
   with connect_db() as conn:
     cursor = conn.cursor(as_dict=True)
-    query = """SELECT top 1
+    query = """SELECT
                   Head.Suborderid as id,
                   Head.ShopID,
                   Head.ShopGroup,
