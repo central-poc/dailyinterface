@@ -46,12 +46,13 @@ def generate_text_t1c():
 
 
 def get_sale_tran():
-    with pymssql.connect("10.17.220.173", "app-t1c", "Zxcv123!",
+    with pymssql.connect("10.17.221.173", "app-t1c", "Zxcv123!",
                          "DBMKP") as conn:
         with conn.cursor(as_dict=True) as cursor:
             query = """
-          SELECT
+          SELECT top 50
           Head.Suborderid as id,
+          Head.OrderId as ParentID,
           S.AccountCode as StoreNo,
           S.StroeCode as POSNo,
           Head.ShopID,
@@ -91,6 +92,7 @@ def get_sale_tran():
 
           SELECT
           Head.SubSRNo as id,
+          Head.SRNo as ParentID,
           S.AccountCode as StoreNo,
           S.StroeCode as POSNo,
           Head.ShopID,
@@ -127,6 +129,7 @@ def get_sale_tran():
           Head.SubSaleReturnType IN ('CN', 'Exchange')
           AND Head.Status = 'Complete'
           AND Head.CnNo != ''
+          Order By ParentID
       """
             cursor.execute(query)
             return [gen_sale_tran_data(data) for data in cursor]
@@ -135,10 +138,11 @@ def get_sale_tran():
 def gen_sale_tran_data(data):
     global order_ids
     order_ids.append(data['id'])
+    order_id = data['ParentID']
     source_trans_id = ''
     store_number = data['StoreNo']
     pos_number = data['POSNo']
-    receipt_number = data['InvNo']
+    receipt_number = data['InvNo'] #TODO inv + seq
     trans_type = data['TransType']
     trans_date = data['TransDate']
     business_date = data['BusinessDate']
@@ -170,7 +174,7 @@ def gen_sale_tran_data(data):
     sbl_cancel_redeem = ''
 
     order_tender_type = str(data['TenderType'])
-    order_net_amt = str(data['OrderNetAmt'])
+    order_net_amt = data['OrderNetAmt']
     order_redeem_amt = data['RedeemAmt']
     order_redeem_cash = data['RedeemCash']
 
@@ -211,25 +215,34 @@ def gen_sale_tran_data(data):
     res.append(order_net_amt)
     res.append(order_redeem_amt)
     res.append(order_redeem_cash)
+    res.append(order_id)
     return res
 
 
 def gen_tender(input):
     # [a(row[4])=a(row[4])+row for row in input]
-    values = set(map(lambda x: x[4], input))
-    groups = [[y for y in input if y[4] == x] for x in values]
+    values = set(map(lambda x: x[36], input))
+    groups = [[y for y in input if y[36] == x] for x in values]
     for g in groups:
-        if g[0][34] == 0:
-            g.append(tender(g[0][:], g[0][33]))
+        net_amt = 0
+        redeem_amt = 0
+        order_redeem_cash = 0
+        for sub in g:
+            net_amt = net_amt + g[0][33]
+            redeem_amt = redeem_amt + g[0][34]
+            order_redeem_cash = order_redeem_cash + g[0][35]
+
+        if redeem_amt == 0:
+            g.append(tender(g[0][:], net_amt))
         else:
-            g.append(tender(g[0][:], g[0][34]))
-            if g[0][35] > 0:
-                g.append(tender(g[0][:], g[0][35]))
+            g.append(tender(g[0][:], redeem_amt))
+            if order_redeem_cash > 0:
+                g.append(tender(g[0][:], order_redeem_cash))
 
         total = g[0][:]
         total[6] = "A"
         total[15:26] = [
-            "1", "", "", "1", "", "", "", total[33], "", "", total[32]
+            "1", "", "", "1", "", "", "", str(net_amt), "", "", total[32]
         ]
         g.append(total)
 
@@ -237,6 +250,8 @@ def gen_tender(input):
         index = 1
         for o in g:
             o[1] = str(uuid.uuid4()).upper()
+            o[2] = '{:0>6}'.format(o[2])
+            o[4] = o[2] + "-" + o[3] + "-" + o[4] + "-" + o[7] + "-" + str(index)
             if o[6] != "A":
                 o[15] = str(index)
                 index = index + 1
@@ -248,8 +263,9 @@ def gen_tender(input):
 
 def tender(data, amount):
     t = data
+    t[2] = "000001"
     t[6] = "T"
-    t[16:26] = ["", "", "1", "", "", "", t[33], "", "", t[32]]
+    t[16:26] = ["", "", "1", "", "", "", str(amount), "", "", t[32]]
     return t
 
 def update_order():
@@ -272,10 +288,10 @@ def update_order():
         END CATCH
     GO
     """ % ("','".join(sale),"','".join(sr))
-    print(query)
-    # with connect_db() as conn:
-    #     with conn.cursor(as_dict=True) as cursor:
-    #         cursor.execute(query)
+    # print(query)
+    with connect_db() as conn:
+        with conn.cursor(as_dict=True) as cursor:
+            cursor.execute(query)
 
 if __name__ == "__main__":
     generate_text_t1c()
