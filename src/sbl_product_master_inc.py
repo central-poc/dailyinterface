@@ -77,6 +77,7 @@ with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as 
           'ProductService' as SourceSystem,
           'N' as PointExclusionFlag
         from tbproduct p
+        inner join TBBusinessUnit bu on p.BusinessUnitId = bu.BusinessUnitId
         inner join tbproductmapping m on m.pidnew = p.pidnew
         inner join tbjdabrand b on b.brandjdaid = m.brandjdaid and b.businessunitid = m.businessunitid
         inner join tbjdahierarchy d on d.businessunitid = m.businessunitid and d.idept = m.idept and d.isdept = 0 and d.iclass = 0 and d.isclass = 0
