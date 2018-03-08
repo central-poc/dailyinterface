@@ -50,7 +50,7 @@ def get_sale_tran():
                          "DBMKP") as conn:
         with conn.cursor(as_dict=True) as cursor:
             query = """
-          SELECT top 50
+          SELECT top 300
           Head.Suborderid as id,
           Head.OrderId as ParentID,
           S.AccountCode as StoreNo,
@@ -67,15 +67,15 @@ def get_sale_tran():
           Detail.UnitPrice ,
           Detail.UnitPrice - (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS UnitSalesPrice,
           Detail.SeqNo,
-          Head.VatAmt ,
+          CASE  WHEN Detail.IsVat = 1 THEN CONVERT(DECIMAL(10,3),(Detail.UnitPrice - Detail.UnitPrice / 1.07)) ELSE Detail.UnitPrice END as VatAmt ,
           (Detail.UnitPrice * Detail.Quantity) - (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS NetAmt,
-          (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
+          (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS TransactionDiscountAmount ,
           ProMas.ProdBarcode,
           Head.T1CNoEarn,
           Head.ShipMobileNo as Mobile,
           Head.RedeemAmt,
           Head.PaymentRefNo,
-          Head.TrackingId as DisplayReceipt,
+          Head.InvNo as DisplayReceipt,
           Head.PaymentType as TenderType,
           Head.NetAmt as OrderNetAmt,
           Head.VatAmt as OrderVatAmt,
@@ -107,7 +107,7 @@ def get_sale_tran():
           Detail.UnitPrice ,
           Detail.UnitPrice - (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS UnitSalesPrice,
           Detail.SeqNo,
-          Head.VatAmt ,
+          CASE  WHEN Detail.IsVat = 1 THEN CONVERT(DECIMAL(10,3),(Detail.UnitPrice - Detail.UnitPrice / 1.07)) ELSE Detail.UnitPrice END as VatAmt ,
           (Detail.UnitPrice * Detail.Quantity) - (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS NetAmt,
           (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
           ProMas.ProdBarcode,
@@ -115,7 +115,7 @@ def get_sale_tran():
           Head.ShipMobileNo as Mobile,
           Head.RedeemAmt,
           Head.PaymentRefNo,
-          Head.SubSRNo as DisplayReceipt,
+          Head.InvNo as DisplayReceipt,
           Head.PaymentType as TenderType,
           Head.NetAmt as OrderNetAmt,
           Head.VatAmt as OrderVatAmt,
@@ -129,6 +129,49 @@ def get_sale_tran():
           Head.SubSaleReturnType IN ('CN', 'Exchange')
           AND Head.Status = 'Complete'
           AND Head.CnNo != ''
+
+          UNION ALL
+
+          SELECT
+          Head.Suborderid as id,
+          Head.OrderId as ParentID,
+          '' as StoreNo,
+          '' as POSNo,
+          '' as ShopID,
+          '' as InvNo,
+          '' as InvDate,
+          '' as BusinessDate,
+          '' as DeliveryDate,
+          '01' AS TransType,
+          '' as TransDate,
+          '' as PID,
+          1 as Quantity,
+          0 as UnitPrice ,
+          0 as UnitSalesPrice,
+          1 as SeqNo,
+          0 as VatAmt ,
+          0 as NetAmt,
+          0 as TransactionDiscountAmount ,
+          '' as ProdBarcode,
+          '' as T1CNoEarn,
+          '' as Mobile,
+          0 as RedeemAmt,
+          dis.PromotionNo as PaymentRefNo,
+          '' as DisplayReceipt,
+          'Coupon' as TenderType,
+          0 as OrderNetAmt,
+          0 as OrderVatAmt,
+          0 as RedeemAmt,
+          0 as RedeemCash
+          FROM  (
+             SELECT DISTINCT(OrderId) orderid, PromotionNo
+             FROM TBOrderDiscount
+             ) dis
+            JOIN
+          TBSubOrderHead Head
+          on dis.OrderId = head.OrderId
+          WHERE Head.IsGenT1c = 'No'
+          AND Head.InvNo != ''
           Order By ParentID
       """
             cursor.execute(query)
@@ -153,7 +196,6 @@ def gen_sale_tran_data(data):
     mobile_no = data['Mobile']
     user_id = 'POS'
     redeem_amt = str(data['RedeemAmt'])
-    trans_sub_type = 'C' if data['UnitPrice'] == 0 else 'P'
 
     product_code = str(data['PID'])
     product_barcode = str(data['ProdBarcode'])
@@ -164,7 +206,10 @@ def gen_sale_tran_data(data):
     net_price_total = str(data['NetAmt'])
     discount_total = str(data['TransactionDiscountAmount'])
     vat_amount = str(data['VatAmt'])
-    tender_type = '' if trans_sub_type == 'P' else 'T1PM' if redeem_amt != '0.000' else 'CASH'
+
+    order_tender_type = str(data['TenderType'])
+    trans_sub_type = 'P' if order_tender_type != "Coupon" else "C"
+    tender_type = '' if trans_sub_type == 'P' or trans_sub_type == 'C' else 'T1PM' if redeem_amt != '0.000' else 'CASH'
     tender_ref_no = '' if trans_sub_type == 'P' else t1c_card_no if redeem_amt != '0.000' else data[
         'PaymentRefNo']
     original_receipt_no = ''
@@ -173,7 +218,6 @@ def gen_sale_tran_data(data):
     return_all_flag = ''
     sbl_cancel_redeem = ''
 
-    order_tender_type = str(data['TenderType'])
     order_net_amt = data['OrderNetAmt']
     order_redeem_amt = data['RedeemAmt']
     order_redeem_cash = data['RedeemCash']
@@ -183,7 +227,7 @@ def gen_sale_tran_data(data):
     res.append(source_trans_id)
     res.append(store_number)
     res.append(pos_number)
-    res.append(receipt_number)
+    res.append(data['ParentID'])
     res.append(trans_type)
     res.append(trans_sub_type)
     res.append(trans_date)
@@ -228,9 +272,9 @@ def gen_tender(input):
         redeem_amt = 0
         order_redeem_cash = 0
         for sub in g:
-            net_amt = net_amt + g[0][33]
-            redeem_amt = redeem_amt + g[0][34]
-            order_redeem_cash = order_redeem_cash + g[0][35]
+            net_amt = net_amt + sub[33]
+            redeem_amt = redeem_amt + sub[34]
+            order_redeem_cash = order_redeem_cash + sub[35]
 
         if redeem_amt == 0:
             g.append(tender(g[0][:], net_amt))
@@ -240,9 +284,10 @@ def gen_tender(input):
                 g.append(tender(g[0][:], order_redeem_cash))
 
         total = g[0][:]
+        total[2] = "000001"
         total[6] = "A"
         total[15:26] = [
-            "1", "", "", "1", "", "", "", str(net_amt), "", "", total[32]
+            "1", "", "", "1", "", "", "", str(net_amt), "", "", ""
         ]
         g.append(total)
 
@@ -251,8 +296,7 @@ def gen_tender(input):
         for o in g:
             o[1] = str(uuid.uuid4()).upper()
             o[2] = '{:0>6}'.format(o[2])
-            o[4] = o[2] + "-" + o[3] + "-" + o[4] + "-" + o[7] + "-" + str(index)
-            if o[6] != "A":
+            if o[6] != "A" and o[6] != "C":
                 o[15] = str(index)
                 index = index + 1
 
@@ -288,11 +332,11 @@ def update_order():
         END CATCH
     GO
     """ % ("','".join(sale),"','".join(sr))
-    # print(query)
-    with connect_db() as conn:
-        with conn.cursor(as_dict=True) as cursor:
-            cursor.execute(query)
+    print(query)
+    # with connect_db() as conn:
+    #     with conn.cursor(as_dict=True) as cursor:
+    #         cursor.execute(query)
 
 if __name__ == "__main__":
     generate_text_t1c()
-    update_order()
+    # update_order()
