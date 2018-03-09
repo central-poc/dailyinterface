@@ -107,9 +107,11 @@ with pymssql.connect("mssql.production.thecentral.com", "coreapi",
     """
     cursor.execute(sql)
     elapsed_time = (datetime.now() - start_time).seconds
-    print("Prepared in {}    s.".format(elapsed_time))
+    print("[RBS]:Prepared in {} s.".format(elapsed_time))
 
     rbs_data = cursor.fetchall()
+    rbs_rows = len(rbs_data)
+    print("[RBS]:Rows: {}".format(rbs_rows))
 
 with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as conn:
   with conn.cursor(as_dict=True) as cursor:
@@ -234,6 +236,15 @@ with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as 
         for d in rbs_data:
           writer.writerow(d)
         outfile.write('9|End')
+
+ctrlfile = "{}_{}.ctrl".format(interface_name, filedatetime)
+filepath = os.path.join(target_path, ctrlfile)
+attribute1 = ""
+attribute2 = ""
+with open(filepath, 'w') as outfile:
+  outfile.write("{}|CGO|Online|{}|{}|{}|CGO|{}|{}".format(
+    interface_name, pages + 1, rows + rbs_rows, batchdatetime,
+    attribute1, attribute2))
 
 start_time = datetime.now()
 destination = '/inbound/BCH_SBL_ProductMasterFull/req'
