@@ -21,6 +21,96 @@ filedatetime = now.strftime('%d%m%Y_%H%M%S')
 
 per_page = 10000
 
+with pymssql.connect("mssql.production.thecentral.com", "coreapi",
+                       "coreapi", "DBMKPOnline") as conn:
+  with conn.cursor(as_dict=True) as cursor:
+    start_time = datetime.now()
+    sql = """
+    SELECT
+        '1' AS LNIdentifier,
+        concat('RBS-', pro.PID, '-', NewID()) AS SourceTransID,
+        pro.PID,
+        ISNULL(pro.Upc, '') AS Barcode,
+        ISNULL([ProductNameEn], '') AS [ProductNameEN],
+        ISNULL([ProductNameTh], '') AS [ProductNameTH],
+        '' AS DIVCode,
+        '' AS DIVNameEN,
+        '' AS DIVNameTH,
+        CASE WHEN ISNULL(Dept.CategoryId, '') = '' THEN '' ELSE CONCAT('RBS',Dept.CategoryId) END AS DeptID,
+        ISNULL(Dept.NameEn, '') AS DeptNameEN,
+        ISNULL(Dept.NameTh, '') AS DeptNameTH,
+        CASE WHEN ISNULL(SubDept.CategoryId, '') = '' THEN '' ELSE CONCAT('RBS',SubDept.CategoryId) END AS SubDeptID,
+        ISNULL(SubDept.NameEn, '') AS SubDeptNameEN,
+        ISNULL(SubDept.NameTh, '') AS SubDeptNameTH,
+        ISNULL(Class.CategoryId, '') AS ClassID,
+        CASE WHEN ISNULL(Class.CategoryId, '') = '' THEN '' ELSE CONCAT('RBS',Class.CategoryId) END AS ClassID,
+        ISNULL(Class.NameEn, '') AS ClassNameEN,
+        ISNULL(Class.NameTh, '') AS ClassNameTH,
+        ISNULL(SubClass.CategoryId, '') AS SubClassID,
+        CASE WHEN ISNULL(SubClass.CategoryId, '') = '' THEN '' ELSE CONCAT('RBS',SubClass.CategoryId) END AS SubClassID,
+        ISNULL(SubClass.NameEn, '') AS SubClassNameEN,
+        ISNULL(SubClass.NameTh, '') AS SubClassNameTH,
+        '' AS ProductLine,
+        substring(REPLACE(REPLACE(pro.ProdTDNameTh, CHAR(13), ''), CHAR(10), ''), 1, 255) AS PrimaryDesc,
+        substring(REPLACE(REPLACE(pro.ProdTDNameEn, CHAR(13), ''), CHAR(10), ''), 1, 100) AS SecondaryDesc,
+        pro.Status,
+        ISNULL(Pro.[BrandId], '') AS [BrandID],
+        ISNULL(Ba.[BrandNameEn], '') AS [BrandNameEN],
+        ISNULL(Ba.[BrandNameTh], '') AS [BrandNameTH],
+        pro.vendorid AS VendorID,
+        '' AS VendorNameEN,
+        '' AS VendorNameTH,
+        pro.EffectiveDate AS EffectiveStartDate,
+        pro.ExpireDate AS EffectiveEndDate,
+        '01' as CreditConsignmentCode,
+        'Credit' as CreditConsignmentDesc,
+        'ProductService' AS SourceSystem,
+        CASE WHEN pro.TheOneCardEarn = '1' THEN 'Y' ELSE 'N' END AS PointExclusionFlag
+    FROM [DBMKPOnline].[dbo].[Product] Pro
+    LEFT JOIN [DBMKPOnline].[dbo].[LocalCategory] LCat ON Pro.LocalCatId = LCat.CategoryId
+    LEFT JOIN [DBMKPOnline].[dbo].[Brand] Ba ON Pro.BrandId = Ba.BrandId
+    LEFT JOIN LocalCategory Dept ON Dept.CategoryId = (
+        SELECT CategoryId FROM (
+            SELECT
+                ROW_NUMBER()
+                OVER (
+            ORDER BY Lft ) AS RowNum,CategoryId
+        FROM LocalCategory
+        WHERE ShopID = LCat.ShopId AND Lft <= LCat.Lft AND Rgt >= LCat.Rgt)s WHERE s.RowNum = 1)
+    LEFT JOIN LocalCategory SubDept ON SubDept.CategoryId = (
+        SELECT CategoryId FROM (
+            SELECT
+                ROW_NUMBER()
+                OVER (
+            ORDER BY Lft ) AS RowNum,CategoryId
+        FROM LocalCategory
+        WHERE ShopID = LCat.ShopId AND Lft <= LCat.Lft AND Rgt >= LCat.Rgt)s WHERE s.RowNum = 2)
+    LEFT JOIN LocalCategory Class ON Class.CategoryId = (
+        SELECT CategoryId FROM (
+            SELECT
+                ROW_NUMBER()
+                OVER (
+            ORDER BY Lft ) AS RowNum,CategoryId
+        FROM LocalCategory
+        WHERE ShopID = LCat.ShopId AND Lft <= LCat.Lft AND Rgt >= LCat.Rgt)s WHERE s.RowNum = 3)
+    LEFT JOIN LocalCategory SubClass ON SubClass.CategoryId = (
+        SELECT CategoryId FROM (
+            SELECT
+                ROW_NUMBER()
+                OVER (
+            ORDER BY Lft ) AS RowNum,CategoryId
+        FROM LocalCategory
+        WHERE ShopID = LCat.ShopId AND Lft <= LCat.Lft AND Rgt >= LCat.Rgt)s WHERE s.RowNum = 4)
+    WHERE 1 = 1
+    AND len(pro.PID) > 0
+    ORDER BY pro.Pid
+    """
+    cursor.execute(sql)
+    elapsed_time = (datetime.now() - start_time).seconds
+    print("Prepared in {}    s.".format(elapsed_time))
+
+    rbs_data = cursor.fetchall()
+
 with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as conn:
   with conn.cursor(as_dict=True) as cursor:
     start_time = datetime.now()
@@ -111,6 +201,11 @@ with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as 
       cursor.execute(sql.format(per_page*page, per_page))
       data = cursor.fetchall()
 
+      # Fill CDS Last Page Data
+      if page == pages-1:
+          index = per_page - len(data)
+          data = data + rbs_data[:index]
+          rbs_data = rbs_data[index:]
       elapsed_time = (datetime.now() - start_time).seconds
       print("Page-{} in {} s.".format(page+1, elapsed_time))
 
@@ -126,13 +221,19 @@ with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as 
           writer.writerow(d)
         outfile.write('9|End')
 
-ctrlfile = "{}_{}.ctrl".format(interface_name, filedatetime)
-filepath = os.path.join(target_path, ctrlfile)
-attribute1 = ""
-attribute2 = ""
-with open(filepath, 'w') as outfile:
-  outfile.write("{}|CGO|Online|{}|{}|{}|CGO|{}|{}".format(
-    interface_name, pages, rows, batchdatetime, attribute1, attribute2))
+    # rest of rbs data
+    if len(rbs_data) > 0 :
+      headers = rbs_data[0]
+      total_row = len(rbs_data)
+      datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime, page+2)
+      filepath = os.path.join(target_path, datfile)
+      with open(filepath, 'w') as outfile:
+        outfile.write("0|{}\n".format(total_row))
+        writer = csv.DictWriter(
+            outfile, fieldnames=headers, delimiter='|', skipinitialspace=True)
+        for d in rbs_data:
+          writer.writerow(d)
+        outfile.write('9|End')
 
 start_time = datetime.now()
 destination = '/inbound/BCH_SBL_ProductMasterFull/req'
