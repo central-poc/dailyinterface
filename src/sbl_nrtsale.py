@@ -41,16 +41,16 @@ def generate_text_t1c():
       outfile.write('{}|CGO|001|1|{}|{}|CGO|{}|{}'.format(
         interface_name, total_row, batchdatetime, attribute1, attribute2))
 
-    destination = '/inbound/BCH_SBL_NRTSales/req'
-    sftp(target_path, destination)
+    # destination = '/inbound/BCH_SBL_NRTSales/req'
+    # sftp(target_path, destination)
 
 
 def get_sale_tran():
-    with pymssql.connect("10.17.221.173", "app-t1c", "Zxcv123!",
+    with pymssql.connect("10.17.220.173", "app-t1c", "Zxcv123!",
                          "DBMKP") as conn:
         with conn.cursor(as_dict=True) as cursor:
             query = """
-          SELECT top 300
+          SELECT top 1000
           Head.Suborderid as id,
           Head.OrderId as ParentID,
           S.AccountCode as StoreNo,
@@ -260,6 +260,7 @@ def gen_sale_tran_data(data):
     res.append(order_redeem_amt)
     res.append(order_redeem_cash)
     res.append(order_id)
+    res.append(data['id'])
     return res
 
 
@@ -271,10 +272,14 @@ def gen_tender(input):
         net_amt = 0
         redeem_amt = 0
         order_redeem_cash = 0
+        temp_suborder_id = ""
         for sub in g:
+            if sub[6] == "C" or temp_suborder_id == sub[37]:
+                continue
             net_amt = net_amt + sub[33]
             redeem_amt = redeem_amt + sub[34]
             order_redeem_cash = order_redeem_cash + sub[35]
+            temp_suborder_id = sub[37]
 
         if redeem_amt == 0:
             g.append(tender(g[0][:], net_amt))
