@@ -41,8 +41,8 @@ def generate_text_t1c():
       outfile.write('{}|CGO|001|1|{}|{}|CGO|{}|{}'.format(
         interface_name, total_row, batchdatetime, attribute1, attribute2))
 
-    # destination = '/inbound/BCH_SBL_NRTSales/req'
-    # sftp(target_path, destination)
+    destination = '/inbound/BCH_SBL_NRTSales/req'
+    sftp(target_path, destination)
 
 
 def get_sale_tran():

@@ -60,8 +60,8 @@ with pymssql.connect("mssql.production.thecentral.com", "coreapi",
         pro.vendorid AS VendorID,
         '' AS VendorNameEN,
         '' AS VendorNameTH,
-        pro.EffectiveDate AS EffectiveStartDate,
-        pro.ExpireDate AS EffectiveEndDate,
+        format(pro.EffectiveDate, 'ddMMyyyy', 'en-us') AS EffectiveStartDate,
+        format(pro.ExpireDate, 'ddMMyyyy', 'en-us') AS EffectiveEndDate,
         '01' as CreditConsignmentCode,
         'Credit' as CreditConsignmentDesc,
         'ProductService' AS SourceSystem,
@@ -155,8 +155,8 @@ with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as 
           m.vendorid as VendorID,
           '' as VendorNameEN,
           '' as VendorNameTH,
-          p.EffectiveDate as EffectiveStartDate,
-          p.ExpiredDate as EffectiveEndDate,
+          format(p.EffectiveDate, 'ddMMyyyy', 'en-us') AS EffectiveStartDate,
+          format(p.ExpiredDate, 'ddMMyyyy', 'en-us') AS EffectiveEndDate,
           isnull(m.skutype, '03') as CreditConsignmentCode,
           case
             when m.skutype = '01' then 'Credit'
@@ -167,7 +167,7 @@ with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as 
           'N' as PointExclusionFlag
         from tbproduct p
         inner join TBBusinessUnit bu on p.BusinessUnitId = bu.BusinessUnitId
-        inner join tbproductmapping m on m.pidnew = p.pidnew
+        inner join tbproductmapping m on m.pidnew = p.pidnew and m.BusinessUnitId = p.BusinessUnitId
         inner join tbjdabrand b on b.brandjdaid = m.brandjdaid and b.businessunitid = m.businessunitid
         inner join tbjdahierarchy d on d.businessunitid = m.businessunitid and d.idept = m.idept and d.isdept = 0 and d.iclass = 0 and d.isclass = 0
         inner join tbjdahierarchy sd on sd.businessunitid = m.businessunitid and sd.idept = m.idept and sd.isdept = m.isdept and sd.iclass = 0 and sd.isclass = 0
