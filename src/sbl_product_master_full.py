@@ -36,24 +36,22 @@ with pymssql.connect("mssql.production.thecentral.com", "coreapi",
         '' AS DIVCode,
         '' AS DIVNameEN,
         '' AS DIVNameTH,
-        CASE WHEN ISNULL(Dept.CategoryId, '') = '' THEN '' ELSE CONCAT('RBS',Dept.CategoryId) END AS DeptID,
-        ISNULL(Dept.NameEn, '') AS DeptNameEN,
-        ISNULL(Dept.NameTh, '') AS DeptNameTH,
-        CASE WHEN ISNULL(SubDept.CategoryId, '') = '' THEN '' ELSE CONCAT('RBS',SubDept.CategoryId) END AS SubDeptID,
-        ISNULL(SubDept.NameEn, '') AS SubDeptNameEN,
-        ISNULL(SubDept.NameTh, '') AS SubDeptNameTH,
-        ISNULL(Class.CategoryId, '') AS ClassID,
-        CASE WHEN ISNULL(Class.CategoryId, '') = '' THEN '' ELSE CONCAT('RBS',Class.CategoryId) END AS ClassID,
-        ISNULL(Class.NameEn, '') AS ClassNameEN,
-        ISNULL(Class.NameTh, '') AS ClassNameTH,
-        ISNULL(SubClass.CategoryId, '') AS SubClassID,
-        CASE WHEN ISNULL(SubClass.CategoryId, '') = '' THEN '' ELSE CONCAT('RBS',SubClass.CategoryId) END AS SubClassID,
-        ISNULL(SubClass.NameEn, '') AS SubClassNameEN,
-        ISNULL(SubClass.NameTh, '') AS SubClassNameTH,
+        CASE WHEN ISNULL(Dept.IDEPT, '') = '' THEN '' ELSE CONCAT('RBS',Dept.IDEPT) END AS DeptID,
+        ISNULL(Dept.DPTNAM, '') AS DeptNameEN,
+        ISNULL(Dept.DPTNAM, '') AS DeptNameTH,
+        CASE WHEN ISNULL(SubDept.ISDEPT, '') = '' THEN '' ELSE CONCAT('RBS',SubDept.ISDEPT) END AS SubDeptID,
+        ISNULL(SubDept.DPTNAM, '') AS SubDeptNameEN,
+        ISNULL(SubDept.DPTNAM, '') AS SubDeptNameTH,
+        CASE WHEN ISNULL(Class.ICLAS, '') = '' THEN '' ELSE CONCAT('RBS',Class.ICLAS) END AS ClassID,
+        ISNULL(Class.DPTNAM, '') AS ClassNameEN,
+        ISNULL(Class.DPTNAM, '') AS ClassNameTH,
+        CASE WHEN ISNULL(SubClass.ISCLAS, '') = '' THEN '' ELSE CONCAT('RBS',SubClass.ISCLAS) END AS SubClassID,
+        ISNULL(SubClass.DPTNAM, '') AS SubClassNameEN,
+        ISNULL(SubClass.DPTNAM, '') AS SubClassNameTH,
         '' AS ProductLine,
         substring(REPLACE(REPLACE(pro.ProdTDNameTh, CHAR(13), ''), CHAR(10), ''), 1, 255) AS PrimaryDesc,
         substring(REPLACE(REPLACE(pro.ProdTDNameEn, CHAR(13), ''), CHAR(10), ''), 1, 100) AS SecondaryDesc,
-        pro.Status,
+        'A' AS Status,
         ISNULL(Pro.[BrandId], '') AS [BrandID],
         ISNULL(Ba.[BrandNameEn], '') AS [BrandNameEN],
         ISNULL(NULLIF(Ba.[BrandNameTh],''), [BrandNameEn]) AS [BrandNameTH],
@@ -67,42 +65,14 @@ with pymssql.connect("mssql.production.thecentral.com", "coreapi",
         'ProductService' AS SourceSystem,
         CASE WHEN pro.TheOneCardEarn = '1' THEN 'Y' ELSE 'N' END AS PointExclusionFlag
     FROM [DBMKPOnline].[dbo].[Product] Pro
-    LEFT JOIN [DBMKPOnline].[dbo].[LocalCategory] LCat ON Pro.LocalCatId = LCat.CategoryId
     LEFT JOIN [DBMKPOnline].[dbo].[Brand] Ba ON Pro.BrandId = Ba.BrandId
-    LEFT JOIN LocalCategory Dept ON Dept.CategoryId = (
-        SELECT CategoryId FROM (
-            SELECT
-                ROW_NUMBER()
-                OVER (
-            ORDER BY Lft ) AS RowNum,CategoryId
-        FROM LocalCategory
-        WHERE ShopID = LCat.ShopId AND Lft <= LCat.Lft AND Rgt >= LCat.Rgt)s WHERE s.RowNum = 1)
-    LEFT JOIN LocalCategory SubDept ON SubDept.CategoryId = (
-        SELECT CategoryId FROM (
-            SELECT
-                ROW_NUMBER()
-                OVER (
-            ORDER BY Lft ) AS RowNum,CategoryId
-        FROM LocalCategory
-        WHERE ShopID = LCat.ShopId AND Lft <= LCat.Lft AND Rgt >= LCat.Rgt)s WHERE s.RowNum = 2)
-    LEFT JOIN LocalCategory Class ON Class.CategoryId = (
-        SELECT CategoryId FROM (
-            SELECT
-                ROW_NUMBER()
-                OVER (
-            ORDER BY Lft ) AS RowNum,CategoryId
-        FROM LocalCategory
-        WHERE ShopID = LCat.ShopId AND Lft <= LCat.Lft AND Rgt >= LCat.Rgt)s WHERE s.RowNum = 3)
-    LEFT JOIN LocalCategory SubClass ON SubClass.CategoryId = (
-        SELECT CategoryId FROM (
-            SELECT
-                ROW_NUMBER()
-                OVER (
-            ORDER BY Lft ) AS RowNum,CategoryId
-        FROM LocalCategory
-        WHERE ShopID = LCat.ShopId AND Lft <= LCat.Lft AND Rgt >= LCat.Rgt)s WHERE s.RowNum = 4)
+    LEFT JOIN JDARBS_Dept Dept on Dept.IDEPT = pro.JDADept AND Dept.ISDEPT = 0 AND Dept.ICLAS = 0 AND Dept.ISCLAS = 0
+    LEFT JOIN JDARBS_Dept SubDept on Dept.IDEPT = pro.JDADept AND Dept.ISDEPT = pro.JDASubDept AND Dept.ICLAS = 0 AND Dept.ISCLAS = 0
+    LEFT JOIN JDARBS_Dept Class on Dept.IDEPT = pro.JDADept AND Dept.ISDEPT = pro.JDASubDept AND Dept.ICLAS = pro.ClassCode AND Dept.ISCLAS = 0
+    LEFT JOIN JDARBS_Dept SubClass on Dept.IDEPT = pro.JDADept AND Dept.ISDEPT = pro.JDASubDept AND Dept.ICLAS = pro.ClassCode AND Dept.ISCLAS = pro.SubClassCode
     WHERE 1 = 1
     AND len(pro.PID) > 0
+    AND pro.status = 'AP'
     ORDER BY pro.Pid
     """
     cursor.execute(sql)
@@ -127,7 +97,7 @@ with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as 
           '1' as LNIdentifier,
           concat('CGO-', p.pidnew, '-', NewID()) as SourceTransID,
           p.pidnew as PID,
-          isnull(m.sbc, m.ibc) as Barcode,
+          isnull(nullif(m.sbc,''), m.ibc) as Barcode,
           substring(REPLACE(REPLACE(p.DocnameEn, CHAR(13), ''), CHAR(10), ''), 1, 100)  as ProductNameEN,
           substring(REPLACE(REPLACE(p.Docname, CHAR(13), ''), CHAR(10), ''), 1, 100) as ProductNameTH,
           '' as DIVCode,
