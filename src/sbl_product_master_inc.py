@@ -21,7 +21,70 @@ filedatetime = now.strftime('%d%m%Y_%H%M%S')
 
 per_page = 10000
 
-with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as conn:
+with pymssql.connect("mssql.production.thecentral.com", "coreapi",
+                       "coreapi", "DBMKPOnline") as conn:
+  with conn.cursor(as_dict=True) as cursor:
+    start_time = datetime.now()
+    sql = """
+    SELECT
+        '1' AS LNIdentifier,
+        concat('RBS-', pro.PID, '-', NewID()) AS SourceTransID,
+        pro.PID,
+        ISNULL(pro.Upc, '') AS Barcode,
+        ISNULL([ProductNameEn], '') AS [ProductNameEN],
+        ISNULL([ProductNameTh], '') AS [ProductNameTH],
+        '' AS DIVCode,
+        '' AS DIVNameEN,
+        '' AS DIVNameTH,
+        CASE WHEN ISNULL(Dept.IDEPT, '') = '' THEN '' ELSE CONCAT('RBS',Dept.IDEPT) END AS DeptID,
+        ISNULL(Dept.DPTNAM, '') AS DeptNameEN,
+        ISNULL(Dept.DPTNAM, '') AS DeptNameTH,
+        CASE WHEN ISNULL(SubDept.ISDEPT, '') = '' THEN '' ELSE CONCAT('RBS',SubDept.ISDEPT) END AS SubDeptID,
+        ISNULL(SubDept.DPTNAM, '') AS SubDeptNameEN,
+        ISNULL(SubDept.DPTNAM, '') AS SubDeptNameTH,
+        CASE WHEN ISNULL(Class.ICLAS, '') = '' THEN '' ELSE CONCAT('RBS',Class.ICLAS) END AS ClassID,
+        ISNULL(Class.DPTNAM, '') AS ClassNameEN,
+        ISNULL(Class.DPTNAM, '') AS ClassNameTH,
+        CASE WHEN ISNULL(SubClass.ISCLAS, '') = '' THEN '' ELSE CONCAT('RBS',SubClass.ISCLAS) END AS SubClassID,
+        ISNULL(SubClass.DPTNAM, '') AS SubClassNameEN,
+        ISNULL(SubClass.DPTNAM, '') AS SubClassNameTH,
+        '' AS ProductLine,
+        substring(REPLACE(REPLACE(pro.ProdTDNameTh, CHAR(13), ''), CHAR(10), ''), 1, 255) AS PrimaryDesc,
+        substring(REPLACE(REPLACE(pro.ProdTDNameEn, CHAR(13), ''), CHAR(10), ''), 1, 100) AS SecondaryDesc,
+        CASE When pro.Status = 'AP' THEN 'A' ELSE 'I' END as Status,
+        ISNULL(Pro.[BrandId], '') AS [BrandID],
+        ISNULL(Ba.[BrandNameEn], '') AS [BrandNameEN],
+        ISNULL(NULLIF(Ba.[BrandNameTh],''), [BrandNameEn]) AS [BrandNameTH],
+        pro.vendorid AS VendorID,
+        '' AS VendorNameEN,
+        '' AS VendorNameTH,
+        format(pro.EffectiveDate, 'ddMMyyyy', 'en-us') AS EffectiveStartDate,
+        format(pro.ExpireDate, 'ddMMyyyy', 'en-us') AS EffectiveEndDate,
+        '01' as CreditConsignmentCode,
+        'Credit' as CreditConsignmentDesc,
+        'ProductService' AS SourceSystem,
+        CASE WHEN pro.TheOneCardEarn = '1' THEN 'Y' ELSE 'N' END AS PointExclusionFlag
+    FROM [DBMKPOnline].[dbo].[Product] Pro
+    LEFT JOIN [DBMKPOnline].[dbo].[Brand] Ba ON Pro.BrandId = Ba.BrandId
+    LEFT JOIN JDARBS_Dept Dept on Dept.IDEPT = pro.JDADept AND Dept.ISDEPT = 0 AND Dept.ICLAS = 0 AND Dept.ISCLAS = 0
+    LEFT JOIN JDARBS_Dept SubDept on Dept.IDEPT = pro.JDADept AND Dept.ISDEPT = pro.JDASubDept AND Dept.ICLAS = 0 AND Dept.ISCLAS = 0
+    LEFT JOIN JDARBS_Dept Class on Dept.IDEPT = pro.JDADept AND Dept.ISDEPT = pro.JDASubDept AND Dept.ICLAS = pro.ClassCode AND Dept.ISCLAS = 0
+    LEFT JOIN JDARBS_Dept SubClass on Dept.IDEPT = pro.JDADept AND Dept.ISDEPT = pro.JDASubDept AND Dept.ICLAS = pro.ClassCode AND Dept.ISCLAS = pro.SubClassCode
+    WHERE 1 = 1
+    AND len(pro.PID) > 0
+    AND (cast(getdate() - 100 as date) = cast(pro.createon as date) or cast(getdate() - 100 as date) = cast(pro.updateon as date))
+    ORDER BY pro.Pid
+    """
+    cursor.execute(sql)
+    elapsed_time = (datetime.now() - start_time).seconds
+    print("[RBS]:Prepared in {} s.".format(elapsed_time))
+
+    rbs_data = cursor.fetchall()
+    rbs_rows = len(rbs_data)
+    print("[RBS]:Rows: {}".format(rbs_rows))
+
+
+with pymssql.connect("10.17.220.55", "central", "Cen@tral", "DBCDSContent") as conn:
   with conn.cursor(as_dict=True) as cursor:
     start_time = datetime.now()
     sql = """
@@ -35,7 +98,7 @@ with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as 
           '1' as LNIdentifier,
           concat('CGO-', p.pidnew, '-', NewID()) as SourceTransID,
           p.pidnew as PID,
-          isnull(m.sbc, m.ibc) as Barcode,
+          isnull(nullif(m.sbc,''), m.ibc) as Barcode,
           substring(REPLACE(REPLACE(p.DocnameEn, CHAR(13), ''), CHAR(10), ''), 1, 100)  as ProductNameEN,
           substring(REPLACE(REPLACE(p.Docname, CHAR(13), ''), CHAR(10), ''), 1, 100) as ProductNameTH,
           '' as DIVCode,
@@ -66,8 +129,8 @@ with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as 
           m.vendorid as VendorID,
           '' as VendorNameEN,
           '' as VendorNameTH,
-          p.EffectiveDate as EffectiveStartDate,
-          p.ExpiredDate as EffectiveEndDate,
+          format(p.EffectiveDate, 'ddMMyyyy', 'en-us') AS EffectiveStartDate,
+          format(p.ExpiredDate, 'ddMMyyyy', 'en-us') AS EffectiveEndDate,
           isnull(m.skutype, '03') as CreditConsignmentCode,
           case
             when m.skutype = '01' then 'Credit'
@@ -78,7 +141,7 @@ with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as 
           'N' as PointExclusionFlag
         from tbproduct p
         inner join TBBusinessUnit bu on p.BusinessUnitId = bu.BusinessUnitId
-        inner join tbproductmapping m on m.pidnew = p.pidnew
+        inner join tbproductmapping m on m.pidnew = p.pidnew and m.BusinessUnitId = p.BusinessUnitId
         inner join tbjdabrand b on b.brandjdaid = m.brandjdaid and b.businessunitid = m.businessunitid
         inner join tbjdahierarchy d on d.businessunitid = m.businessunitid and d.idept = m.idept and d.isdept = 0 and d.iclass = 0 and d.isclass = 0
         inner join tbjdahierarchy sd on sd.businessunitid = m.businessunitid and sd.idept = m.idept and sd.isdept = m.isdept and sd.iclass = 0 and sd.isclass = 0
@@ -112,6 +175,12 @@ with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as 
       cursor.execute(sql.format(per_page*page, per_page))
       data = cursor.fetchall()
 
+      # Fill CDS Last Page Data
+      if page == pages-1:
+          index = per_page - len(data)
+          data = data + rbs_data[:index]
+          rbs_data = rbs_data[index:]
+
       elapsed_time = (datetime.now() - start_time).seconds
       print("Page-{} in {} s.".format(page+1, elapsed_time))
 
@@ -127,13 +196,27 @@ with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as 
           writer.writerow(d)
         outfile.write('9|End')
 
+    # rest of rbs data
+    if len(rbs_data) > 0 :
+      headers = rbs_data[0]
+      total_row = len(rbs_data)
+      datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime, pages+1)
+      filepath = os.path.join(target_path, datfile)
+      with open(filepath, 'w') as outfile:
+        outfile.write("0|{}\n".format(total_row))
+        writer = csv.DictWriter(
+            outfile, fieldnames=headers, delimiter='|', skipinitialspace=True)
+        for d in rbs_data:
+          writer.writerow(d)
+        outfile.write('9|End')
+
 ctrlfile = "{}_{}.ctrl".format(interface_name, filedatetime)
 filepath = os.path.join(target_path, ctrlfile)
 attribute1 = ""
 attribute2 = ""
 with open(filepath, 'w') as outfile:
   outfile.write("{}|CGO|Online|{}|{}|{}|CGO|{}|{}".format(
-    interface_name, pages, rows, batchdatetime, attribute1, attribute2))
+    interface_name, pages, rows + rbs_rows, batchdatetime, attribute1, attribute2))
 
 start_time = datetime.now()
 destination = '/inbound/BCH_SBL_ProductMasterIncre/req'
