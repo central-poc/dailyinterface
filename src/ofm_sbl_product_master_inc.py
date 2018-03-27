@@ -110,7 +110,7 @@ with open(filepath, 'w') as outfile:
     attribute1, attribute2))
 
 start_time = datetime.now()
-# destination = '/inbound/BCH_SBL_ProductMasterFull/req'
-# sftp(target_path, destination)
-# elapsed_time = (datetime.now() - start_time).seconds
+destination = '/inbound/BCH_SBL_ProductMasterIncre/req'
+sftp(target_path, destination)
+elapsed_time = (datetime.now() - start_time).seconds
 print("Success FTP in {} s.".format(elapsed_time))
