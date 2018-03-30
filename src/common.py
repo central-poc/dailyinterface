@@ -43,6 +43,12 @@ def sftp(source, destination):
   with pysftp.Connection('110.164.67.39', username='cgoftptest', password='tsetptfogc', cnopts=cnopts) as sftp:
     sftp.put_d(source, destination)
 
+def sftp_ofm(source, destination):
+  print('copy: {} to: {}'.format(source, destination))
+  cnopts = pysftp.CnOpts()
+  cnopts.hostkeys = None
+  with pysftp.Connection('110.164.67.39', username='ofmftptest', password='tsetptfmfo', cnopts=cnopts) as sftp:
+    sftp.put_d(source, destination)
 
 if __name__ == '__main__':
   destination = '/inbound/BCH_SBL_ProductMasterFull/req'

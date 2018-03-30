@@ -1,4 +1,4 @@
-from common import sftp
+from common import sftp_ofm
 from datetime import datetime, timedelta
 import pymssql
 import sys
@@ -18,7 +18,7 @@ def generate_text_t1c():
     if not os.path.exists(target_path):
         os.makedirs(target_path)
 
-    interface_name = 'BCH_CGO_T1C_NRTSales'
+    interface_name = 'BCH_OFM_T1C_NRTSales'
     now = datetime.now()
     batchdatetime = now.strftime('%d%m%Y_%H:%M:%S:%f')[:-3]
     filedatetime = now.strftime('%d%m%Y_%H%M%S')
@@ -36,11 +36,11 @@ def generate_text_t1c():
     attribute1 = ""
     attribute2 = ""
     with open(filepath, 'w') as outfile:
-      outfile.write('{}|CGO|001|1|{}|{}|CGO|{}|{}'.format(
+      outfile.write('{}|OFM|001|1|{}|{}|OFM|{}|{}'.format(
         interface_name, total_row, batchdatetime, attribute1, attribute2))
 
-    # destination = '/inbound/BCH_SBL_NRTSales/req'
-    # sftp(target_path, destination)
+    destination = '/inbound/BCH_SBL_NRTSales/req'
+    sftp_ofm(target_path, destination)
 
 
 def get_sale_tran():

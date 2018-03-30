@@ -1,4 +1,4 @@
-from common import sftp, chunks
+from common import sftp_ofm, chunks
 import csv
 from datetime import datetime
 import math
@@ -14,7 +14,7 @@ target_path = os.path.join(parent_path, 'output', target_dir)
 if not os.path.exists(target_path):
   os.makedirs(target_path)
 
-interface_name = 'BCH_OFM_T1C_ProductMasterFull'
+interface_name = 'BCH_OFM_T1C_ProductMasterIncre'
 now = datetime.now()
 batchdatetime = now.strftime('%d%m%Y_%H:%M:%S:%f')[:-3]
 filedatetime = now.strftime('%d%m%Y_%H%M%S')
@@ -111,6 +111,6 @@ with open(filepath, 'w') as outfile:
 
 start_time = datetime.now()
 destination = '/inbound/BCH_SBL_ProductMasterIncre/req'
-sftp(target_path, destination)
+sftp_ofm(target_path, destination)
 elapsed_time = (datetime.now() - start_time).seconds
 print("Success FTP in {} s.".format(elapsed_time))
