@@ -61,7 +61,7 @@ with pymssql.connect("10.17.1.23", "CTOAI", "CTO@Ai", "DBInterfaceSiebel") as co
         SubDeptNameTH AS SubClassNameTH,
         ProductLine AS ProductLine,
         PrimaryDesc AS PrimaryDesc,
-        SecondaryDesc AS SecondaryDesc,
+        '' AS SecondaryDesc,
         Status AS Status,
         BrandID AS [BrandID],
         BrandNameEN AS [BrandNameEN],
