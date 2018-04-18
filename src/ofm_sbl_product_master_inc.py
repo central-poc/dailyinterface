@@ -20,6 +20,7 @@ batchdatetime = now.strftime('%d%m%Y_%H:%M:%S:%f')[:-3]
 filedatetime = now.strftime('%d%m%Y_%H%M%S')
 
 per_page = 10000
+count = 1
 
 with pymssql.connect("10.17.1.23", "CTOAI", "CTO@Ai", "DBInterfaceSiebel") as conn:
   with conn.cursor(as_dict=True) as cursor:
@@ -45,20 +46,20 @@ with pymssql.connect("10.17.1.23", "CTOAI", "CTO@Ai", "DBInterfaceSiebel") as co
         ProductNameEN AS [ProductNameEN],
         ProductNameTH AS [ProductNameTH],
         DivCode AS DIVCode,
-        DivNameEN AS DIVNameEN,
-        DivNameTH AS DIVNameTH,
+        LTRIM(RTRIM(DivNameEN)) AS DIVNameEN,
+        LTRIM(RTRIM(DivNameTH)) AS DIVNameTH,
         DeptID AS DeptID,
-        DepNameEN AS DeptNameEN,
-        DepNameTH AS DeptNameTH,
+        LTRIM(RTRIM(DepNameEN)) AS DeptNameEN,
+        LTRIM(RTRIM(DepNameTH)) AS DeptNameTH,
         SubDeptID AS SubDeptID,
-        SubDeptNameEN AS SubDeptNameEN,
-        SubDeptNameTH AS SubDeptNameTH,
+        LTRIM(RTRIM(SubDeptNameEN)) AS SubDeptNameEN,
+        LTRIM(RTRIM(SubDeptNameTH)) AS SubDeptNameTH,
         ClassID AS ClassID,
-        ClassNameEN AS ClassNameEN,
-        ClassNameTH AS ClassNameTH,
+        LTRIM(RTRIM(ClassNameEN)) AS ClassNameEN,
+        LTRIM(RTRIM(ClassNameTH)) AS ClassNameTH,
         SubClassID AS SubClassID,
-        SubClassNameEN AS SubClassNameEN,
-        SubDeptNameTH AS SubClassNameTH,
+        LTRIM(RTRIM(SubClassNameEN)) AS SubClassNameEN,
+        LTRIM(RTRIM(SubDeptNameTH)) AS SubClassNameTH,
         ProductLine AS ProductLine,
         PrimaryDesc AS PrimaryDesc,
         '' AS SecondaryDesc,
