@@ -83,7 +83,7 @@ with pymssql.connect("mssql.production.thecentral.com", "coreapi",
     rbs_rows = len(rbs_data)
     print("[RBS]:Rows: {}".format(rbs_rows))
 
-with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as conn:
+with pymssql.connect("10.17.220.55", "central", "Cen@tral", "DBCDSContent") as conn:
   with conn.cursor(as_dict=True) as cursor:
     start_time = datetime.now()
     sql = """
@@ -217,7 +217,7 @@ with open(filepath, 'w') as outfile:
     attribute1, attribute2))
 
 start_time = datetime.now()
-# destination = '/inbound/BCH_SBL_ProductMasterFull/req'
-# sftp(target_path, destination)
-# elapsed_time = (datetime.now() - start_time).seconds
+destination = '/inbound/BCH_SBL_ProductMasterFull/req'
+sftp(target_path, destination)
+elapsed_time = (datetime.now() - start_time).seconds
 print("Success FTP in {} s.".format(elapsed_time))

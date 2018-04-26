@@ -22,19 +22,26 @@ filedatetime = now.strftime('%d%m%Y_%H%M%S')
 per_page = 10000
 count = 1
 
-with pymssql.connect("10.17.1.23", "CTOAI", "CTO@Ai", "DBInterfaceSiebel") as conn:
-  with conn.cursor(as_dict=True) as cursor:
-    start_time = datetime.now()
+def getBatchID(cursor):
     sql = """
         SELECT top 1
         BatchID,
         TotalRecord
         FROM tb_Control_Master
         WHERE MasterType = 'I'
+        AND DATEDIFF(day,GETDATE(),BatchStartDT) = 0
         ORDER BY BatchID DESC
     """
     cursor.execute(sql)
-    data = cursor.fetchone()
+    return cursor.fetchone()
+
+with pymssql.connect("10.17.1.23", "CTOAI", "CTO@Ai", "DBInterfaceSiebel") as conn:
+  with conn.cursor(as_dict=True) as cursor:
+    start_time = datetime.now()
+    data = getBatchID(cursor)
+    if data == None :
+        print('Nothing to generate')
+        exit(0)
     batch_id = data["BatchID"]
     print(batch_id)
     sql = """
