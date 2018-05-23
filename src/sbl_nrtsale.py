@@ -41,12 +41,12 @@ def generate_text_t1c():
       outfile.write('{}|CGO|001|1|{}|{}|CGO|{}|{}'.format(
         interface_name, total_row, batchdatetime, attribute1, attribute2))
 
-    # destination = '/inbound/BCH_SBL_NRTSales/req'
-    # sftp(target_path, destination)
+    destination = 'incoming'
+    sftp('cgotest',target_path, destination)
 
 
 def get_sale_tran():
-    with pymssql.connect("10.17.220.173", "app-t1c", "Zxcv123!",
+    with pymssql.connect("10.17.221.173", "app-t1c", "Zxcv123!",
                          "DBMKP") as conn:
         with conn.cursor(as_dict=True) as cursor:
             query = """
@@ -88,9 +88,9 @@ def get_sale_tran():
               INNER JOIN TBOrderHead oh on Head.OrderId = oh.OrderId
               WHERE
               -- Head.IsGenT1c = 'No'
-              (cast(getdate() - 1 as date) = cast(head.createon as date) or cast(getdate() - 1 as date) = cast(head.updateon as date))
+              (cast(getdate() as date) = cast(head.createon as date) or cast(getdate() as date) = cast(head.updateon as date))
               AND Head.InvNo != ''
-              AND len(oh.CreditCardNo) > 0
+              -- AND len(oh.CreditCardNo) > 0
 
               UNION ALL
 
@@ -132,7 +132,7 @@ def get_sale_tran():
               TBSubOrderHead Head
               on dis.OrderId = head.OrderId
               WHERE --Head.IsGenT1c = 'No'
-              (cast(getdate() - 1 as date) = cast(head.createon as date) or cast(getdate() - 1 as date) = cast(head.updateon as date))
+              (cast(getdate() as date) = cast(head.createon as date) or cast(getdate() as date) = cast(head.updateon as date))
               AND Head.InvNo != ''
 ) result
 
@@ -174,7 +174,7 @@ UNION ALL
               LEFT JOIN TBProductMaster ProMas ON Detail.PID = ProMas.PID
               INNER JOIN TBOrderHead oh on Head.OrderId = oh.OrderId
               WHERE --Head.IsGenT1c = 'No' AND
-              (cast(getdate() - 1 as date) = cast(head.createon as date) or cast(getdate() - 1 as date) = cast(head.updateon as date))
+              (cast(getdate() as date) = cast(head.createon as date) or cast(getdate() as date) = cast(head.updateon as date))
               AND Head.SubSaleReturnType IN ('CN', 'Exchange')
               AND Head.Status = 'Completed'
               AND Head.CnNo != ''

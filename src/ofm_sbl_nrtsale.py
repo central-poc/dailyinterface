@@ -1,4 +1,4 @@
-from common import sftp_ofm
+from common import sftp
 from datetime import datetime, timedelta
 import pymssql
 import sys
@@ -40,7 +40,7 @@ def generate_text_t1c():
         interface_name, total_row, batchdatetime, attribute1, attribute2))
 
     destination = '/inbound/BCH_SBL_NRTSales/req'
-    sftp_ofm(target_path, destination)
+    sftp('ofmtest',target_path, destination)
 
 
 def get_sale_tran():

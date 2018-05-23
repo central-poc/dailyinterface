@@ -1,4 +1,4 @@
-from common import sftp_ofm, chunks
+from common import sftp, chunks
 import csv
 from datetime import datetime
 import math
@@ -112,6 +112,6 @@ with open(filepath, 'w') as outfile:
 
 start_time = datetime.now()
 destination = '/inbound/BCH_SBL_ProductMasterFull/req'
-sftp_ofm(target_path, destination)
+sftp('ofmtest',target_path, destination)
 elapsed_time = (datetime.now() - start_time).seconds
 print("Success FTP in {} s.".format(elapsed_time))

@@ -3,6 +3,8 @@ import requests, json
 import time
 import urllib.parse
 import yaml
+import paramiko
+import os
 
 
 def chunks(l, n=10000):
@@ -35,21 +37,14 @@ def notifyLine(message):
   response = requests.post(url=LINE_NOTI_URL, headers=LINE_HEADERS, data=msg)
   print('Response HTTP Status Code: {status_code}'.format(status_code=response.status_code))
 
-
-def sftp(source, destination):
-  print('copy: {} to: {}'.format(source, destination))
-  cnopts = pysftp.CnOpts()
-  cnopts.hostkeys = None
-  with pysftp.Connection('110.164.67.39', username='cgoftptest', password='tsetptfogc', cnopts=cnopts) as sftp:
-    sftp.put_d(source, destination)
-
-def sftp_ofm(source, destination):
-  print('copy: {} to: {}'.format(source, destination))
-  cnopts = pysftp.CnOpts()
-  cnopts.hostkeys = None
-  with pysftp.Connection('110.164.67.39', username='ofmftptest', password='tsetptfmfo', cnopts=cnopts) as sftp:
-    sftp.put_d(source, destination)
-
-if __name__ == '__main__':
-  destination = '/inbound/BCH_SBL_ProductMasterFull/req'
-  sftp('/Users/adisorn/Documents/workspace/cng/code/dailyinterface/output/siebel', destination)
+def sftp(owner,source, destination):
+    try:
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        k = paramiko.Ed25519Key.from_private_key_file('../key/' + owner)
+        ssh.connect('ai-upload.central.tech',username=owner,pkey=k)
+        sftp = ssh.open_sftp()
+        for filename in os.listdir(source):
+            sftp.put(os.path.join(source,filename), os.path.join(destination,filename))
+    except Exception as e:
+        print(e)
