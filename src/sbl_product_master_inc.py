@@ -98,7 +98,7 @@ with pymssql.connect("10.17.220.55", "central", "Cen@tral", "DBCDSContent") as c
           '1' as LNIdentifier,
           concat('CGO-', p.pidnew, '-', NewID()) as SourceTransID,
           p.pidnew as PID,
-          isnull(nullif(m.sbc,''), m.ibc) as Barcode,
+          isnull(nullif(LTRIM(RTRIM(m.sbc)),''), m.ibc) as Barcode,
           substring(REPLACE(REPLACE(p.DocnameEn, CHAR(13), ''), CHAR(10), ''), 1, 100)  as ProductNameEN,
           substring(REPLACE(REPLACE(p.Docname, CHAR(13), ''), CHAR(10), ''), 1, 100) as ProductNameTH,
           '' as DIVCode,

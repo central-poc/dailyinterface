@@ -43,8 +43,8 @@ with pymssql.connect("10.17.1.23", "CTOAI", "CTO@Ai", "DBInterfaceSiebel") as co
         'OFM-' + RTLProductCode + '-' + CAST(NEWID() AS NVARCHAR(36)) AS SourceTransID,
         RTLProductCode as PID,
         Barcode AS Barcode,
-        ProductNameEN AS [ProductNameEN],
-        ProductNameTH AS [ProductNameTH],
+        case when len(ProductNameEN) > 0 then ProductNameEN else ProductNameTH end AS [ProductNameEN],
+        case when len(ProductNameTH) > 0 then ProductNameTH else ProductNameEN end AS [ProductNameTH],
         DivCode AS DIVCode,
         LTRIM(RTRIM(DivNameEN)) AS DIVNameEN,
         LTRIM(RTRIM(DivNameTH)) AS DIVNameTH,
@@ -110,8 +110,8 @@ with open(filepath, 'w') as outfile:
     interface_name, count + 1 , len(rows), batchdatetime,
     attribute1, attribute2))
 
-start_time = datetime.now()
-destination = '/inbound/BCH_SBL_ProductMasterFull/req'
-sftp('ofmtest',target_path, destination)
-elapsed_time = (datetime.now() - start_time).seconds
+# start_time = datetime.now()
+# destination = '/inbound/BCH_SBL_ProductMasterFull/req'
+# sftp('ofmtest',target_path, destination)
+# elapsed_time = (datetime.now() - start_time).seconds
 print("Success FTP in {} s.".format(elapsed_time))
