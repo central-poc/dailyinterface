@@ -72,6 +72,7 @@ with pymssql.connect("mssql.production.thecentral.com", "coreapi",
     LEFT JOIN JDARBS_Dept SubClass on Dept.IDEPT = pro.JDADept AND Dept.ISDEPT = pro.JDASubDept AND Dept.ICLAS = pro.ClassCode AND Dept.ISCLAS = pro.SubClassCode
     WHERE 1 = 1
     AND len(pro.PID) > 0
+    AND len(pro.Upc) > 0
     AND pro.status = 'AP'
     ORDER BY pro.Pid
     """
@@ -148,6 +149,7 @@ with pymssql.connect("10.17.220.55", "central", "Cen@tral", "DBCDSContent") as c
         and p.status in (1, 6, 9)
         and p.isfirststockgr = 1
         and getdate() between p.EffectiveDate and p.ExpiredDate
+        and m.sbc is not null
       ) s
       order by s.pid
     """
@@ -217,7 +219,7 @@ with open(filepath, 'w') as outfile:
     attribute1, attribute2))
 
 start_time = datetime.now()
-destination = '/inbound/BCH_SBL_ProductMasterFull/req'
-sftp('cgotest',target_path, destination)
+# destination = '/inbound/BCH_SBL_ProductMasterFull/req'
+# sftp('cgotest',target_path, destination)
 elapsed_time = (datetime.now() - start_time).seconds
 print("Success FTP in {} s.".format(elapsed_time))
