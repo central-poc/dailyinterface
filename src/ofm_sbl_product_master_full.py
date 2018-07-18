@@ -110,8 +110,8 @@ with open(filepath, 'w') as outfile:
     interface_name, count + 1 , len(rows), batchdatetime,
     attribute1, attribute2))
 
-# start_time = datetime.now()
+start_time = datetime.now()
 # destination = '/inbound/BCH_SBL_ProductMasterFull/req'
 # sftp('ofmtest',target_path, destination)
-# elapsed_time = (datetime.now() - start_time).seconds
+elapsed_time = (datetime.now() - start_time).seconds
 print("Success FTP in {} s.".format(elapsed_time))

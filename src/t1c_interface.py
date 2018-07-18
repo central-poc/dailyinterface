@@ -18,14 +18,14 @@ _day = ""
 _file_name = ""
 enum_bu = ['B2S', 'CDS', 'CGO', 'MSL', 'RBS', 'SSP']
 enum_shopgroup = ['BU', 'IN', 'ME']
-_time = datetime.strptime('2017-10-06 10:00', '%Y-%m-%d %H:%M')
+_time = datetime.strptime('2018-03-27 10:00', '%Y-%m-%d %H:%M')
 order_ids = []
 
 # time = datetime.now()
 
 
 def connect_db():
-  return pymssql.connect("10.17.221.173", "app-t1c", "Zxcv123!", "DBMKP")
+  return pymssql.connect("10.17.220.173", "app-t1c", "Zxcv123!", "DBMKP")
 
 
 def generate_report():

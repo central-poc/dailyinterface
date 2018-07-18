@@ -22,7 +22,7 @@ filedatetime = now.strftime('%d%m%Y_%H%M%S')
 per_page = 10000
 
 with pymssql.connect("mssql.production.thecentral.com", "coreapi",
-                       "coreapi", "DBMKPOnline") as conn:
+  "coreapi", "DBMKPOnline") as conn:
   with conn.cursor(as_dict=True) as cursor:
     start_time = datetime.now()
     sql = """
@@ -63,7 +63,7 @@ with pymssql.connect("mssql.production.thecentral.com", "coreapi",
         '01' as CreditConsignmentCode,
         'Credit' as CreditConsignmentDesc,
         'ProductService' AS SourceSystem,
-        CASE WHEN pro.TheOneCardEarn = '1' THEN 'Y' ELSE 'N' END AS PointExclusionFlag
+        CASE WHEN pro.TheOneCardEarn = 0 THEN 'Y' ELSE 'N' END AS PointExclusionFlag
     FROM [DBMKPOnline].[dbo].[Product] Pro
     LEFT JOIN [DBMKPOnline].[dbo].[Brand] Ba ON Pro.BrandId = Ba.BrandId
     LEFT JOIN JDARBS_Dept Dept on Dept.IDEPT = pro.JDADept AND Dept.ISDEPT = 0 AND Dept.ICLAS = 0 AND Dept.ISCLAS = 0
@@ -84,7 +84,7 @@ with pymssql.connect("mssql.production.thecentral.com", "coreapi",
     rbs_rows = len(rbs_data)
     print("[RBS]:Rows: {}".format(rbs_rows))
 
-with pymssql.connect("10.17.220.55", "central", "Cen@tral", "DBCDSContent") as conn:
+with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as conn:
   with conn.cursor(as_dict=True) as cursor:
     start_time = datetime.now()
     sql = """
@@ -139,11 +139,11 @@ with pymssql.connect("10.17.220.55", "central", "Cen@tral", "DBCDSContent") as c
         from tbproduct p
         inner join TBBusinessUnit bu on p.BusinessUnitId = bu.BusinessUnitId
         inner join tbproductmapping m on m.pidnew = p.pidnew and m.BusinessUnitId = p.BusinessUnitId
-        inner join tbjdabrand b on b.brandjdaid = m.brandjdaid and b.businessunitid = m.businessunitid
-        inner join tbjdahierarchy d on d.businessunitid = m.businessunitid and d.idept = m.idept and d.isdept = 0 and d.iclass = 0 and d.isclass = 0
-        inner join tbjdahierarchy sd on sd.businessunitid = m.businessunitid and sd.idept = m.idept and sd.isdept = m.isdept and sd.iclass = 0 and sd.isclass = 0
-        inner join tbjdahierarchy c on c.businessunitid = m.businessunitid and c.idept = m.idept and c.isdept = m.isdept and c.iclass = m.iclass and c.isclass = 0
-        inner join tbjdahierarchy sc on sc.businessunitid = m.businessunitid and sc.idept = m.idept and sc.isdept = m.isdept and sc.iclass = m.iclass and sc.isclass = m.isclass
+        inner join tbjdabrand b on b.brandjdaid = m.brandjdaid and b.businessunitid = bu.parentid
+        inner join tbjdahierarchy d on d.businessunitid = bu.parentid and d.idept = m.idept and d.isdept = 0 and d.iclass = 0 and d.isclass = 0
+        inner join tbjdahierarchy sd on sd.businessunitid = bu.parentid and sd.idept = m.idept and sd.isdept = m.isdept and sd.iclass = 0 and sd.isclass = 0
+        inner join tbjdahierarchy c on c.businessunitid = bu.parentid and c.idept = m.idept and c.isdept = m.isdept and c.iclass = m.iclass and c.isclass = 0
+        inner join tbjdahierarchy sc on sc.businessunitid = bu.parentid and sc.idept = m.idept and sc.isdept = m.isdept and sc.iclass = m.iclass and sc.isclass = m.isclass
         where 1 = 1
         and len(p.pidnew) > 0
         and p.status in (1, 6, 9)
