@@ -42,7 +42,7 @@ def generate_text_t1c():
         interface_name, total_row, batchdatetime, attribute1, attribute2))
 
     destination = 'incoming'
-    sftp('cgotest',target_path, destination)
+    # sftp('cgotest',target_path, destination)
 
 
 def get_sale_tran():
@@ -50,7 +50,7 @@ def get_sale_tran():
                          "DBMKP") as conn:
         with conn.cursor(as_dict=True) as cursor:
             query = """
-            SELECT TOP 100 result.* FROM (
+            SELECT result.* FROM (
               SELECT
               Head.Suborderid as id,
               Head.OrderId as ParentID,
@@ -90,11 +90,12 @@ def get_sale_tran():
               -- Head.IsGenT1c = 'No'
               (cast(getdate() as date) = cast(head.createon as date) or cast(getdate() as date) = cast(head.updateon as date))
               AND Head.InvNo != ''
+              AND Head.ShopID != 1
               -- AND len(oh.CreditCardNo) > 0
 
               UNION ALL
 
-              SELECT top 0
+              SELECT
               Head.Suborderid as id,
               Head.OrderId as ParentID,
               '000001' as StoreNo,
@@ -138,7 +139,7 @@ def get_sale_tran():
 
 UNION ALL
 
-              SELECT top 100
+              SELECT
               Head.SubSRNo as id,
               Head.SRNo as ParentID,
               S.AccountCode as StoreNo,
@@ -332,6 +333,7 @@ def tender(data, amount,isT1C):
     t[16:26] = ["", "", "1", "", "", "", str(amount), "", "", t[32]]
     if isT1C and len(t[12]) > 0:
         t[26] = t[12]
+        t[25] = 'T1CRedeem'
 
     return t
 

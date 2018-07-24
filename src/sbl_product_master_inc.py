@@ -26,7 +26,7 @@ with pymssql.connect("mssql.production.thecentral.com", "coreapi",
   with conn.cursor(as_dict=True) as cursor:
     start_time = datetime.now()
     sql = """
-    SELECT
+    SELECT top 0
         '1' AS LNIdentifier,
         concat('RBS-', pro.PID, '-', NewID()) AS SourceTransID,
         pro.PID,
@@ -123,9 +123,9 @@ with pymssql.connect("10.17.220.55", "central", "Cen@tral", "DBCDSContent") as c
             when p.status = 1 and p.isfirststockgr = 1 and getdate() between p.EffectiveDate and p.ExpiredDate
             then 'A' else 'I'
           end as Status,
-          b.brandjdaid as BrandID,
-          substring(REPLACE(REPLACE(b.brandjdaname, CHAR(13), ''), CHAR(10), ''), 1, 50) AS BrandNameEN,
-          substring(REPLACE(REPLACE(b.brandjdaname, CHAR(13), ''), CHAR(10), ''), 1, 50) AS BrandNameTH,
+          '' as BrandID,
+          '' AS BrandNameEN,
+          '' AS BrandNameTH,
           m.vendorid as VendorID,
           '' as VendorNameEN,
           '' as VendorNameTH,
@@ -142,14 +142,14 @@ with pymssql.connect("10.17.220.55", "central", "Cen@tral", "DBCDSContent") as c
         from tbproduct p
         inner join TBBusinessUnit bu on p.BusinessUnitId = bu.BusinessUnitId
         inner join tbproductmapping m on m.pidnew = p.pidnew and m.BusinessUnitId = p.BusinessUnitId
-        inner join tbjdabrand b on b.brandjdaid = m.brandjdaid and b.businessunitid = m.businessunitid
-        inner join tbjdahierarchy d on d.businessunitid = m.businessunitid and d.idept = m.idept and d.isdept = 0 and d.iclass = 0 and d.isclass = 0
-        inner join tbjdahierarchy sd on sd.businessunitid = m.businessunitid and sd.idept = m.idept and sd.isdept = m.isdept and sd.iclass = 0 and sd.isclass = 0
-        inner join tbjdahierarchy c on c.businessunitid = m.businessunitid and c.idept = m.idept and c.isdept = m.isdept and c.iclass = m.iclass and c.isclass = 0
-        inner join tbjdahierarchy sc on sc.businessunitid = m.businessunitid and sc.idept = m.idept and sc.isdept = m.isdept and sc.iclass = m.iclass and sc.isclass = m.isclass
+        left join tbjdabrand b on b.brandjdaid = m.brandjdaid and b.businessunitid = m.businessunitid
+        left join tbjdahierarchy d on d.businessunitid = bu.parentId and d.idept = m.idept and d.isdept = 0 and d.iclass = 0 and d.isclass = 0
+        left join tbjdahierarchy sd on sd.businessunitid = bu.parentId and sd.idept = m.idept and sd.isdept = m.isdept and sd.iclass = 0 and sd.isclass = 0
+        left join tbjdahierarchy c on c.businessunitid = bu.parentId and c.idept = m.idept and c.isdept = m.isdept and c.iclass = m.iclass and c.isclass = 0
+        left join tbjdahierarchy sc on sc.businessunitid = bu.parentId and sc.idept = m.idept and sc.isdept = m.isdept and sc.iclass = m.iclass and sc.isclass = m.isclass
         where 1 = 1
         and len(p.pidnew) > 0
-        and (cast(getdate() - 100 as date) = cast(p.createon as date) or cast(getdate() - 100 as date) = cast(p.updateon as date))
+        and p.pidnew in (2017289,2022161,2024512)
       ) s
       order by s.pid
     """

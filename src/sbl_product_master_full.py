@@ -20,9 +20,11 @@ batchdatetime = now.strftime('%d%m%Y_%H:%M:%S:%f')[:-3]
 filedatetime = now.strftime('%d%m%Y_%H%M%S')
 
 per_page = 10000
+page = 0
+pages = 0
 
-with pymssql.connect("mssql.production.thecentral.com", "coreapi",
-  "coreapi", "DBMKPOnline") as conn:
+with pymssql.connect("sit-mssql-rds.thecentral.com", "alphaUser",
+                       "truck-EGGS-SHAKE-SHARP", "DBMKPOnline") as conn:
   with conn.cursor(as_dict=True) as cursor:
     start_time = datetime.now()
     sql = """
@@ -63,7 +65,7 @@ with pymssql.connect("mssql.production.thecentral.com", "coreapi",
         '01' as CreditConsignmentCode,
         'Credit' as CreditConsignmentDesc,
         'ProductService' AS SourceSystem,
-        CASE WHEN pro.TheOneCardEarn = 0 THEN 'Y' ELSE 'N' END AS PointExclusionFlag
+        CASE WHEN pro.TheOneCardEarn = '1' THEN 'N' ELSE 'Y' END AS PointExclusionFlag
     FROM [DBMKPOnline].[dbo].[Product] Pro
     LEFT JOIN [DBMKPOnline].[dbo].[Brand] Ba ON Pro.BrandId = Ba.BrandId
     LEFT JOIN JDARBS_Dept Dept on Dept.IDEPT = pro.JDADept AND Dept.ISDEPT = 0 AND Dept.ICLAS = 0 AND Dept.ISCLAS = 0
@@ -94,7 +96,7 @@ with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as 
     cursor.execute(sql)
     sql = """
       select s.* into dbo.temp_siebel_product from (
-        select
+        select top 0
           '1' as LNIdentifier,
           concat('CGO-', p.pidnew, '-', NewID()) as SourceTransID,
           p.pidnew as PID,
@@ -199,7 +201,7 @@ with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as 
     if len(rbs_data) > 0 :
       headers = rbs_data[0]
       total_row = len(rbs_data)
-      datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime, page+2)
+      datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime, page+1)
       filepath = os.path.join(target_path, datfile)
       with open(filepath, 'w') as outfile:
         outfile.write("0|{}\n".format(total_row))
