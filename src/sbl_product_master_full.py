@@ -26,7 +26,7 @@ with pymssql.connect("mssql.production.thecentral.com", "coreapi",
   with conn.cursor(as_dict=True) as cursor:
     start_time = datetime.now()
     sql = """
-    SELECT
+    SELECT top 0
         '1' AS LNIdentifier,
         concat('RBS-', pro.PID, '-', NewID()) AS SourceTransID,
         pro.PID,

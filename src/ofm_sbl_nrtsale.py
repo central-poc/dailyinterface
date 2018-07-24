@@ -39,8 +39,8 @@ def generate_text_t1c():
       outfile.write('{}|OFM|001|1|{}|{}|OFM|{}|{}'.format(
         interface_name, total_row, batchdatetime, attribute1, attribute2))
 
-    destination = '/inbound/BCH_SBL_NRTSales/req'
-    sftp('ofmtest',target_path, destination)
+    # destination = '/inbound/BCH_SBL_NRTSales/req'
+    # sftp('ofmtest',target_path, destination)
 
 
 def get_sale_tran():
@@ -59,7 +59,7 @@ def get_sale_tran():
             batch_id = data["BatchID"]
             print(batch_id)
             query = """
-            Select top 500 * from (
+            Select * from (
                 SELECT
                     '1' AS LNIdentifier,
                     'OFM-' + h.ReceiptNo + '-' + CAST(NEWID() AS NVARCHAR(36)) AS SourceTransID,
@@ -97,8 +97,8 @@ def get_sale_tran():
                     h.ReturnAllFlag,
                     ISNULL(h.SBLCnclRedeemTxnID,'') as SBLCnclRedeemTxnID,
                     h.TotalAmount as TotalAmount
-                FROM tb_saleH h
-                JOIN tb_SaleD d ON h.ReceiptNo = d.ReceiptNo
+                FROM tb_saleH_uat h
+                JOIN tb_SaleD_uat d ON h.ReceiptNo = d.ReceiptNo
                 WHERE h.BatchID = %(BatchID)s
 
                 Union All
@@ -138,8 +138,8 @@ def get_sale_tran():
                     ISNULL(h.SBLCnclRedeemTxnID,'') as SBLCnclRedeemTxnID,
                     h.TotalAmount as TotalAmount
 
-                FROM tb_SaleDiscCpn c
-                JOIN tb_saleH h ON c.ReceiptNo = h.ReceiptNo
+                FROM tb_SaleDiscCpn_uat c
+                JOIN tb_saleH_uat h ON c.ReceiptNo = h.ReceiptNo
                 WHERE c.BatchID = %(BatchID)s
 
                 Union All
@@ -179,8 +179,8 @@ def get_sale_tran():
                     ISNULL(h.SBLCnclRedeemTxnID,'') as SBLCnclRedeemTxnID,
                     h.TotalAmount as TotalAmount
 
-                FROM tb_SaleTender t
-                JOIN tb_saleH h ON t.ReceiptNo = h.ReceiptNo
+                FROM tb_SaleTender_uat t
+                JOIN tb_saleH_uat h ON t.ReceiptNo = h.ReceiptNo
                 WHERE t.BatchID = %(BatchID)s) a
                 ORDER BY a.ReceiptNo asc, a.TransSubType asc
                   """
