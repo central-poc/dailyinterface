@@ -28,7 +28,7 @@ with pymssql.connect("sit-mssql-rds.thecentral.com", "alphaUser",
   with conn.cursor(as_dict=True) as cursor:
     start_time = datetime.now()
     sql = """
-    SELECT top 0
+    SELECT
         '1' AS LNIdentifier,
         concat('RBS-', pro.PID, '-', NewID()) AS SourceTransID,
         pro.PID,
@@ -96,7 +96,7 @@ with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as 
     cursor.execute(sql)
     sql = """
       select s.* into dbo.temp_siebel_product from (
-        select top 0
+        select
           '1' as LNIdentifier,
           concat('CGO-', p.pidnew, '-', NewID()) as SourceTransID,
           p.pidnew as PID,
@@ -201,7 +201,7 @@ with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as 
     if len(rbs_data) > 0 :
       headers = rbs_data[0]
       total_row = len(rbs_data)
-      datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime, page+1)
+      datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime, page+2)
       filepath = os.path.join(target_path, datfile)
       with open(filepath, 'w') as outfile:
         outfile.write("0|{}\n".format(total_row))

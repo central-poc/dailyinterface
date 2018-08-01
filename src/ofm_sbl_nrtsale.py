@@ -52,6 +52,7 @@ def get_sale_tran():
                 TotalRecord
                 FROM tb_Control_Transaction
                 WHERE Type = 'S'
+                AND BatchID = '201807250001'
                 ORDER BY BatchID DESC
             """
             cursor.execute(sql)
@@ -62,7 +63,7 @@ def get_sale_tran():
             Select * from (
                 SELECT
                     '1' AS LNIdentifier,
-                    'OFM-' + h.ReceiptNo + '-' + CAST(NEWID() AS NVARCHAR(36)) AS SourceTransID,
+                    'OFM-' + CAST(NEWID() AS NVARCHAR(36)) AS SourceTransID,
                     h.StoreCode as StoreNo,
                     ISNULL(h.PosNo,'') as PosNo,
                     h.ReceiptNo,
@@ -105,8 +106,8 @@ def get_sale_tran():
 
                 SELECT
                     '1' AS LNIdentifier,
-                    'OFM-' + c.ReceiptNo + '-' + CAST(NEWID() AS NVARCHAR(36)) AS SourceTransID,
-                    '000001' as StoreNo,
+                    'OFM-' + CAST(NEWID() AS NVARCHAR(36)) AS SourceTransID,
+                    h.StoreCode as StoreNo,
                     '' as PosNo,
                     c.ReceiptNo,
                     '01'as TransType,
@@ -146,8 +147,8 @@ def get_sale_tran():
 
                 SELECT
                     '1' AS LNIdentifier,
-                    'OFM-' + t.ReceiptNo + '-' + CAST(NEWID() AS NVARCHAR(36)) AS SourceTransID,
-                    '000001' as StoreNo,
+                    'OFM-' + CAST(NEWID() AS NVARCHAR(36)) AS SourceTransID,
+                    h.StoreCode as StoreNo,
                     '' as PosNo,
                     t.ReceiptNo,
                     CASE WHEN t.Amount > 0 THEN '01' ELSE '07' END as TransType,
@@ -273,8 +274,7 @@ def gen_tender(input):
                 break
 
         total = g[index][:]
-        total[1] = "OFM-" + total[4]+ "-" + str(uuid.uuid4()).upper()
-        total[2] = "000001"
+        total[1] = "OFM-" + str(uuid.uuid4()).upper()
         total[6] = "A"
         total[15:27] = [
             "1", "", "", "1", "", "", "", total[32], "", "", "",""

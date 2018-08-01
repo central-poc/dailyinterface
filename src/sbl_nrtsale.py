@@ -54,7 +54,7 @@ def get_sale_tran():
               SELECT
               Head.Suborderid as id,
               Head.OrderId as ParentID,
-              S.AccountCode as StoreNo,
+              Case WHEN S.ShopID = 254 Then 99998 ELSE S.AccountCode END as StoreNo,
               S.StroeCode as POSNo,
               Head.ShopID,
               Head.InvNo,
@@ -79,8 +79,8 @@ def get_sale_tran():
               Head.PaymentType as TenderType,
               Head.NetAmt as OrderNetAmt,
               Head.VatAmt as OrderVatAmt,
-              Head.RedeemAmt,
-              Head.RedeemCash
+              CONVERT(DECIMAL(10,3),Head.RedeemAmt * Head.GrandTotalAmt / oh.GrandTotalAmt) as RedeemAmt,
+              CONVERT(DECIMAL(10,3),Head.RedeemCash * Head.GrandTotalAmt / oh.GrandTotalAmt) as RedeemCash
               FROM TBSubOrderHead Head
               INNER JOIN TBShopMaster S on S.ShopID = Head.ShopID
               INNER JOIN TBSubOrderDetail Detail ON Head.Suborderid = Detail.Suborderid
@@ -88,18 +88,19 @@ def get_sale_tran():
               INNER JOIN TBOrderHead oh on Head.OrderId = oh.OrderId
               WHERE
               -- Head.IsGenT1c = 'No'
-              (cast(getdate() as date) = cast(head.createon as date) or cast(getdate() as date) = cast(head.updateon as date))
-              AND Head.InvNo != ''
-              AND Head.ShopID != 1
+              --(cast(getdate()-21 as date) = cast(head.createon as date) or cast(getdate()-21 as date) = cast(head.updateon as date))
+              --AND Head.InvNo != ''
+              --AND Head.ShopID != 1
+              head.orderid = 'CO-180700040'
               -- AND len(oh.CreditCardNo) > 0
 
               UNION ALL
 
-              SELECT
+              SELECT top 0
               Head.Suborderid as id,
               Head.OrderId as ParentID,
-              '000001' as StoreNo,
-              '' as POSNo,
+              S.AccountCode as StoreNo,
+              S.StroeCode as POSNo,
               '' as ShopID,
               '' as InvNo,
               '' as InvDate,
@@ -125,21 +126,18 @@ def get_sale_tran():
               0 as OrderVatAmt,
               0 as RedeemAmt,
               0 as RedeemCash
-              FROM  (
-                 SELECT DISTINCT(OrderId) orderid, PromotionNo
-                 FROM TBOrderDiscount
-                 ) dis
-                JOIN
-              TBSubOrderHead Head
-              on dis.OrderId = head.OrderId
+              FROM TBSubOrderHead head
+              JOIN TBSubOrderDetail d ON head.SubOrderId= d.SubOrderId
+              INNER JOIN TBShopMaster S on S.ShopID = Head.ShopID
+              JOIN TBOrderDiscount dis ON head.OrderId = dis.OrderId AND d.PID = dis.PId
               WHERE --Head.IsGenT1c = 'No'
-              (cast(getdate() as date) = cast(head.createon as date) or cast(getdate() as date) = cast(head.updateon as date))
+              (cast(getdate()-21 as date) = cast(head.createon as date) or cast(getdate()-21 as date) = cast(head.updateon as date))
               AND Head.InvNo != ''
 ) result
 
 UNION ALL
 
-              SELECT
+              SELECT top 0
               Head.SubSRNo as id,
               Head.SRNo as ParentID,
               S.AccountCode as StoreNo,
@@ -167,8 +165,8 @@ UNION ALL
               Head.PaymentType as TenderType,
               Head.NetAmt as OrderNetAmt,
               Head.VatAmt as OrderVatAmt,
-              Head.RedeemAmt,
-              Head.RedeemCash
+              CONVERT(DECIMAL(10,3),Head.RedeemAmt * Detail.TotalAmt / oh.GrandTotalAmt) as RedeemAmt,
+              CONVERT(DECIMAL(10,3),Head.RedeemCash * Detail.TotalAmt / oh.GrandTotalAmt) as RedeemCash
               FROM TBSubSaleReturnHead Head
               INNER JOIN TBShopMaster S on S.ShopID = Head.ShopID
               INNER JOIN TBSubSaleReturnDetail Detail ON Head.SubSRNo = Detail.SubSRNo
@@ -238,7 +236,7 @@ def gen_sale_tran_data(data):
     res.append(source_trans_id)
     res.append(store_number)
     res.append(pos_number)
-    res.append(data['ParentID'])
+    res.append(data['id'])
     res.append(trans_type)
     res.append(trans_sub_type)
     res.append(trans_date)
@@ -277,14 +275,15 @@ def gen_sale_tran_data(data):
 
 def gen_tender(input):
     # [a(row[4])=a(row[4])+row for row in input]
-    values = set(map(lambda x: x[36], input))
-    groups = [[y for y in input if y[36] == x] for x in values]
+    values = set(map(lambda x: x[37], input))
+    groups = [[y for y in input if y[37] == x] for x in values]
     for g in groups:
         net_amt = 0
         redeem_amt = 0
         order_redeem_cash = 0
         temp_suborder_id = ""
         product_index = 0
+        print(len(g))
         for index, sub in enumerate(g):
             if sub[6] == "P":
                 product_index = index
@@ -303,7 +302,6 @@ def gen_tender(input):
                 g.append(tender(g[product_index][:], order_redeem_cash, False))
 
         total = g[0][:]
-        total[2] = "000001"
         total[6] = "A"
         total[15:27] = [
             "1", "", "", "1", "", "", "", str(net_amt), "", "", "",""
@@ -328,7 +326,6 @@ def gen_tender(input):
 
 def tender(data, amount,isT1C):
     t = data
-    t[2] = "000001"
     t[6] = "T"
     t[16:26] = ["", "", "1", "", "", "", str(amount), "", "", t[32]]
     if isT1C and len(t[12]) > 0:
