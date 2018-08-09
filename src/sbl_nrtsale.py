@@ -87,19 +87,19 @@ def get_sale_tran():
               LEFT JOIN TBProductMaster ProMas ON Detail.PID = ProMas.PID
               INNER JOIN TBOrderHead oh on Head.OrderId = oh.OrderId
               WHERE
-              -- Head.IsGenT1c = 'No'
-              --(cast(getdate()-21 as date) = cast(head.createon as date) or cast(getdate()-21 as date) = cast(head.updateon as date))
-              --AND Head.InvNo != ''
-              --AND Head.ShopID != 1
-              head.orderid = 'CO-180700040'
+              Head.IsGenT1c = 'No'
+              --AND cast(getdate()-29 as date) = cast(head.InvDate as date)
+              AND Head.InvNo != ''
+              
+              -- AND Head.ShopID = 1
               -- AND len(oh.CreditCardNo) > 0
 
               UNION ALL
 
-              SELECT top 0
+              SELECT
               Head.Suborderid as id,
               Head.OrderId as ParentID,
-              S.AccountCode as StoreNo,
+              Case WHEN S.ShopID = 254 Then 99998 ELSE S.AccountCode END as StoreNo,
               S.StroeCode as POSNo,
               '' as ShopID,
               '' as InvNo,
@@ -130,17 +130,18 @@ def get_sale_tran():
               JOIN TBSubOrderDetail d ON head.SubOrderId= d.SubOrderId
               INNER JOIN TBShopMaster S on S.ShopID = Head.ShopID
               JOIN TBOrderDiscount dis ON head.OrderId = dis.OrderId AND d.PID = dis.PId
-              WHERE --Head.IsGenT1c = 'No'
-              (cast(getdate()-21 as date) = cast(head.createon as date) or cast(getdate()-21 as date) = cast(head.updateon as date))
+              WHERE Head.IsGenT1c = 'No'
+              -- AND cast(getdate()-29 as date) = cast(head.InvDate as date)
               AND Head.InvNo != ''
+              -- AND Head.ShopID = 1
 ) result
 
 UNION ALL
 
-              SELECT top 0
+              SELECT
               Head.SubSRNo as id,
               Head.SRNo as ParentID,
-              S.AccountCode as StoreNo,
+              Case WHEN S.ShopID = 254 Then 99998 ELSE S.AccountCode END as StoreNo,
               S.StroeCode as POSNo,
               Head.ShopID,
               Head.CnNo AS InvNo,
@@ -172,12 +173,13 @@ UNION ALL
               INNER JOIN TBSubSaleReturnDetail Detail ON Head.SubSRNo = Detail.SubSRNo
               LEFT JOIN TBProductMaster ProMas ON Detail.PID = ProMas.PID
               INNER JOIN TBOrderHead oh on Head.OrderId = oh.OrderId
-              WHERE --Head.IsGenT1c = 'No' AND
-              (cast(getdate() as date) = cast(head.createon as date) or cast(getdate() as date) = cast(head.updateon as date))
+              WHERE Head.IsGenT1c = 'No'
+              -- AND cast(getdate()-29 as date) = cast(head.CnDate as date)
               AND Head.SubSaleReturnType IN ('CN', 'Exchange')
               AND Head.Status = 'Completed'
               AND Head.CnNo != ''
               AND len(oh.CreditCardNo) > 0
+              -- AND Head.ShopID = 1
 Order By ParentID
       """
             cursor.execute(query)
@@ -283,7 +285,6 @@ def gen_tender(input):
         order_redeem_cash = 0
         temp_suborder_id = ""
         product_index = 0
-        print(len(g))
         for index, sub in enumerate(g):
             if sub[6] == "P":
                 product_index = index

@@ -52,7 +52,6 @@ def get_sale_tran():
                 TotalRecord
                 FROM tb_Control_Transaction
                 WHERE Type = 'S'
-                AND BatchID = '201807250001'
                 ORDER BY BatchID DESC
             """
             cursor.execute(sql)
