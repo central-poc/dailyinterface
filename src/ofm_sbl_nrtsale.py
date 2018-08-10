@@ -52,6 +52,7 @@ def get_sale_tran():
                 TotalRecord
                 FROM tb_Control_Transaction
                 WHERE Type = 'S'
+                AND left(BatchID,8)='20180810'
                 ORDER BY BatchID DESC
             """
             cursor.execute(sql)
@@ -97,8 +98,8 @@ def get_sale_tran():
                     h.ReturnAllFlag,
                     ISNULL(h.SBLCnclRedeemTxnID,'') as SBLCnclRedeemTxnID,
                     h.TotalAmount as TotalAmount
-                FROM tb_saleH_uat h
-                JOIN tb_SaleD_uat d ON h.ReceiptNo = d.ReceiptNo
+                FROM tb_saleH h
+                JOIN tb_SaleD d ON h.ReceiptNo = d.ReceiptNo
                 WHERE h.BatchID = %(BatchID)s
 
                 Union All
@@ -138,8 +139,8 @@ def get_sale_tran():
                     ISNULL(h.SBLCnclRedeemTxnID,'') as SBLCnclRedeemTxnID,
                     h.TotalAmount as TotalAmount
 
-                FROM tb_SaleDiscCpn_uat c
-                JOIN tb_saleH_uat h ON c.ReceiptNo = h.ReceiptNo
+                FROM tb_SaleDiscCpn c
+                JOIN tb_saleH h ON c.ReceiptNo = h.ReceiptNo
                 WHERE c.BatchID = %(BatchID)s
 
                 Union All
@@ -179,8 +180,8 @@ def get_sale_tran():
                     ISNULL(h.SBLCnclRedeemTxnID,'') as SBLCnclRedeemTxnID,
                     h.TotalAmount as TotalAmount
 
-                FROM tb_SaleTender_uat t
-                JOIN tb_saleH_uat h ON t.ReceiptNo = h.ReceiptNo
+                FROM tb_SaleTender t
+                JOIN tb_saleH h ON t.ReceiptNo = h.ReceiptNo
                 WHERE t.BatchID = %(BatchID)s) a
                 ORDER BY a.ReceiptNo asc, a.TransSubType asc
                   """
