@@ -23,8 +23,8 @@ per_page = 10000
 page = 0
 pages = 0
 
-with pymssql.connect("sit-mssql-rds.thecentral.com", "alphaUser",
-                       "truck-EGGS-SHAKE-SHARP", "DBMKPOnline") as conn:
+with pymssql.connect("mssql.production.thecentral.com", "coreapi",
+                       "coreapi", "DBMKPOnline") as conn:
   with conn.cursor(as_dict=True) as cursor:
     start_time = datetime.now()
     sql = """
@@ -86,7 +86,7 @@ with pymssql.connect("sit-mssql-rds.thecentral.com", "alphaUser",
     rbs_rows = len(rbs_data)
     print("[RBS]:Rows: {}".format(rbs_rows))
 
-with pymssql.connect("10.17.251.160", "central", "Cen@tral", "DBCDSContent") as conn:
+with pymssql.connect("10.17.220.55", "central", "Cen@tral", "DBCDSContent") as conn:
   with conn.cursor(as_dict=True) as cursor:
     start_time = datetime.now()
     sql = """

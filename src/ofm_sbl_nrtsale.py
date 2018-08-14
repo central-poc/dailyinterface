@@ -52,7 +52,7 @@ def get_sale_tran():
                 TotalRecord
                 FROM tb_Control_Transaction
                 WHERE Type = 'S'
-                AND left(BatchID,8)='20180810'
+                AND left(BatchID,8)='20180814'
                 ORDER BY BatchID DESC
             """
             cursor.execute(sql)
@@ -99,7 +99,7 @@ def get_sale_tran():
                     ISNULL(h.SBLCnclRedeemTxnID,'') as SBLCnclRedeemTxnID,
                     h.TotalAmount as TotalAmount
                 FROM tb_saleH h
-                JOIN tb_SaleD d ON h.ReceiptNo = d.ReceiptNo
+                JOIN tb_SaleD d ON h.ReceiptNo = d.ReceiptNo and h.BatchID = d.BatchID
                 WHERE h.BatchID = %(BatchID)s
 
                 Union All
@@ -140,7 +140,7 @@ def get_sale_tran():
                     h.TotalAmount as TotalAmount
 
                 FROM tb_SaleDiscCpn c
-                JOIN tb_saleH h ON c.ReceiptNo = h.ReceiptNo
+                JOIN tb_saleH h ON c.ReceiptNo = h.ReceiptNo and h.BatchID = c.BatchID
                 WHERE c.BatchID = %(BatchID)s
 
                 Union All
@@ -181,7 +181,7 @@ def get_sale_tran():
                     h.TotalAmount as TotalAmount
 
                 FROM tb_SaleTender t
-                JOIN tb_saleH h ON t.ReceiptNo = h.ReceiptNo
+                JOIN tb_saleH h ON t.ReceiptNo = h.ReceiptNo and h.BatchID = t.BatchID
                 WHERE t.BatchID = %(BatchID)s) a
                 ORDER BY a.ReceiptNo asc, a.TransSubType asc
                   """
@@ -232,7 +232,7 @@ def gen_sale_tran_data(data):
     res.append(source_trans_id)
     res.append(store_number)
     res.append(pos_number)
-    res.append(receipt_number)
+    res.append('OFM'+receipt_number)
     res.append(trans_type)
     res.append(trans_sub_type)
     res.append(trans_date)

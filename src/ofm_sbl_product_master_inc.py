@@ -29,7 +29,8 @@ def getBatchID(cursor):
         TotalRecord
         FROM tb_Control_Master
         WHERE MasterType = 'I'
-        AND DATEDIFF(day,GETDATE(),BatchStartDT) = 0
+        --AND DATEDIFF(day,GETDATE(),BatchStartDT) = 0
+        AND left(BatchID,8)='20180811'
         ORDER BY BatchID DESC
     """
     cursor.execute(sql)
@@ -117,8 +118,8 @@ with open(filepath, 'w') as outfile:
     interface_name, count + 1 , len(rows), batchdatetime,
     attribute1, attribute2))
 
-start_time = datetime.now()
-destination = '/inbound/BCH_SBL_ProductMasterIncre/req'
-sftp('ofmtest',target_path, destination)
-elapsed_time = (datetime.now() - start_time).seconds
+# start_time = datetime.now()
+# destination = '/inbound/BCH_SBL_ProductMasterIncre/req'
+# sftp('ofmtest',target_path, destination)
+# elapsed_time = (datetime.now() - start_time).seconds
 print("Success FTP in {} s.".format(elapsed_time))
