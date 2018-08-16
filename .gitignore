@@ -101,12 +101,14 @@ ENV/
 # mkdocs documentation
 /site
 
-# End of https://www.gitignore.io/api/python
-output/
-<<<<<<< Updated upstream
-
 # PyCharm
 .idea/
-=======
+
+# End of https://www.gitignore.io/api/python
+output/
 .DS_Store
->>>>>>> Stashed changes
+ReportT1CPath/
+SaleTransaction/
+TenderMemberTransaction/
+TenderTransaction/
+
