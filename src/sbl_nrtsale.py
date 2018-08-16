@@ -74,13 +74,13 @@ def get_sale_tran():
               ProMas.ProdBarcode,
               Head.T1CNoEarn as T1CRefNo,
               Head.ShipMobileNo as Mobile,
-              oh.CreditCardNo as PaymentRefNo,
+              oh.CreditCardNo  as PaymentRefNo,
               Head.OrderId as DisplayReceipt,
               Head.PaymentType as TenderType,
               Head.NetAmt as OrderNetAmt,
               Head.VatAmt as OrderVatAmt,
-              CONVERT(DECIMAL(10,3),Head.RedeemAmt * Head.GrandTotalAmt / oh.GrandTotalAmt) as RedeemAmt,
-              CONVERT(DECIMAL(10,3),Head.RedeemCash * Head.GrandTotalAmt / oh.GrandTotalAmt) as RedeemCash
+              isnull(CONVERT(DECIMAL(10,3),Head.RedeemAmt * Head.GrandTotalAmt / oh.GrandTotalAmt),0) as RedeemAmt,
+              isnull(CONVERT(DECIMAL(10,3),Head.RedeemCash * Head.GrandTotalAmt / oh.GrandTotalAmt),0) as RedeemCash
               FROM TBSubOrderHead Head
               INNER JOIN TBShopMaster S on S.ShopID = Head.ShopID
               INNER JOIN TBSubOrderDetail Detail ON Head.Suborderid = Detail.Suborderid
@@ -88,14 +88,9 @@ def get_sale_tran():
               INNER JOIN TBOrderHead oh on Head.OrderId = oh.OrderId
               WHERE
               Head.IsGenT1c = 'No'
-              --AND cast(getdate()-29 as date) = cast(head.InvDate as date)
+              AND cast(getdate() as date) = cast(head.InvDate as date)
               AND Head.InvNo != ''
-              
-              -- AND Head.ShopID = 1
-              -- AND len(oh.CreditCardNo) > 0
-
               UNION ALL
-
               SELECT
               Head.Suborderid as id,
               Head.OrderId as ParentID,
@@ -131,13 +126,11 @@ def get_sale_tran():
               INNER JOIN TBShopMaster S on S.ShopID = Head.ShopID
               JOIN TBOrderDiscount dis ON head.OrderId = dis.OrderId AND d.PID = dis.PId
               WHERE Head.IsGenT1c = 'No'
-              -- AND cast(getdate()-29 as date) = cast(head.InvDate as date)
+              AND cast(getdate() as date) = cast(head.InvDate as date)
               AND Head.InvNo != ''
-              -- AND Head.ShopID = 1
 ) result
 
 UNION ALL
-
               SELECT
               Head.SubSRNo as id,
               Head.SRNo as ParentID,
@@ -166,20 +159,19 @@ UNION ALL
               Head.PaymentType as TenderType,
               Head.NetAmt as OrderNetAmt,
               Head.VatAmt as OrderVatAmt,
-              CONVERT(DECIMAL(10,3),Head.RedeemAmt * Detail.TotalAmt / oh.GrandTotalAmt) as RedeemAmt,
-              CONVERT(DECIMAL(10,3),Head.RedeemCash * Detail.TotalAmt / oh.GrandTotalAmt) as RedeemCash
+              isnull(CONVERT(DECIMAL(10,3),Head.RedeemAmt * Detail.TotalAmt / oh.GrandTotalAmt),0) as RedeemAmt,
+              isnull(CONVERT(DECIMAL(10,3),Head.RedeemCash * Detail.TotalAmt / oh.GrandTotalAmt),0) as RedeemCash
               FROM TBSubSaleReturnHead Head
               INNER JOIN TBShopMaster S on S.ShopID = Head.ShopID
               INNER JOIN TBSubSaleReturnDetail Detail ON Head.SubSRNo = Detail.SubSRNo
               LEFT JOIN TBProductMaster ProMas ON Detail.PID = ProMas.PID
               INNER JOIN TBOrderHead oh on Head.OrderId = oh.OrderId
               WHERE Head.IsGenT1c = 'No'
-              -- AND cast(getdate()-29 as date) = cast(head.CnDate as date)
+              AND cast(getdate() as date) = cast(head.CnDate as date)
               AND Head.SubSaleReturnType IN ('CN', 'Exchange')
               AND Head.Status = 'Completed'
               AND Head.CnNo != ''
               AND len(oh.CreditCardNo) > 0
-              -- AND Head.ShopID = 1
 Order By ParentID
       """
             cursor.execute(query)
