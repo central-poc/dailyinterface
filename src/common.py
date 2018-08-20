@@ -45,7 +45,6 @@ def sftp(owner,source, destination):
         ssh.connect('ai-upload.central.tech',username=owner,pkey=k)
         sftp = ssh.open_sftp()
         for filename in os.listdir(source):
-            print(source,filename)
             sftp.put(os.path.join(source,filename), os.path.join(destination,filename))
     except Exception as e:
         print(e)

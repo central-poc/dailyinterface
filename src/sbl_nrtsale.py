@@ -27,7 +27,6 @@ def generate_text_t1c():
     filedatetime = now.strftime('%d%m%Y_%H%M%S')
     datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime, 1)
     filepath = os.path.join(target_path, datfile)
-    print(filepath)
     with open(filepath, 'w') as text_file:
         text_file.write('0|{}\n'.format(total_row))
         for transaction in sale_transactions:

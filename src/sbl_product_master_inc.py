@@ -151,7 +151,6 @@ with pymssql.connect("10.17.220.55", "central", "Cen@tral", "DBCDSContent") as c
         left join tbjdahierarchy sc on sc.businessunitid = bu.parentId and sc.idept = m.idept and sc.isdept = m.isdept and sc.iclass = m.iclass and sc.isclass = m.isclass
         where 1 = 1
         and len(p.pidnew) > 0
-        and p.pidnew in (2017289,2022161,2024512)
       ) s
       order by s.pid
     """
