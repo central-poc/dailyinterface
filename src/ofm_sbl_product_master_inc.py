@@ -30,8 +30,8 @@ def getBatchID(cursor):
         TotalRecord
         FROM tb_Control_Master
         WHERE MasterType = 'I'
-        --AND DATEDIFF(day,GETDATE(),BatchStartDT) = 0
-        AND left(BatchID,8)='20180811'
+        AND DATEDIFF(day,GETDATE(),BatchStartDT) = 0
+        --AND left(BatchID,8)='20180811'
         ORDER BY BatchID DESC
     """
     cursor.execute(sql)
