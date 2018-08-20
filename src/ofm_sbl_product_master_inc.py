@@ -13,6 +13,7 @@ target_dir = 'siebel/inc'
 target_path = os.path.join(parent_path, 'output', target_dir)
 if not os.path.exists(target_path):
   os.makedirs(target_path)
+cleardir(target_path)
 
 interface_name = 'BCH_OFM_T1C_ProductMasterIncre'
 now = datetime.now()
@@ -118,8 +119,8 @@ with open(filepath, 'w') as outfile:
     interface_name, count + 1 , len(rows), batchdatetime,
     attribute1, attribute2))
 
-# start_time = datetime.now()
-# destination = '/inbound/BCH_SBL_ProductMasterIncre/req'
-# sftp('ofmtest',target_path, destination)
-# elapsed_time = (datetime.now() - start_time).seconds
+start_time = datetime.now()
+destination = 'incoming/product_inc'
+sftp('ofm-prod',target_path, destination)
+elapsed_time = (datetime.now() - start_time).seconds
 print("Success FTP in {} s.".format(elapsed_time))

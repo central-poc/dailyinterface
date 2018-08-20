@@ -41,10 +41,16 @@ def sftp(owner,source, destination):
     try:
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        k = paramiko.Ed25519Key.from_private_key_file('../key/' + owner)
+        k = paramiko.rsakey.RSAKey.from_private_key_file('key/' + owner)
         ssh.connect('ai-upload.central.tech',username=owner,pkey=k)
         sftp = ssh.open_sftp()
         for filename in os.listdir(source):
+            print(source,filename)
             sftp.put(os.path.join(source,filename), os.path.join(destination,filename))
     except Exception as e:
         print(e)
+
+def cleardir(path):
+    filelist = [ f for f in os.listdir(path) ]
+    for f in filelist:
+        os.remove(os.path.join(path, f))

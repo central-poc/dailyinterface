@@ -17,6 +17,7 @@ def generate_text_t1c():
     target_path = os.path.join(parent_path, 'output', target_dir)
     if not os.path.exists(target_path):
         os.makedirs(target_path)
+    cleardir(target_path)
 
     interface_name = 'BCH_OFM_T1C_NRTSales'
     now = datetime.now()
@@ -39,8 +40,8 @@ def generate_text_t1c():
       outfile.write('{}|OFM|001|1|{}|{}|OFM|{}|{}'.format(
         interface_name, total_row, batchdatetime, attribute1, attribute2))
 
-    # destination = '/inbound/BCH_SBL_NRTSales/req'
-    # sftp('ofmtest',target_path, destination)
+    destination = 'incoming/nrtsale'
+    sftp('ofm-prod',target_path, destination)
 
 
 def get_sale_tran():

@@ -19,6 +19,7 @@ def generate_text_t1c():
     target_path = os.path.join(parent_path, 'output', target_dir)
     if not os.path.exists(target_path):
         os.makedirs(target_path)
+    cleardir(target_path)
 
     interface_name = 'BCH_CGO_T1C_NRTSales'
     now = datetime.now()
@@ -41,12 +42,12 @@ def generate_text_t1c():
       outfile.write('{}|CGO|001|1|{}|{}|CGO|{}|{}'.format(
         interface_name, total_row, batchdatetime, attribute1, attribute2))
 
-    destination = 'incoming'
-    # sftp('cgotest',target_path, destination)
+    destination = 'incoming/nrtsale'
+    sftp('cgo-prod',target_path, destination)
 
 
 def get_sale_tran():
-    with pymssql.connect("10.17.221.173", "app-t1c", "Zxcv123!",
+    with pymssql.connect("10.17.220.173", "app-t1c", "Zxcv123!",
                          "DBMKP") as conn:
         with conn.cursor(as_dict=True) as cursor:
             query = """
@@ -348,9 +349,9 @@ def update_order():
     GO
     """ % ("','".join(sale),"','".join(sr))
     print(query)
-    # with connect_db() as conn:
-    #     with conn.cursor(as_dict=True) as cursor:
-    #         cursor.execute(query)
+    with connect_db() as conn:
+        with conn.cursor(as_dict=True) as cursor:
+            cursor.execute(query)
 
 if __name__ == "__main__":
     generate_text_t1c()

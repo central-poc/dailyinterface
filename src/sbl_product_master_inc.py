@@ -13,6 +13,7 @@ target_dir = 'siebel/inc'
 target_path = os.path.join(parent_path, 'output', target_dir)
 if not os.path.exists(target_path):
   os.makedirs(target_path)
+cleardir(target_path)
 
 interface_name = 'BCH_CGO_T1C_ProductMasterIncre'
 now = datetime.now()
@@ -26,7 +27,7 @@ with pymssql.connect("mssql.production.thecentral.com", "coreapi",
   with conn.cursor(as_dict=True) as cursor:
     start_time = datetime.now()
     sql = """
-    SELECT top 0
+    SELECT
         '1' AS LNIdentifier,
         concat('RBS-', pro.PID, '-', NewID()) AS SourceTransID,
         pro.PID,
@@ -72,7 +73,8 @@ with pymssql.connect("mssql.production.thecentral.com", "coreapi",
     LEFT JOIN JDARBS_Dept SubClass on Dept.IDEPT = pro.JDADept AND Dept.ISDEPT = pro.JDASubDept AND Dept.ICLAS = pro.ClassCode AND Dept.ISCLAS = pro.SubClassCode
     WHERE 1 = 1
     AND len(pro.PID) > 0
-    AND (cast(getdate() - 100 as date) = cast(pro.createon as date) or cast(getdate() - 100 as date) = cast(pro.updateon as date))
+    -- AND (cast(getdate() - 100 as date) = cast(pro.createon as date) or cast(getdate() - 100 as date) = cast(pro.updateon as date))
+    AND pid in ('0131482','0131405')
     ORDER BY pro.Pid
     """
     cursor.execute(sql)
@@ -94,7 +96,7 @@ with pymssql.connect("10.17.220.55", "central", "Cen@tral", "DBCDSContent") as c
     cursor.execute(sql)
     sql = """
       select s.* into dbo.temp_siebel_product_inc from (
-        select
+        select top 0
           '1' as LNIdentifier,
           concat('CGO-', p.pidnew, '-', NewID()) as SourceTransID,
           p.pidnew as PID,
@@ -219,7 +221,7 @@ with open(filepath, 'w') as outfile:
     interface_name, pages, rows + rbs_rows, batchdatetime, attribute1, attribute2))
 
 start_time = datetime.now()
-destination = '/inbound/BCH_SBL_ProductMasterIncre/req'
-sftp('cgotest',target_path, destination)
+destination = 'incoming/product_inc'
+sftp('cgo-prod',target_path, destination)
 elapsed_time = (datetime.now() - start_time).seconds
 print("Success FTP in {} s.".format(elapsed_time))

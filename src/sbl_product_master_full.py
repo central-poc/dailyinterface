@@ -13,6 +13,7 @@ target_dir = 'siebel/full'
 target_path = os.path.join(parent_path, 'output', target_dir)
 if not os.path.exists(target_path):
   os.makedirs(target_path)
+cleardir(target_path)
 
 interface_name = 'BCH_CGO_T1C_ProductMasterFull'
 now = datetime.now()
@@ -198,18 +199,22 @@ with pymssql.connect("10.17.220.55", "central", "Cen@tral", "DBCDSContent") as c
         outfile.write('9|End')
 
     # rest of rbs data
-    if len(rbs_data) > 0 :
-      headers = rbs_data[0]
-      total_row = len(rbs_data)
-      datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime, page+2)
-      filepath = os.path.join(target_path, datfile)
-      with open(filepath, 'w') as outfile:
-        outfile.write("0|{}\n".format(total_row))
-        writer = csv.DictWriter(
-            outfile, fieldnames=headers, delimiter='|', skipinitialspace=True)
-        for d in rbs_data:
-          writer.writerow(d)
-        outfile.write('9|End')
+    rbs_pages = math.ceil(len(rbs_data) / per_page)
+    for i in range(0,rbs_pages):
+        write_data = rbs_data[:10000]
+        if len(write_data) > 0 :
+          headers = write_data[0]
+          total_row = len(write_data)
+          datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime, page+2+i)
+          filepath = os.path.join(target_path, datfile)
+          with open(filepath, 'w') as outfile:
+            outfile.write("0|{}\n".format(total_row))
+            writer = csv.DictWriter(
+                outfile, fieldnames=headers, delimiter='|', skipinitialspace=True)
+            for d in write_data:
+              writer.writerow(d)
+            outfile.write('9|End')
+        rbs_data = rbs_data[10000:]
 
 ctrlfile = "{}_{}.ctrl".format(interface_name, filedatetime)
 filepath = os.path.join(target_path, ctrlfile)
@@ -217,11 +222,11 @@ attribute1 = ""
 attribute2 = ""
 with open(filepath, 'w') as outfile:
   outfile.write("{}|CGO|Online|{}|{}|{}|CGO|{}|{}".format(
-    interface_name, pages + 1, rows + rbs_rows, batchdatetime,
+    interface_name, pages + rbs_pages, rows + rbs_rows, batchdatetime,
     attribute1, attribute2))
 
 start_time = datetime.now()
-# destination = '/inbound/BCH_SBL_ProductMasterFull/req'
-# sftp('cgotest',target_path, destination)
+destination = 'incoming/product_full'
+sftp('cgo-prod',target_path, destination)
 elapsed_time = (datetime.now() - start_time).seconds
 print("Success FTP in {} s.".format(elapsed_time))
