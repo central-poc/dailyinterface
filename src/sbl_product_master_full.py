@@ -1,4 +1,4 @@
-from common import sftp
+from common import sftp, cleardir
 import csv
 from datetime import datetime
 import math

@@ -1,4 +1,4 @@
-from common import sftp
+from common import sftp, cleardir
 from datetime import datetime, timedelta
 import pymssql
 import sys
