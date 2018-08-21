@@ -26,7 +26,6 @@ def config(env):
 
 
 def notifyLine(message):
-  print(message)
   LINE_ACCESS_TOKEN = "5FJgfpvf4Jgljm8AQ9H6DHFt858TasxjDtf80uYMcMk"
   LINE_HEADERS = {
     'Content-Type': 'application/x-www-form-urlencoded',
@@ -35,7 +34,18 @@ def notifyLine(message):
   LINE_NOTI_URL = "https://notify-api.line.me/api/notify"
   msg = urllib.parse.urlencode({"message": message})
   response = requests.post(url=LINE_NOTI_URL, headers=LINE_HEADERS, data=msg)
-  print('Response HTTP Status Code: {status_code}'.format(status_code=response.status_code))
+  print('Line Response: {status_code}'.format(status_code=response.status_code))
+
+
+def notifySlack(message):
+  SLACK_URL = "https://hooks.slack.com/services/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"
+  payload = {
+      "text": message,
+  }
+  data = json.dumps(payload)
+  response = requests.post(SLACK_URL, data=data)
+  print('Slakc Response: {status_code}'.format(status_code=response.status_code))
+
 
 def sftp(owner,source, destination):
     try:
@@ -48,6 +58,7 @@ def sftp(owner,source, destination):
             sftp.put(os.path.join(source,filename), os.path.join(destination,filename))
     except Exception as e:
         print(e)
+
 
 def cleardir(path):
     filelist = [ f for f in os.listdir(path) ]
