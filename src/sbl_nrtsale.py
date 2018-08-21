@@ -52,89 +52,101 @@ def get_sale_tran():
             query = """
             SELECT result.* FROM (
               SELECT
-              Head.Suborderid as id,
-              Head.OrderId as ParentID,
-              Case WHEN S.ShopID = 254 Then 99998 ELSE S.AccountCode END as StoreNo,
-              S.StroeCode as POSNo,
-              Head.ShopID,
-              Head.InvNo,
-              format(Head.InvDate, 'ddMMyyyy', 'en-us') as InvDate,
-              format(Head.PaymentDate, 'ddMMyyyy', 'en-us') as BusinessDate,
-              format(Head.DeliveryDate, 'ddMMyyyy', 'en-us') as DeliveryDate,
-              '01' AS TransType,
-              format(Head.suborderdate, 'ddMMyyyy_HH:mm:ss:fff', 'en-us') as TransDate,
-              Detail.PID,
-              Detail.Quantity,
-              Detail.UnitPrice ,
-              CONVERT(DECIMAL(10,3),Detail.TotalAmt/Detail.Quantity) AS UnitSalesPrice,
-              Detail.SeqNo,
-              CASE  WHEN Detail.IsVat = 1 THEN CONVERT(DECIMAL(10,3),(Detail.UnitPrice - Detail.UnitPrice / 1.07)) ELSE Detail.UnitPrice END as VatAmt ,
-              (Detail.UnitPrice * Detail.Quantity) - (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS NetAmt,
-              (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS TransactionDiscountAmount ,
-              ProMas.ProdBarcode,
-              Head.T1CNoEarn as T1CRefNo,
-              Head.ShipMobileNo as Mobile,
-              oh.CreditCardNo  as PaymentRefNo,
-              Head.OrderId as DisplayReceipt,
-              Head.PaymentType as TenderType,
-              Head.NetAmt as OrderNetAmt,
-              Head.VatAmt as OrderVatAmt,
-              isnull(CONVERT(DECIMAL(10,3),Head.RedeemAmt * Head.GrandTotalAmt / oh.GrandTotalAmt),0) as RedeemAmt,
-              isnull(CONVERT(DECIMAL(10,3),Head.RedeemCash * Head.GrandTotalAmt / oh.GrandTotalAmt),0) as RedeemCash
+                Head.Suborderid as id,
+                Head.OrderId as ParentID,
+                Case 
+                  WHEN S.ShopID in ('254', '255') Then '99101'
+                  WHEN S.ShopID = '256' Then '99570'
+                  ELSE S.AccountCode
+                END as StoreNo,
+                S.StroeCode as POSNo,
+                Head.ShopID,
+                Head.InvNo,
+                format(Head.InvDate, 'ddMMyyyy', 'en-us') as InvDate,
+                format(Head.PaymentDate, 'ddMMyyyy', 'en-us') as BusinessDate,
+                format(Head.DeliveryDate, 'ddMMyyyy', 'en-us') as DeliveryDate,
+                '01' AS TransType,
+                format(Head.suborderdate, 'ddMMyyyy_HH:mm:ss:fff', 'en-us') as TransDate,
+                Detail.PID,
+                Detail.Quantity,
+                Detail.UnitPrice ,
+                CONVERT(DECIMAL(10,3),Detail.TotalAmt/Detail.Quantity) AS UnitSalesPrice,
+                Detail.SeqNo,
+                CASE  WHEN Detail.IsVat = 1 THEN CONVERT(DECIMAL(10,3),(Detail.UnitPrice - Detail.UnitPrice / 1.07)) ELSE Detail.UnitPrice END as VatAmt ,
+                (Detail.UnitPrice * Detail.Quantity) - (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS NetAmt,
+                (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS TransactionDiscountAmount ,
+                ProMas.ProdBarcode,
+                Head.T1CNoEarn as T1CRefNo,
+                Head.ShipMobileNo as Mobile,
+                oh.CreditCardNo  as PaymentRefNo,
+                Head.OrderId as DisplayReceipt,
+                Head.PaymentType as TenderType,
+                Head.NetAmt as OrderNetAmt,
+                Head.VatAmt as OrderVatAmt,
+                isnull(CONVERT(DECIMAL(10,3),Head.RedeemAmt * Head.GrandTotalAmt / oh.GrandTotalAmt),0) as RedeemAmt,
+                isnull(CONVERT(DECIMAL(10,3),Head.RedeemCash * Head.GrandTotalAmt / oh.GrandTotalAmt),0) as RedeemCash
               FROM TBSubOrderHead Head
               INNER JOIN TBShopMaster S on S.ShopID = Head.ShopID
               INNER JOIN TBSubOrderDetail Detail ON Head.Suborderid = Detail.Suborderid
               LEFT JOIN TBProductMaster ProMas ON Detail.PID = ProMas.PID
               INNER JOIN TBOrderHead oh on Head.OrderId = oh.OrderId
-              WHERE
-              Head.IsGenT1c = 'No'
-              AND cast(getdate() as date) = cast(head.InvDate as date)
+              WHERE 1 = 1
+              AND Head.IsGenT1c = 'No'
+              AND cast(head.InvDate as date) = cast(getdate() - 1 as date)
               AND Head.InvNo != ''
               UNION ALL
               SELECT
-              Head.Suborderid as id,
-              Head.OrderId as ParentID,
-              Case WHEN S.ShopID = 254 Then 99998 ELSE S.AccountCode END as StoreNo,
-              S.StroeCode as POSNo,
-              '' as ShopID,
-              '' as InvNo,
-              '' as InvDate,
-              '' as BusinessDate,
-              '' as DeliveryDate,
-              '01' AS TransType,
-              '' as TransDate,
-              '' as PID,
-              1 as Quantity,
-              0 as UnitPrice ,
-              0 as UnitSalesPrice,
-              1 as SeqNo,
-              0 as VatAmt ,
-              0 as NetAmt,
-              0 as TransactionDiscountAmount ,
-              '' as ProdBarcode,
-              '' as T1CRefNo,
-              '' as Mobile,
-              dis.PromotionNo as PaymentRefNo,
-              Head.OrderId as DisplayReceipt,
-              'Coupon' as TenderType,
-              0 as OrderNetAmt,
-              0 as OrderVatAmt,
-              0 as RedeemAmt,
-              0 as RedeemCash
+                Head.Suborderid as id,
+                Head.OrderId as ParentID,
+                Case 
+                  WHEN S.ShopID in ('254', '255') Then '99101'
+                  WHEN S.ShopID = '256' Then '99570'
+                  ELSE S.AccountCode
+                END as StoreNo,
+                S.StroeCode as POSNo,
+                '' as ShopID,
+                '' as InvNo,
+                '' as InvDate,
+                '' as BusinessDate,
+                '' as DeliveryDate,
+                '01' AS TransType,
+                '' as TransDate,
+                '' as PID,
+                1 as Quantity,
+                0 as UnitPrice ,
+                0 as UnitSalesPrice,
+                1 as SeqNo,
+                0 as VatAmt ,
+                0 as NetAmt,
+                0 as TransactionDiscountAmount ,
+                '' as ProdBarcode,
+                '' as T1CRefNo,
+                '' as Mobile,
+                dis.PromotionNo as PaymentRefNo,
+                Head.OrderId as DisplayReceipt,
+                'Coupon' as TenderType,
+                0 as OrderNetAmt,
+                0 as OrderVatAmt,
+                0 as RedeemAmt,
+                0 as RedeemCash
               FROM TBSubOrderHead head
               JOIN TBSubOrderDetail d ON head.SubOrderId= d.SubOrderId
               INNER JOIN TBShopMaster S on S.ShopID = Head.ShopID
               JOIN TBOrderDiscount dis ON head.OrderId = dis.OrderId AND d.PID = dis.PId
-              WHERE Head.IsGenT1c = 'No'
-              AND cast(getdate() as date) = cast(head.InvDate as date)
+              WHERE 1 = 1
+              AND Head.IsGenT1c = 'No'
+              AND cast(head.InvDate as date) = cast(getdate() - 1 as date)
               AND Head.InvNo != ''
-) result
-
-UNION ALL
-              SELECT
+            ) result
+            UNION ALL
+            SELECT
               Head.SubSRNo as id,
               Head.SRNo as ParentID,
-              Case WHEN S.ShopID = 254 Then 99998 ELSE S.AccountCode END as StoreNo,
+              Case 
+                WHEN S.ShopID in ('254', '255') Then '99101'
+                WHEN S.ShopID = '256' Then '99570'
+                ELSE S.AccountCode
+              END as StoreNo,
               S.StroeCode as POSNo,
               Head.ShopID,
               Head.CnNo AS InvNo,
@@ -161,19 +173,20 @@ UNION ALL
               Head.VatAmt as OrderVatAmt,
               isnull(CONVERT(DECIMAL(10,3),Head.RedeemAmt * Detail.TotalAmt / oh.GrandTotalAmt),0) as RedeemAmt,
               isnull(CONVERT(DECIMAL(10,3),Head.RedeemCash * Detail.TotalAmt / oh.GrandTotalAmt),0) as RedeemCash
-              FROM TBSubSaleReturnHead Head
-              INNER JOIN TBShopMaster S on S.ShopID = Head.ShopID
-              INNER JOIN TBSubSaleReturnDetail Detail ON Head.SubSRNo = Detail.SubSRNo
-              LEFT JOIN TBProductMaster ProMas ON Detail.PID = ProMas.PID
-              INNER JOIN TBOrderHead oh on Head.OrderId = oh.OrderId
-              WHERE Head.IsGenT1c = 'No'
-              AND cast(getdate() as date) = cast(head.CnDate as date)
-              AND Head.SubSaleReturnType IN ('CN', 'Exchange')
-              AND Head.Status = 'Completed'
-              AND Head.CnNo != ''
-              AND len(oh.CreditCardNo) > 0
-Order By ParentID
-      """
+            FROM TBSubSaleReturnHead Head
+            INNER JOIN TBShopMaster S on S.ShopID = Head.ShopID
+            INNER JOIN TBSubSaleReturnDetail Detail ON Head.SubSRNo = Detail.SubSRNo
+            LEFT JOIN TBProductMaster ProMas ON Detail.PID = ProMas.PID
+            INNER JOIN TBOrderHead oh on Head.OrderId = oh.OrderId
+            WHERE 1 = 1
+            AND Head.IsGenT1c = 'No'
+            AND cast(head.CnDate as date) = cast(getdate() - 1 as date)
+            AND Head.SubSaleReturnType IN ('CN', 'Exchange')
+            AND Head.Status = 'Completed'
+            AND Head.CnNo != ''
+            AND len(oh.CreditCardNo) > 0
+            Order By ParentID
+            """
             cursor.execute(query)
             return [gen_sale_tran_data(data) for data in cursor]
 
@@ -185,7 +198,7 @@ def gen_sale_tran_data(data):
     source_trans_id = ''
     store_number = data['StoreNo']
     pos_number = data['POSNo']
-    receipt_number = data['InvNo'] #TODO inv + seq
+    receipt_number = data['InvNo']
     trans_type = data['TransType']
     trans_date = data['TransDate']
     business_date = data['BusinessDate']
@@ -268,7 +281,6 @@ def gen_sale_tran_data(data):
 
 
 def gen_tender(input):
-    # [a(row[4])=a(row[4])+row for row in input]
     values = set(map(lambda x: x[37], input))
     groups = [[y for y in input if y[37] == x] for x in values]
     for g in groups:
@@ -337,21 +349,21 @@ def update_order():
             sale.append(id)
     query ="""
     BEGIN TRANSACTION A
-        BEGIN TRY
-            UPDATE TBSubOrderHead SET IsGenT1c = 'Yes' WHERE Suborderid in ('%s');
-            UPDATE TBSubSaleReturnHead SET IsGenT1c = 'Yes' WHERE SubSRNo in ('%s')
-            COMMIT TRANSACTION A
-        END TRY
-        BEGIN CATCH
-            ROLLBACK TRANSACTION A
-        END CATCH
+      BEGIN TRY
+        UPDATE TBSubOrderHead SET IsGenT1c = 'Yes' WHERE Suborderid in ('%s');
+        UPDATE TBSubSaleReturnHead SET IsGenT1c = 'Yes' WHERE SubSRNo in ('%s')
+        COMMIT TRANSACTION A
+      END TRY
+      BEGIN CATCH
+        ROLLBACK TRANSACTION A
+      END CATCH
     GO
     """ % ("','".join(sale),"','".join(sr))
-    print(query)
     with connect_db() as conn:
         with conn.cursor(as_dict=True) as cursor:
             cursor.execute(query)
 
+
 if __name__ == "__main__":
     generate_text_t1c()
-    # update_order()
+    update_order()
