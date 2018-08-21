@@ -210,6 +210,7 @@ with pymssql.connect("10.17.220.55", "central", "Cen@tral", "DBCDSContent") as c
         for d in rbs_data:
           writer.writerow(d)
         outfile.write('9|End')
+      pages = pages+1
 
 ctrlfile = "{}_{}.ctrl".format(interface_name, filedatetime)
 filepath = os.path.join(target_path, ctrlfile)
