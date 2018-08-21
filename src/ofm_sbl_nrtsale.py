@@ -53,7 +53,8 @@ def get_sale_tran():
                 TotalRecord
                 FROM tb_Control_Transaction
                 WHERE Type = 'S'
-                AND left(BatchID,8)='20180814'
+                AND DATEDIFF(day,GETDATE(),BatchStartDT) = 0
+                --AND left(BatchID,8)='20180814'
                 ORDER BY BatchID DESC
             """
             cursor.execute(sql)
