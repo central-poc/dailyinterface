@@ -94,7 +94,7 @@ with pymssql.connect("10.17.220.55", "central", "Cen@tral",
     cursor.execute(sql)
     sql = """
       select s.* into dbo.temp_siebel_product_inc from (
-        select top 0
+        select
           '1' as LNIdentifier,
           concat('CGO-', p.pidnew, '-', NewID()) as SourceTransID,
           p.pidnew as PID,
