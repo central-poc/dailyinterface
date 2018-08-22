@@ -198,20 +198,23 @@ with pymssql.connect("10.17.220.55", "central", "Cen@tral",
         outfile.write('9|End')
 
     # rest of rbs data
-    if len(rbs_data) > 0:
-      headers = rbs_data[0]
-      total_row = len(rbs_data)
-      datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime,
-                                          pages + 1)
-      filepath = os.path.join(target_path, datfile)
-      with open(filepath, 'w') as outfile:
-        outfile.write("0|{}\n".format(total_row))
-        writer = csv.DictWriter(
-            outfile, fieldnames=headers, delimiter='|', skipinitialspace=True)
-        for d in rbs_data:
-          writer.writerow(d)
-        outfile.write('9|End')
-      pages = pages + 1
+    rbs_pages = math.ceil(len(rbs_data) / per_page)
+    for i in range(0, rbs_pages):
+        write_data = rbs_data[:10000]
+        if len(rbs_data) > 0:
+          headers = rbs_data[0]
+          total_row = len(rbs_data)
+          datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime,
+                                              pages + 1)
+          filepath = os.path.join(target_path, datfile)
+          with open(filepath, 'w') as outfile:
+            outfile.write("0|{}\n".format(total_row))
+            writer = csv.DictWriter(
+                outfile, fieldnames=headers, delimiter='|', skipinitialspace=True)
+            for d in rbs_data:
+              writer.writerow(d)
+            outfile.write('9|End')
+        rbs_data = rbs_data[10000:]
 
 ctrlfile = "{}_{}.ctrl".format(interface_name, filedatetime)
 filepath = os.path.join(target_path, ctrlfile)
