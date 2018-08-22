@@ -120,12 +120,12 @@ def get_data_from_file(path):
 
 
 def generate_data_mer_line(data):
-  return [(sub_string_merline(1, 3, line), sub_string_merline(
-      4, 53, line), sub_string_merline(54, 54, line), sub_string_merline(
-          55, 84, line), sub_string_merline(85, 85, line), sub_string_merline(
-              86, 325, line), sub_string_merline(326, 339, line),
-           sub_string_merline(340, 353, line), sub_string_merline(
-               354, 367, line)) for line in data]
+  return [(sub_string_merline(1, 3, line), sub_string_merline(4, 53, line),
+           sub_string_merline(54, 54, line), sub_string_merline(55, 84, line),
+           sub_string_merline(85, 85, line), sub_string_merline(86, 325, line),
+           sub_string_merline(326, 339, line),
+           sub_string_merline(340, 353, line),
+           sub_string_merline(354, 367, line)) for line in data]
 
 
 def sub_string_merline(start, end, line):

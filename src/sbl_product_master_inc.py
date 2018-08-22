@@ -6,7 +6,6 @@ import os
 import pymssql
 import uuid
 
-
 dir_path = os.path.dirname(os.path.realpath(__file__))
 parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
 target_dir = 'siebel/inc'
@@ -22,8 +21,8 @@ filedatetime = now.strftime('%d%m%Y_%H%M%S')
 
 per_page = 10000
 
-with pymssql.connect("mssql.production.thecentral.com", "coreapi",
-                       "coreapi", "DBMKPOnline") as conn:
+with pymssql.connect("mssql.production.thecentral.com", "coreapi", "coreapi",
+                     "DBMKPOnline") as conn:
   with conn.cursor(as_dict=True) as cursor:
     start_time = datetime.now()
     sql = """
@@ -84,8 +83,8 @@ with pymssql.connect("mssql.production.thecentral.com", "coreapi",
     rbs_rows = len(rbs_data)
     print("[RBS]:Rows: {}".format(rbs_rows))
 
-
-with pymssql.connect("10.17.220.55", "central", "Cen@tral", "DBCDSContent") as conn:
+with pymssql.connect("10.17.220.55", "central", "Cen@tral",
+                     "DBCDSContent") as conn:
   with conn.cursor(as_dict=True) as cursor:
     start_time = datetime.now()
     sql = """
@@ -173,21 +172,22 @@ with pymssql.connect("10.17.220.55", "central", "Cen@tral", "DBCDSContent") as c
         order by pid
         offset {} rows fetch next {} rows only
       """
-      cursor.execute(sql.format(per_page*page, per_page))
+      cursor.execute(sql.format(per_page * page, per_page))
       data = cursor.fetchall()
 
       # Fill CDS Last Page Data
-      if page == pages-1:
-          index = per_page - len(data)
-          data = data + rbs_data[:index]
-          rbs_data = rbs_data[index:]
+      if page == pages - 1:
+        index = per_page - len(data)
+        data = data + rbs_data[:index]
+        rbs_data = rbs_data[index:]
 
       elapsed_time = (datetime.now() - start_time).seconds
-      print("Page-{} in {} s.".format(page+1, elapsed_time))
+      print("Page-{} in {} s.".format(page + 1, elapsed_time))
 
       headers = data[0]
       total_row = len(data)
-      datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime, page+1)
+      datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime,
+                                          page + 1)
       filepath = os.path.join(target_path, datfile)
       with open(filepath, 'w') as outfile:
         outfile.write("0|{}\n".format(total_row))
@@ -198,10 +198,11 @@ with pymssql.connect("10.17.220.55", "central", "Cen@tral", "DBCDSContent") as c
         outfile.write('9|End')
 
     # rest of rbs data
-    if len(rbs_data) > 0 :
+    if len(rbs_data) > 0:
       headers = rbs_data[0]
       total_row = len(rbs_data)
-      datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime, pages+1)
+      datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime,
+                                          pages + 1)
       filepath = os.path.join(target_path, datfile)
       with open(filepath, 'w') as outfile:
         outfile.write("0|{}\n".format(total_row))
@@ -210,7 +211,7 @@ with pymssql.connect("10.17.220.55", "central", "Cen@tral", "DBCDSContent") as c
         for d in rbs_data:
           writer.writerow(d)
         outfile.write('9|End')
-      pages = pages+1
+      pages = pages + 1
 
 ctrlfile = "{}_{}.ctrl".format(interface_name, filedatetime)
 filepath = os.path.join(target_path, ctrlfile)
@@ -218,10 +219,11 @@ attribute1 = ""
 attribute2 = ""
 with open(filepath, 'w') as outfile:
   outfile.write("{}|CGO|Online|{}|{}|{}|CGO|{}|{}".format(
-    interface_name, pages, rows + rbs_rows, batchdatetime, attribute1, attribute2))
+      interface_name, pages, rows + rbs_rows, batchdatetime, attribute1,
+      attribute2))
 
 start_time = datetime.now()
 destination = 'incoming/product_inc'
-sftp('cgo-prod',target_path, destination)
+sftp('cgo-prod', target_path, destination)
 elapsed_time = (datetime.now() - start_time).seconds
 print("Success FTP in {} s.".format(elapsed_time))

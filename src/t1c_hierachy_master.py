@@ -94,7 +94,8 @@ try:
 
   end_time = datetime.now()
   execution_time = (end_time - start_time).seconds
-  notifyLine("[T1C]: Hierarchy[{:,}] sync in {:,} s".format(len(data), execution_time))
+  notifyLine("[T1C]: Hierarchy[{:,}] sync in {:,} s".format(
+      len(data), execution_time))
 except Exception as e:
   notifyLine("[T1C]: Hierarchy Failure - {}".format(e))
   print(e)

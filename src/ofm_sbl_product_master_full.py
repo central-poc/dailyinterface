@@ -6,7 +6,6 @@ import os
 import pymssql
 import uuid
 
-
 dir_path = os.path.dirname(os.path.realpath(__file__))
 parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
 target_dir = 'siebel/full'
@@ -23,7 +22,8 @@ filedatetime = now.strftime('%d%m%Y_%H%M%S')
 per_page = 10000
 count = 1
 
-with pymssql.connect("10.17.1.23", "CTOAI", "CTO@Ai", "DBInterfaceSiebel") as conn:
+with pymssql.connect("10.17.1.23", "CTOAI", "CTO@Ai",
+                     "DBInterfaceSiebel") as conn:
   with conn.cursor(as_dict=True) as cursor:
     start_time = datetime.now()
     sql = """
@@ -81,18 +81,19 @@ with pymssql.connect("10.17.1.23", "CTOAI", "CTO@Ai", "DBInterfaceSiebel") as co
     WHERE BatchID=%s
     ORDER BY RTLProductCode
     """
-    cursor.execute(sql,batch_id)
+    cursor.execute(sql, batch_id)
     rows = cursor.fetchall()
 
     elapsed_time = (datetime.now() - start_time).seconds
     print("Prepared in {}    s.".format(elapsed_time))
 
     chunk = chunks(rows)
-    for count, data  in enumerate(chunk):
+    for count, data in enumerate(chunk):
 
       headers = data[0]
       total_row = len(data)
-      datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime, count+1)
+      datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime,
+                                          count + 1)
       filepath = os.path.join(target_path, datfile)
       with open(filepath, 'w') as outfile:
         outfile.write("0|{}\n".format(total_row))
@@ -108,11 +109,11 @@ attribute1 = ""
 attribute2 = ""
 with open(filepath, 'w') as outfile:
   outfile.write("{}|OFM|Online|{}|{}|{}|OFM|{}|{}".format(
-    interface_name, count + 1 , len(rows), batchdatetime,
-    attribute1, attribute2))
+      interface_name, count + 1, len(rows), batchdatetime, attribute1,
+      attribute2))
 
 start_time = datetime.now()
 destination = 'incoming/product_full'
-sftp('ofm-prod',target_path, destination)
+sftp('ofm-prod', target_path, destination)
 elapsed_time = (datetime.now() - start_time).seconds
 print("Success FTP in {} s.".format(elapsed_time))

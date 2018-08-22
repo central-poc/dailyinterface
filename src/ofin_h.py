@@ -131,21 +131,18 @@ def get_data_from_file(path):
 
 
 def generate_data_mer_header(data):
-  return [
-      (sub_string_mer(1, 3, line), sub_string_mer(4, 53, line), sub_string_mer(
-          54, 83, line), sub_string_mer(84, 89, line), sub_string_mer(
-              90, 103, line), sub_string_mer(104, 109, line), sub_string_mer(
-                  110, 110, line), sub_string_mer(111, 111, line),
-       sub_string_mer(112, 113, line), sub_string_mer(
-           114, 118, line), sub_string_mer(119, 168, line), sub_string_mer(
-               169, 218, line), sub_string_mer(219, 228, line), sub_string_mer(
-                   229, 231, line), sub_string_mer(232, 235, line),
-       sub_string_mer(236, 237, line), sub_string_mer(
-           238, 247, line), sub_string_mer(248, 297, line), sub_string_mer(
-               298, 311, line), sub_string_mer(312, 317, line), sub_string_mer(
-                   318, 327, line), sub_string_mer(328, 377, line))
-      for line in data
-  ]
+  return [(sub_string_mer(1, 3, line), sub_string_mer(4, 53, line),
+           sub_string_mer(54, 83, line), sub_string_mer(84, 89, line),
+           sub_string_mer(90, 103, line), sub_string_mer(104, 109, line),
+           sub_string_mer(110, 110, line), sub_string_mer(111, 111, line),
+           sub_string_mer(112, 113, line), sub_string_mer(114, 118, line),
+           sub_string_mer(119, 168, line), sub_string_mer(169, 218, line),
+           sub_string_mer(219, 228, line), sub_string_mer(229, 231, line),
+           sub_string_mer(232, 235, line), sub_string_mer(236, 237, line),
+           sub_string_mer(238, 247, line), sub_string_mer(248, 297, line),
+           sub_string_mer(298, 311, line), sub_string_mer(312, 317, line),
+           sub_string_mer(318, 327, line), sub_string_mer(328, 377, line))
+          for line in data]
 
 
 def sub_string_mer(start, end, line):

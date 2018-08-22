@@ -65,8 +65,8 @@ def generate_report(output_path, date, data):
   date = date.strftime('%y%m%d')
   prefix_filename_ZL = 'ZL' + date
   seq = get_next_seq(
-      [filename.split('.')[0]
-       for filename in os.listdir(output_path)], prefix_filename_ZL, 8)
+      [filename.split('.')[0] for filename in os.listdir(output_path)],
+      prefix_filename_ZL, 8)
   ZL_name_dat = prefix_filename_ZL + str(seq) + '.DAT'
   ZL_name_dat_file_path = os.path.join(output_path, ZL_name_dat)
   ZL_name_val = prefix_filename_ZL + str(seq) + '.VAL'

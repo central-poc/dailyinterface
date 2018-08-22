@@ -15,6 +15,7 @@ def connect_rbs_db():
 def connect_t1c_db():
   return pymssql.connect("10.17.220.181", "sa", "Asdf123!", "DBSync")
 
+
 try:
   start_time = datetime.now()
   with connect_cds_db() as conn:
@@ -82,15 +83,16 @@ try:
     data = cds_data + rbs_data
     print("Total Product {:,} records".format(len(data)))
     for i in range(0, len(data), 1000):
-      query = ",".join(["""('%s', '%s', '%s', '%s', '%s', '%s', '%s', 
-          '%s', '%s', '%s', '%s', '%s')"""
-          % (row['Pid'], row['ProductNameEN'].replace("'", "''"),
-            row['ProductNameTH'].replace("'", "''"), row['Local_Cate_ID'],
-            row['LocalNameEN'].replace("'", "''"),
-            row['LocalNameTH'].replace("'", "''"), row['Brand_ID'],
-            row['BrandNameEN'].replace("'", "''"),
-            row['BrandNameTH'].replace("'", "''"), row["Barcode"],
-            row["JDA_BUCODE"], row["JDA_SKU"]) for row in data[i:i + 1000]
+      query = ",".join([
+          """('%s', '%s', '%s', '%s', '%s', '%s', '%s', 
+          '%s', '%s', '%s', '%s', '%s')""" %
+          (row['Pid'], row['ProductNameEN'].replace("'", "''"),
+           row['ProductNameTH'].replace("'", "''"), row['Local_Cate_ID'],
+           row['LocalNameEN'].replace("'", "''"),
+           row['LocalNameTH'].replace("'", "''"), row['Brand_ID'],
+           row['BrandNameEN'].replace("'", "''"),
+           row['BrandNameTH'].replace("'", "''"), row["Barcode"],
+           row["JDA_BUCODE"], row["JDA_SKU"]) for row in data[i:i + 1000]
       ])
       try:
         t1c_cursor.execute(sql.format(query))
@@ -100,7 +102,8 @@ try:
 
   end_time = datetime.now()
   execution_time = (end_time - start_time).seconds
-  notifyLine("[T1C]: Product[{:,}] sync in {:,} s".format(len(data), execution_time))
+  notifyLine("[T1C]: Product[{:,}] sync in {:,} s".format(
+      len(data), execution_time))
 except Exception as e:
   notifyLine("[T1C]: Product master Failure - {}".format(e))
   print(e)

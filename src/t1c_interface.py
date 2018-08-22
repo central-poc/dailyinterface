@@ -259,8 +259,7 @@ def get_sale_tran(shop_id, shop_group, store_number):
       query = query.format('{} ({})'.format(' AND Head.ShopID in ', shop_id))
     else:
       query = query.format('')
-    cursor.execute(query,
-                   dict(ShopGroup=shop_group))
+    cursor.execute(query, dict(ShopGroup=shop_group))
     return [
         gen_sale_tran_data(data, index + 1, store_number)
         for index, data in enumerate(cursor)
@@ -494,8 +493,7 @@ def get_tender_mem(shop_id, shop_group, store_number):
       query = query.format('{} ({})'.format(' AND Head.ShopID IN ', shop_id))
     else:
       query = query.format('')
-    cursor.execute(query,
-                   dict(shop_group=shop_group))
+    cursor.execute(query, dict(shop_group=shop_group))
     return [
         gen_tender(data, index + 1, store_number)
         for index, data in enumerate(cursor)
@@ -653,9 +651,7 @@ def get_tender_non_mem(shop_id, shop_group, store_number):
       query = query.format('{} ({})'.format(' AND Head.ShopID IN ', shop_id))
     else:
       query = query.format('')
-    cursor.execute(query,
-                   dict(
-                       shop_group=shop_group))
+    cursor.execute(query, dict(shop_group=shop_group))
     return [
         gen_tender(data, index + 1, store_number)
         for index, data in enumerate(cursor)
@@ -706,15 +702,16 @@ def create_directory(path):
   if not os.path.exists(path):
     os.makedirs(path)
 
+
 def update_order():
-    sale = []
-    sr = []
-    for id in order_ids:
-        if id[:2] == 'CR':
-            sr.append(id)
-        else:
-            sale.append(id)
-    query ="""
+  sale = []
+  sr = []
+  for id in order_ids:
+    if id[:2] == 'CR':
+      sr.append(id)
+    else:
+      sale.append(id)
+  query = """
     BEGIN TRANSACTION A
         BEGIN TRY
             UPDATE TBSubOrderHead SET IsGenT1c = 'Yes' WHERE Suborderid in ('%s');
@@ -725,11 +722,12 @@ def update_order():
             ROLLBACK TRANSACTION A
         END CATCH
     GO
-    """ % ("','".join(sale),"','".join(sr))
-    print(query)
-    # with connect_db() as conn:
-    #     with conn.cursor(as_dict=True) as cursor:
-    #         cursor.execute(query)
+    """ % ("','".join(sale), "','".join(sr))
+  print(query)
+  # with connect_db() as conn:
+  #     with conn.cursor(as_dict=True) as cursor:
+  #         cursor.execute(query)
+
 
 if __name__ == "__main__":
   create_directory('SaleTransaction')

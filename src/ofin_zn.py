@@ -51,7 +51,8 @@ def execute_ar_transaction(orderid, is_prepaid):
         'Server',
         is_prepaid,
         'Sale',
-        'No', ))
+        'No',
+    ))
   return out
 
 
@@ -95,7 +96,8 @@ def execut_return_agent(suborderid, return_type):
     sql = "EXEC dbo.SPC_GENTBReturnAgent %s, %s;"
     conn.execute_scalar(sql, (
         suborderid,
-        return_type, ))
+        return_type,
+    ))
 
 
 def generate_temp_data(curr_date):
@@ -154,8 +156,8 @@ def generate_data_file(output_path, date, data):
   date = date.strftime('%y%m%d')
   prefix_filename_ZN = 'ZN' + date
   seq = get_next_seq(
-      [filename.split('.')[0]
-       for filename in os.listdir(output_path)], prefix_filename_ZN, 8)
+      [filename.split('.')[0] for filename in os.listdir(output_path)],
+      prefix_filename_ZN, 8)
   ZN_name_dat = prefix_filename_ZN + str(seq) + '.DAT'
   ZN_name_dat_file_path = os.path.join(output_path, ZN_name_dat)
   ZN_name_val = prefix_filename_ZN + str(seq) + '.VAL'
