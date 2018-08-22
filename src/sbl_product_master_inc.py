@@ -73,8 +73,7 @@ with pymssql.connect("mssql.production.thecentral.com", "coreapi",
     LEFT JOIN JDARBS_Dept SubClass on Dept.IDEPT = pro.JDADept AND Dept.ISDEPT = pro.JDASubDept AND Dept.ICLAS = pro.ClassCode AND Dept.ISCLAS = pro.SubClassCode
     WHERE 1 = 1
     AND len(pro.PID) > 0
-    -- AND (cast(getdate() - 100 as date) = cast(pro.createon as date) or cast(getdate() - 100 as date) = cast(pro.updateon as date))
-    AND pid in ('0131482','0131405')
+    AND (cast(getdate() - 1 as date) = cast(pro.createon as date) or cast(getdate() - 1 as date) = cast(pro.updateon as date))
     ORDER BY pro.Pid
     """
     cursor.execute(sql)
@@ -150,7 +149,8 @@ with pymssql.connect("10.17.220.55", "central", "Cen@tral", "DBCDSContent") as c
         left join tbjdahierarchy c on c.businessunitid = bu.parentId and c.idept = m.idept and c.isdept = m.isdept and c.iclass = m.iclass and c.isclass = 0
         left join tbjdahierarchy sc on sc.businessunitid = bu.parentId and sc.idept = m.idept and sc.isdept = m.isdept and sc.iclass = m.iclass and sc.isclass = m.isclass
         where 1 = 1
-        and len(p.pidnew) > 0
+        AND len(p.pidnew) > 0
+        AND (cast(getdate() - 1 as date) = cast(p.createon as date) or cast(getdate() - 1 as date) = cast(p.updateon as date))
       ) s
       order by s.pid
     """
