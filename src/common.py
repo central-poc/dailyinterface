@@ -1,3 +1,4 @@
+import _mssql
 import pymssql
 import pysftp
 import requests, json
@@ -72,3 +73,11 @@ def cleardir(path):
 
 def connect_cmos():
   return pymssql.connect("10.17.220.173", "app-t1c", "Zxcv123!", "DBMKP")
+
+
+def mssql_cmos():
+  return _mssql.connect(
+      server='10.17.220.173',
+      user='app-t1c',
+      password='Zxcv123!',
+      database='DBMKP')

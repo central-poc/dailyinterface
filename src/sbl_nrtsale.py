@@ -1,4 +1,4 @@
-from common import connect_cmos, sftp, cleardir
+from common import connect_cmos, mssql_cmos, sftp, cleardir
 from datetime import datetime, timedelta
 import sys
 import csv
@@ -42,7 +42,7 @@ def generate_text_t1c():
         interface_name, total_row, batchdatetime, attribute1, attribute2))
 
   destination = 'incoming/nrtsale'
-  #sftp('cgo-prod',target_path, destination)
+  sftp('cgo-prod',target_path, destination)
 
 
 def get_sale_tran():
@@ -93,7 +93,7 @@ def get_sale_tran():
               LEFT JOIN TBProductMaster ProMas ON Detail.PID = ProMas.PID
               INNER JOIN TBOrderHead oh on Head.OrderId = oh.OrderId
               WHERE 1 = 1
-              --AND Head.IsGenT1c = 'No'
+              AND Head.IsGenT1c = 'No'
               AND cast(head.InvDate as date) = cast(getdate() - 1 as date)
               AND Head.InvNo != ''
               UNION ALL
@@ -136,7 +136,7 @@ def get_sale_tran():
               INNER JOIN TBShopMaster S on S.ShopID = Head.ShopID
               JOIN TBOrderDiscount dis ON head.OrderId = dis.OrderId AND d.PID = dis.PId
               WHERE 1 = 1
-              --AND Head.IsGenT1c = 'No'
+              AND Head.IsGenT1c = 'No'
               AND cast(head.InvDate as date) = cast(getdate() - 1 as date)
               AND Head.InvNo != ''
             ) result
@@ -184,7 +184,7 @@ def get_sale_tran():
             LEFT JOIN TBProductMaster ProMas ON Detail.PID = ProMas.PID
             INNER JOIN TBOrderHead oh on Head.OrderId = oh.OrderId
             WHERE 1 = 1
-            --AND Head.IsGenT1c = 'No'
+            AND Head.IsGenT1c = 'No'
             AND cast(head.CnDate as date) = cast(getdate() - 1 as date)
             AND Head.SubSaleReturnType IN ('CN', 'Exchange')
             AND Head.Status = 'Completed'
@@ -351,16 +351,13 @@ def update_order():
       sr.append(id)
     else:
       sale.append(id)
-  with connect_cmos() as conn:
-    with conn.cursor() as cursor:
-      #query ="UPDATE TBSubOrderHead SET IsGenT1c = 'Yes' WHERE Suborderid in ('{}')".format("','".join(sale))
-      #cursor.execute(query)
-      query = "UPDATE TBSubSaleReturnHead SET IsGenT1c = 'Yes' WHERE SubSRNo in ('{}')".format(
-          "','".join(sr))
-      print(query)
-      #cursor.execute(query)
+  with mssql_cmos() as conn:
+    query ="UPDATE TBSubOrderHead SET IsGenT1c = 'Yes' WHERE Suborderid in ('{}')".format("','".join(sale))
+    conn.execute_non_query(query)
+    query = "UPDATE TBSubSaleReturnHead SET IsGenT1c = 'Yes' WHERE SubSRNo in ('{}')".format("','".join(sr))
+    conn.execute_non_query(query)
 
 
 if __name__ == "__main__":
   generate_text_t1c()
-  #update_order()
+  update_order()
