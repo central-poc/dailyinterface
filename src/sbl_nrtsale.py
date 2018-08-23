@@ -189,7 +189,6 @@ def get_sale_tran():
             AND Head.SubSaleReturnType IN ('CN', 'Exchange')
             AND Head.Status = 'Completed'
             AND Head.CnNo != ''
-            AND len(oh.CreditCardNo) > 0
             Order By ParentID
             """
       cursor.execute(query)
@@ -347,7 +346,7 @@ def update_order():
   sale = []
   sr = []
   for id in order_ids:
-    if id[:2] == 'CR':
+    if id[:2] in ['CR', 'SR']:
       sr.append(id)
     else:
       sale.append(id)
