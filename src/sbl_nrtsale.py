@@ -53,7 +53,7 @@ def get_sale_tran():
               SELECT
                 Head.Suborderid as id,
                 Head.OrderId as ParentID,
-                Case 
+                Case
                   WHEN S.ShopID in ('254', '255') Then '99101'
                   WHEN S.ShopID = '256' Then '99570'
                   ELSE S.AccountCode
@@ -71,9 +71,9 @@ def get_sale_tran():
                 Detail.UnitPrice ,
                 CONVERT(DECIMAL(10,3),Detail.TotalAmt/Detail.Quantity) AS UnitSalesPrice,
                 Detail.SeqNo,
-                CASE  
-                  WHEN Detail.IsVat = 1 THEN CONVERT(DECIMAL(10,3),(Detail.UnitPrice - Detail.UnitPrice / 1.07)) 
-                  ELSE Detail.UnitPrice 
+                CASE
+                  WHEN Detail.IsVat = 1 THEN CONVERT(DECIMAL(10,3),(Detail.UnitPrice - Detail.UnitPrice / 1.07))
+                  ELSE Detail.UnitPrice
                 END as VatAmt ,
                 (Detail.UnitPrice * Detail.Quantity) - (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS NetAmt,
                 (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS TransactionDiscountAmount ,
@@ -100,19 +100,19 @@ def get_sale_tran():
               SELECT
                 Head.Suborderid as id,
                 Head.OrderId as ParentID,
-                Case 
+                Case
                   WHEN S.ShopID in ('254', '255') Then '99101'
                   WHEN S.ShopID = '256' Then '99570'
                   ELSE S.AccountCode
                 END as StoreNo,
                 S.StroeCode as POSNo,
                 '' as ShopID,
-                '' as InvNo,
-                '' as InvDate,
-                '' as BusinessDate,
-                '' as DeliveryDate,
+                Head.InvNo,
+                format(Head.InvDate, 'ddMMyyyy', 'en-us') as InvDate,
+                format(Head.PaymentDate, 'ddMMyyyy', 'en-us') as BusinessDate,
+                format(Head.DeliveryDate, 'ddMMyyyy', 'en-us') as DeliveryDate,
                 '01' AS TransType,
-                '' as TransDate,
+                format(Head.suborderdate, 'ddMMyyyy_HH:mm:ss:fff', 'en-us') as TransDate,
                 '' as PID,
                 1 as Quantity,
                 0 as UnitPrice ,
@@ -144,7 +144,7 @@ def get_sale_tran():
             SELECT
               Head.SubSRNo as id,
               Head.SRNo as ParentID,
-              Case 
+              Case
                 WHEN S.ShopID in ('254', '255') Then '99101'
                 WHEN S.ShopID = '256' Then '99570'
                 ELSE S.AccountCode
@@ -162,9 +162,9 @@ def get_sale_tran():
               Detail.UnitPrice ,
               Detail.UnitPrice - CONVERT(DECIMAL(10,3),(Detail.ItemDiscAmt + Detail.OrdDiscAmt)/Detail.Quantity) AS UnitSalesPrice,
               Detail.SeqNo,
-              CASE  
-                WHEN Detail.IsVat = 1 THEN CONVERT(DECIMAL(10,3),(Detail.UnitPrice - Detail.UnitPrice / 1.07)) 
-                ELSE Detail.UnitPrice 
+              CASE
+                WHEN Detail.IsVat = 1 THEN CONVERT(DECIMAL(10,3),(Detail.UnitPrice - Detail.UnitPrice / 1.07))
+                ELSE Detail.UnitPrice
               END as VatAmt ,
               (Detail.UnitPrice * Detail.Quantity) - (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS NetAmt,
               (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
