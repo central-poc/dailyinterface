@@ -20,7 +20,7 @@ batchdatetime = now.strftime('%d%m%Y_%H:%M:%S:%f')[:-3]
 filedatetime = now.strftime('%d%m%Y_%H%M%S')
 
 per_page = 10000
-count = 1
+count = 0
 
 
 def getBatchID(cursor):
@@ -97,21 +97,29 @@ with pymssql.connect("10.17.1.23", "CTOAI", "CTO@Ai",
     elapsed_time = (datetime.now() - start_time).seconds
     print("Prepared in {}    s.".format(elapsed_time))
 
-    chunk = chunks(rows)
-    for count, data in enumerate(chunk):
-
-      headers = data[0]
-      total_row = len(data)
+    if len(rows) == 0:
       datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime,
                                           count + 1)
       filepath = os.path.join(target_path, datfile)
       with open(filepath, 'w') as outfile:
-        outfile.write("0|{}\n".format(total_row))
-        writer = csv.DictWriter(
-            outfile, fieldnames=headers, delimiter='|', skipinitialspace=True)
-        for d in data:
-          writer.writerow(d)
+        outfile.write("0|0\n")
         outfile.write('9|End')
+    else :
+        chunk = chunks(rows)
+        for count, data in enumerate(chunk):
+
+          headers = data[0]
+          total_row = len(data)
+          datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime,
+                                              count + 1)
+          filepath = os.path.join(target_path, datfile)
+          with open(filepath, 'w') as outfile:
+            outfile.write("0|{}\n".format(total_row))
+            writer = csv.DictWriter(
+                outfile, fieldnames=headers, delimiter='|', skipinitialspace=True)
+            for d in data:
+              writer.writerow(d)
+            outfile.write('9|End')
 
 ctrlfile = "{}_{}.ctrl".format(interface_name, filedatetime)
 filepath = os.path.join(target_path, ctrlfile)

@@ -216,13 +216,22 @@ with pymssql.connect("10.17.220.55", "central", "Cen@tral",
             outfile.write('9|End')
         rbs_data = rbs_data[10000:]
 
+    if rows + rbs_rows == 0:
+      datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime,
+                                          pages + 1)
+      filepath = os.path.join(target_path, datfile)
+      with open(filepath, 'w') as outfile:
+        outfile.write("0|0\n")
+        outfile.write('9|End')
+        pages+=1
+
 ctrlfile = "{}_{}.ctrl".format(interface_name, filedatetime)
 filepath = os.path.join(target_path, ctrlfile)
 attribute1 = ""
 attribute2 = ""
 with open(filepath, 'w') as outfile:
   outfile.write("{}|CGO|Online|{}|{}|{}|CGO|{}|{}".format(
-      interface_name, pages, rows + rbs_rows, batchdatetime, attribute1,
+      interface_name, pages + rbs_pages, rows + rbs_rows, batchdatetime, attribute1,
       attribute2))
 
 start_time = datetime.now()
