@@ -78,7 +78,7 @@ def get_sale_tran():
                     ISNULL(REPLACE(CONVERT(VARCHAR(10), h.InvoiceDate, 103), '/', ''),'') as InvoiceDate,
                     ISNULL(REPLACE(CONVERT(VARCHAR(10), h.DeliveryDate, 103), '/', ''),'') as DeliveryDate,
                     h.OnlineFlg as EarnOnlineFlag,
-                    h.T1CNumber as T1CCardNo,
+                    ISNULL(h.T1CNumber,'') as T1CCardNo,
                     ISNULL(h.Mobile,'') as MobileNo,
                     h.[User] as UserID,
                     d.SeqNo as ItemSeqNo,
@@ -121,7 +121,7 @@ def get_sale_tran():
                     ISNULL(REPLACE(CONVERT(VARCHAR(10), h.InvoiceDate, 103), '/', ''),'') as InvoiceDate,
                     ISNULL(REPLACE(CONVERT(VARCHAR(10), h.DeliveryDate, 103), '/', ''),'') as DeliveryDate,
                     '' as EarnOnlineFlag,
-                    h.T1CNumber as T1CCardNo,
+                    ISNULL(h.T1CNumber,'') as T1CCardNo,
                     ISNULL(h.Mobile,'') as MobileNo,
                     h.[User] as UserID,
                     SeqNo as  ItemSeqNo,
@@ -162,7 +162,7 @@ def get_sale_tran():
                     ISNULL(REPLACE(CONVERT(VARCHAR(10), h.InvoiceDate, 103), '/', ''),'') as InvoiceDate,
                     ISNULL(REPLACE(CONVERT(VARCHAR(10), h.DeliveryDate, 103), '/', ''),'') as DeliveryDate,
                     '' as EarnOnlineFlag,
-                    h.T1CNumber as T1CCardNo,
+                    ISNULL(h.T1CNumber,'') as T1CCardNo,
                     ISNULL(h.Mobile,'') as MobileNo,
                     h.[User] as UserID,
                     SeqNo as  ItemSeqNo,
@@ -284,7 +284,6 @@ def gen_tender(input):
     g.append(total)
 
   out = [item[:32] for sublist in groups for item in sublist]
-
   return ['|'.join(row) for row in out]
 
 
