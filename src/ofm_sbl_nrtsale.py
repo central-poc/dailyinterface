@@ -42,7 +42,7 @@ def generate_text_t1c():
         interface_name, total_row, batchdatetime, attribute1, attribute2))
 
   destination = 'incoming/nrtsale'
-  sftp('ofm-prod', target_path, destination)
+  # sftp('ofm-prod', target_path, destination)
 
 
 def get_sale_tran():
@@ -74,7 +74,7 @@ def get_sale_tran():
                     h.TransType,
                     'P' as TransSubType,
                     REPLACE(CONVERT(VARCHAR(10), h.TransDate, 103), '/', '') + '_00:00:00:000' as TransDate,
-                    REPLACE(CONVERT(VARCHAR(10), h.TransDate, 103), '/', '') as BusinessDate,
+                    REPLACE(CONVERT(VARCHAR(10), h.InvoiceDate, 103), '/', '') as BusinessDate,
                     ISNULL(REPLACE(CONVERT(VARCHAR(10), h.InvoiceDate, 103), '/', ''),'') as InvoiceDate,
                     ISNULL(REPLACE(CONVERT(VARCHAR(10), h.DeliveryDate, 103), '/', ''),'') as DeliveryDate,
                     h.OnlineFlg as EarnOnlineFlag,
