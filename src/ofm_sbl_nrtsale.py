@@ -42,7 +42,7 @@ def generate_text_t1c():
         interface_name, total_row, batchdatetime, attribute1, attribute2))
 
   destination = 'incoming/nrtsale'
-  # sftp('ofm-prod', target_path, destination)
+  sftp('ofm-prod', target_path, destination)
 
 
 def get_sale_tran():
