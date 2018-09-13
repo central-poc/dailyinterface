@@ -97,6 +97,7 @@ def get_sale_tran():
               AND cast(head.InvDate as date) = cast(getdate() - 1 as date)
               AND Head.InvNo != ''
               UNION ALL
+
               SELECT
                 Head.Suborderid as id,
                 Head.OrderId as ParentID,
@@ -122,8 +123,8 @@ def get_sale_tran():
                 0 as NetAmt,
                 0 as TransactionDiscountAmount ,
                 '' as ProdBarcode,
-                '' as T1CRefNo,
-                '' as Mobile,
+                Head.T1CNoEarn as T1CRefNo,
+                Head.ShipMobileNo as Mobile,
                 dis.PromotionNo as PaymentRefNo,
                 Head.OrderId as DisplayReceipt,
                 'Coupon' as TenderType,
@@ -141,6 +142,7 @@ def get_sale_tran():
               AND Head.InvNo != ''
             ) result
             UNION ALL
+
             SELECT
               Head.SubSRNo as id,
               Head.SRNo as ParentID,
