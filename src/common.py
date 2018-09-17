@@ -1,4 +1,5 @@
 import _mssql
+import psycopg2
 import pymssql
 import pysftp
 import requests, json
@@ -81,3 +82,11 @@ def mssql_cmos():
       user='app-t1c',
       password='Zxcv123!',
       database='DBMKP')
+
+def connect_psql():
+  return psycopg2.connect(
+      host='10.86.20.70',
+      port=5432,
+      user='postgres',
+      password='Zxcv123!autopos',
+      dbname='dbfms')
