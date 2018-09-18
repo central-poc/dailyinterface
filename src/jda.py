@@ -4,9 +4,12 @@ import psycopg2.extras
 
 
 def get_file_seq(prefix, output_path, ext):
-  files = [f.split('.')[0] for f in os.listdir(output_path)
-            if os.path.isfile(os.path.join(output_path,f)) and f.endswith(ext)]
-  return 1 if not files else max(int(f[len(prefix)]) if f.startswith(prefix) else 0 for f in files) + 1
+  files = [
+      f.split('.')[0] for f in os.listdir(output_path)
+      if os.path.isfile(os.path.join(output_path, f)) and f.endswith(ext)
+  ]
+  return 1 if not files else max(
+      int(f[len(prefix)]) if f.startswith(prefix) else 0 for f in files) + 1
 
 
 def generate_data_file(output_path, store, data):
@@ -26,25 +29,21 @@ def generate_data_file(output_path, store, data):
           {:0>12}{:4}{:0>12}{:4}{:0>12}{:21}{:9}{:0>8}{:0>2}{:0>6}
           {:0>3}{:0>3}{:0>16}{:1}{:16}{:21}{:0>8}{:8}{:8}
         '''.format(
-          d['store_code'], d['transaction_date'], d['transaction_time'],
-          d['transaction_type'], d['ticket_no'], d['seq_no'], d['sku'],
-          d['barcode'], d['qty_sign'], d['quantity'], d['jda_price'],
-          d['price_override'], d['is_price_override'], d['total_net_amt'],
-          d['vat_amt'], d['discount_type1'], d['discount_amt1'],
-          d['discount_type2'], d['discount_amt2'],
-          d['discount_type3'], d['discount_amt3'],
-          d['discount_type4'], d['discount_amt4'],
-          d['discount_type5'], d['discount_amt5'],
-          d['discount_type6'], d['discount_amt6'],
-          d['discount_type7'], d['discount_amt7'],
-          d['discount_type8'], d['discount_amt8'],
-          d['discount_type9'], d['discount_amt9'],
-          d['discount_type10'], d['discount_amt10'],
-          d['ref_id'], d['ref_ticket'], d['ref_date'], d['reason_code'],
-          d['event_no'], d['dept_id'], d['subdept_id'], d['itemized'],
-          d['dtype'], d['credit_cardno'], d['customer_id'], d['member_point'],
-          d['cashier_id'], d['sale_person']
-        ))
+            d['store_code'], d['transaction_date'], d['transaction_time'],
+            d['transaction_type'], d['ticket_no'], d['seq_no'], d['sku'],
+            d['barcode'], d['qty_sign'], d['quantity'], d['jda_price'],
+            d['price_override'], d['is_price_override'], d['total_net_amt'],
+            d['vat_amt'], d['discount_type1'], d['discount_amt1'],
+            d['discount_type2'], d['discount_amt2'], d['discount_type3'],
+            d['discount_amt3'], d['discount_type4'], d['discount_amt4'],
+            d['discount_type5'], d['discount_amt5'], d['discount_type6'],
+            d['discount_amt6'], d['discount_type7'], d['discount_amt7'],
+            d['discount_type8'], d['discount_amt8'], d['discount_type9'],
+            d['discount_amt9'], d['discount_type10'], d['discount_amt10'],
+            d['ref_id'], d['ref_ticket'], d['ref_date'], d['reason_code'],
+            d['event_no'], d['dept_id'], d['subdept_id'], d['itemized'],
+            d['dtype'], d['credit_cardno'], d['customer_id'],
+            d['member_point'], d['cashier_id'], d['sale_person']))
         count = count + 1
       print('[AutoPOS] - JDA Create Files Complete..')
     except Exception as e:
@@ -53,16 +52,16 @@ def generate_data_file(output_path, store, data):
 
 def query_store():
   with connect_psql() as conn:
-      with conn.cursor(cursor_factory = psycopg2.extras.DictCursor) as cursor:
-        cursor.execute("select store_code from businessunit")
+    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+      cursor.execute("select store_code from businessunit")
 
-        return cursor.fetchall()
+      return cursor.fetchall()
 
 
 def query_data_by_store(store):
   with connect_psql() as conn:
-      with conn.cursor(cursor_factory = psycopg2.extras.DictCursor) as cursor:
-        sql = """
+    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+      sql = """
         select 
           b.store_code, '00' as transaction_type, coalesce(b.ticket_no, '') as ticket_no, 
           b.sku, b.barcode, '+' as qty_sign, 'N' as is_price_override, b.dept_id, b.subdept_id, b.dtype, 
@@ -131,9 +130,9 @@ def query_data_by_store(store):
         ) dtyp10 on dtyp10.order_id = a.order_id and b.line_number = dtyp10.line_number and dtyp10.line_number = 10
         where store_code = %s
         """
-        cursor.execute(sql, (store,))
+      cursor.execute(sql, (store, ))
 
-        return cursor.fetchall()
+      return cursor.fetchall()
 
 
 def main():

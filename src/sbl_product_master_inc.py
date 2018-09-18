@@ -200,21 +200,24 @@ with pymssql.connect("10.17.220.55", "central", "Cen@tral",
     # rest of rbs data
     rbs_pages = math.ceil(len(rbs_data) / per_page)
     for i in range(0, rbs_pages):
-        write_data = rbs_data[:10000]
-        if len(rbs_data) > 0:
-          headers = rbs_data[0]
-          total_row = len(rbs_data)
-          datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime,
-                                              pages + 1)
-          filepath = os.path.join(target_path, datfile)
-          with open(filepath, 'w') as outfile:
-            outfile.write("0|{}\n".format(total_row))
-            writer = csv.DictWriter(
-                outfile, fieldnames=headers, delimiter='|', skipinitialspace=True)
-            for d in rbs_data:
-              writer.writerow(d)
-            outfile.write('9|End')
-        rbs_data = rbs_data[10000:]
+      write_data = rbs_data[:10000]
+      if len(rbs_data) > 0:
+        headers = rbs_data[0]
+        total_row = len(rbs_data)
+        datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime,
+                                            pages + 1)
+        filepath = os.path.join(target_path, datfile)
+        with open(filepath, 'w') as outfile:
+          outfile.write("0|{}\n".format(total_row))
+          writer = csv.DictWriter(
+              outfile,
+              fieldnames=headers,
+              delimiter='|',
+              skipinitialspace=True)
+          for d in rbs_data:
+            writer.writerow(d)
+          outfile.write('9|End')
+      rbs_data = rbs_data[10000:]
 
     if rows + rbs_rows == 0:
       datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime,
@@ -223,7 +226,7 @@ with pymssql.connect("10.17.220.55", "central", "Cen@tral",
       with open(filepath, 'w') as outfile:
         outfile.write("0|0\n")
         outfile.write('9|End')
-        pages+=1
+        pages += 1
 
 ctrlfile = "{}_{}.ctrl".format(interface_name, filedatetime)
 filepath = os.path.join(target_path, ctrlfile)
@@ -231,8 +234,8 @@ attribute1 = ""
 attribute2 = ""
 with open(filepath, 'w') as outfile:
   outfile.write("{}|CGO|Online|{}|{}|{}|CGO|{}|{}".format(
-      interface_name, pages + rbs_pages, rows + rbs_rows, batchdatetime, attribute1,
-      attribute2))
+      interface_name, pages + rbs_pages, rows + rbs_rows, batchdatetime,
+      attribute1, attribute2))
 
 start_time = datetime.now()
 destination = 'incoming/product_inc'

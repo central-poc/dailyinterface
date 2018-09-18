@@ -42,7 +42,7 @@ def generate_text_t1c():
         interface_name, total_row, batchdatetime, attribute1, attribute2))
 
   destination = 'incoming/nrtsale'
-  sftp('cgo-prod',target_path, destination)
+  sftp('cgo-prod', target_path, destination)
 
 
 def get_sale_tran():
@@ -353,9 +353,11 @@ def update_order():
     else:
       sale.append(id)
   with mssql_cmos() as conn:
-    query ="UPDATE TBSubOrderHead SET IsGenT1c = 'Yes' WHERE Suborderid in ('{}')".format("','".join(sale))
+    query = "UPDATE TBSubOrderHead SET IsGenT1c = 'Yes' WHERE Suborderid in ('{}')".format(
+        "','".join(sale))
     conn.execute_non_query(query)
-    query = "UPDATE TBSubSaleReturnHead SET IsGenT1c = 'Yes' WHERE SubSRNo in ('{}')".format("','".join(sr))
+    query = "UPDATE TBSubSaleReturnHead SET IsGenT1c = 'Yes' WHERE SubSRNo in ('{}')".format(
+        "','".join(sr))
     conn.execute_non_query(query)
 
 

@@ -83,6 +83,7 @@ def mssql_cmos():
       password='Zxcv123!',
       database='DBMKP')
 
+
 def connect_psql():
   return psycopg2.connect(
       host='10.86.20.70',

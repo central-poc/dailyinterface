@@ -11,14 +11,17 @@ def is_debit_equals_credit(data_zn):
 
 
 def get_file_seq(prefix, output_path, ext):
-  files = [f.split('.')[0] for f in os.listdir(output_path)
-            if os.path.isfile(os.path.join(output_path,f)) and f.endswith(ext)]
-  return 1 if not files else max(int(f[len(prefix)]) if f.startswith(prefix) else 0 for f in files) + 1
+  files = [
+      f.split('.')[0] for f in os.listdir(output_path)
+      if os.path.isfile(os.path.join(output_path, f)) and f.endswith(ext)
+  ]
+  return 1 if not files else max(
+      int(f[len(prefix)]) if f.startswith(prefix) else 0 for f in files) + 1
 
 
 def generate_data_file(output_path, str_date, data):
   prefix = 'ZN' + str_date
-  seq = get_file_seq(prefix, output_path, '.DAT') 
+  seq = get_file_seq(prefix, output_path, '.DAT')
   dat_file = prefix + str(seq) + '.DAT'
   dat_file_path = os.path.join(output_path, dat_file)
   val_file = prefix + str(seq) + '.VAL'
@@ -33,13 +36,12 @@ def generate_data_file(output_path, str_date, data):
         dat.write('''
           {:6}{:5}{:8}{:6}{:6}{:012.2f}{:012.2f}
           {:20}{:20}{:20}{:10}{:240}
-        '''.format(
-          line['ofin_branch_code'], line['ofin_cost_profit_center'], 
-          line['account_code'], line['subaccount_code'], 
-          line['business_date'], line['debit'], line['credit'],
-          line['journal_source_name'], line['journal_category_name'], 
-          line['batch_name'], line['ofin_for_cfs'], line['account_description']
-        ))
+        '''.format(line['ofin_branch_code'], line['ofin_cost_profit_center'],
+                   line['account_code'], line['subaccount_code'],
+                   line['business_date'], line['debit'], line['credit'],
+                   line['journal_source_name'], line['journal_category_name'],
+                   line['batch_name'], line['ofin_for_cfs'],
+                   line['account_description']))
         count = count + 1
 
       val.write('{:14}{:10}'.format(dat_file, count))
@@ -51,8 +53,8 @@ def generate_data_file(output_path, str_date, data):
 
 def query_data(str_date):
   with connect_psql() as conn:
-      with conn.cursor(cursor_factory = psycopg2.extras.DictCursor) as cursor:
-        sql = """
+    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+      sql = """
         select 
           '056401' as ofin_branch_code, cost_center as ofin_cost_profit_center, 
           account_code, subaccount_code, to_char(trans_date, 'DDMMYY') as business_date, 
@@ -79,8 +81,11 @@ def query_data(str_date):
         and to_char(trans_date, 'YYYYMMDD') = %s
         group by account_code, subaccount_code, cost_center, account_description, trans_date, ofin_for_cfs
         """
-        cursor.execute(sql, (str_date, str_date,))
-        return cursor.fetchall()
+      cursor.execute(sql, (
+          str_date,
+          str_date,
+      ))
+      return cursor.fetchall()
 
 
 def main():
