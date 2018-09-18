@@ -1,5 +1,6 @@
 from common import connect_psql
 import os
+import psycopg2.extras
 
 
 def is_debit_equals_credit(data_zn):
@@ -30,15 +31,18 @@ def generate_data_file(output_path, str_date, data):
         if count > 0:
           dat.write('\n')
         dat.write('''
-          {:<6}{:<5}{:<8}{:<6}{:<6}{:012.2f}{:012.2f}
-          {:<20}{:<20}{:<20}{:<10}{:<240}
+          {:6}{:5}{:8}{:6}{:6}{:012.2f}{:012.2f}
+          {:20}{:20}{:20}{:10}{:240}
         '''.format(
-          line[0], line[1], line[2], line[3], line[4], line[5], line[6],
-          line[7], line[8], line[9], line[10], line[11]
+          line['ofin_branch_code'], line['ofin_cost_profit_center'], 
+          line['account_code'], line['subaccount_code'], 
+          line['business_date'], line['debit'], line['credit'],
+          line['journal_source_name'], line['journal_category_name'], 
+          line['batch_name'], line['ofin_for_cfs'], line['account_description']
         ))
         count = count + 1
 
-      val.write('{:<14}{:<10}'.format(dat_file, count))
+      val.write('{:14}{:10}'.format(dat_file, count))
       print('Create Files ZN .DAT & .VAL Complete..')
     except Exception as e:
       print('Create Files ZN .DAT & .VAL Error .. : ')
@@ -47,7 +51,7 @@ def generate_data_file(output_path, str_date, data):
 
 def query_data(str_date):
   with connect_psql() as conn:
-      with conn.cursor() as cursor:
+      with conn.cursor(cursor_factory = psycopg2.extras.DictCursor) as cursor:
         sql = """
         select 
           '056401' as ofin_branch_code, cost_center as ofin_cost_profit_center, 
@@ -83,7 +87,7 @@ def main():
   str_date = '20180820'
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
-  target_path = os.path.join(parent_path, 'output/ofin', str_date)
+  target_path = os.path.join(parent_path, 'output/autopos/ofindaily', str_date)
   if not os.path.exists(target_path):
     os.makedirs(target_path)
 
