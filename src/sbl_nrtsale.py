@@ -85,8 +85,8 @@ def get_sale_tran():
                 Head.PaymentType as TenderType,
                 Head.NetAmt as OrderNetAmt,
                 Head.VatAmt as OrderVatAmt,
-                isnull(CONVERT(DECIMAL(10,3),Head.RedeemAmt * Head.GrandTotalAmt / oh.GrandTotalAmt),0) as RedeemAmt,
-                isnull(CONVERT(DECIMAL(10,3),Head.RedeemCash * Head.GrandTotalAmt / oh.GrandTotalAmt),0) as RedeemCash
+                isnull(CONVERT(DECIMAL(10,3),Head.RedeemAmt * Head.GrandTotalAmt  / case when oh.GrandTotalAmt=0 THEN 1 else oh.GrandTotalAmt end),0) as RedeemAmt,
+                isnull(CONVERT(DECIMAL(10,3),Head.RedeemCash * Head.GrandTotalAmt / case when oh.GrandTotalAmt=0 THEN 1 else oh.GrandTotalAmt end),0) as RedeemCash
               FROM TBSubOrderHead Head
               INNER JOIN TBShopMaster S on S.ShopID = Head.ShopID
               INNER JOIN TBSubOrderDetail Detail ON Head.Suborderid = Detail.Suborderid
