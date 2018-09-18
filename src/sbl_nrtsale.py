@@ -85,8 +85,8 @@ def get_sale_tran():
                 Head.PaymentType as TenderType,
                 Head.NetAmt as OrderNetAmt,
                 Head.VatAmt as OrderVatAmt,
-                isnull(CONVERT(DECIMAL(10,3),Head.RedeemAmt * Head.GrandTotalAmt / oh.GrandTotalAmt),0) as RedeemAmt,
-                isnull(CONVERT(DECIMAL(10,3),Head.RedeemCash * Head.GrandTotalAmt / oh.GrandTotalAmt),0) as RedeemCash
+                isnull(CONVERT(DECIMAL(10,3),Head.RedeemAmt * Head.GrandTotalAmt  / case when oh.GrandTotalAmt=0 THEN 1 else oh.GrandTotalAmt end),0) as RedeemAmt,
+                isnull(CONVERT(DECIMAL(10,3),Head.RedeemCash * Head.GrandTotalAmt / case when oh.GrandTotalAmt=0 THEN 1 else oh.GrandTotalAmt end),0) as RedeemCash
               FROM TBSubOrderHead Head
               INNER JOIN TBShopMaster S on S.ShopID = Head.ShopID
               INNER JOIN TBSubOrderDetail Detail ON Head.Suborderid = Detail.Suborderid
@@ -97,6 +97,7 @@ def get_sale_tran():
               AND cast(head.InvDate as date) = cast(getdate() - 1 as date)
               AND Head.InvNo != ''
               UNION ALL
+
               SELECT
                 Head.Suborderid as id,
                 Head.OrderId as ParentID,
@@ -122,8 +123,8 @@ def get_sale_tran():
                 0 as NetAmt,
                 0 as TransactionDiscountAmount ,
                 '' as ProdBarcode,
-                '' as T1CRefNo,
-                '' as Mobile,
+                Head.T1CNoEarn as T1CRefNo,
+                Head.ShipMobileNo as Mobile,
                 dis.PromotionNo as PaymentRefNo,
                 Head.OrderId as DisplayReceipt,
                 'Coupon' as TenderType,
@@ -141,6 +142,7 @@ def get_sale_tran():
               AND Head.InvNo != ''
             ) result
             UNION ALL
+
             SELECT
               Head.SubSRNo as id,
               Head.SRNo as ParentID,
