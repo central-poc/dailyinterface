@@ -83,7 +83,7 @@ def get_sale_tran():
                 oh.CreditCardNo  as PaymentRefNo,
                 Head.OrderId as DisplayReceipt,
                 Case
-                    WHEN Head.TendorType = 'T1PM' THEN Head.TendorType
+                    WHEN Head.TenderType = 'T1PM' THEN Head.TenderType
                     ELSE Head.PaymentType
                 END as TenderType,
                 Head.NetAmt as OrderNetAmt,
@@ -179,7 +179,7 @@ def get_sale_tran():
               oh.CreditCardNo as PaymentRefNo,
               Head.SRNo as DisplayReceipt,
                 Case
-                    WHEN oh.TendorType = 'T1PM' THEN oh.TendorType
+                    WHEN oh.TenderType = 'T1PM' THEN oh.TenderType
                     ELSE Head.PaymentType
                 END as TenderType,
               Head.NetAmt as OrderNetAmt,
