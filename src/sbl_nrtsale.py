@@ -82,7 +82,10 @@ def get_sale_tran():
                 Head.ShipMobileNo as Mobile,
                 oh.CreditCardNo  as PaymentRefNo,
                 Head.OrderId as DisplayReceipt,
-                Head.PaymentType as TenderType,
+                Case
+                    WHEN Head.TendorType = 'T1PM' THEN Head.TendorType
+                    ELSE Head.PaymentType
+                END as TenderType,
                 Head.NetAmt as OrderNetAmt,
                 Head.VatAmt as OrderVatAmt,
                 isnull(CONVERT(DECIMAL(10,3),Head.RedeemAmt * Head.GrandTotalAmt  / case when oh.GrandTotalAmt=0 THEN 1 else oh.GrandTotalAmt end),0) as RedeemAmt,
@@ -175,7 +178,10 @@ def get_sale_tran():
               Head.ShipMobileNo as Mobile,
               oh.CreditCardNo as PaymentRefNo,
               Head.SRNo as DisplayReceipt,
-              Head.PaymentType as TenderType,
+                Case
+                    WHEN oh.TendorType = 'T1PM' THEN oh.TendorType
+                    ELSE Head.PaymentType
+                END as TenderType,
               Head.NetAmt as OrderNetAmt,
               Head.VatAmt as OrderVatAmt,
               isnull(CONVERT(DECIMAL(10,3),Head.RedeemAmt * Detail.TotalAmt / oh.GrandTotalAmt),0) as RedeemAmt,
