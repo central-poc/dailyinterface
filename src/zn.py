@@ -1,4 +1,5 @@
 from common import connect_psql
+from datetime import datetime
 import os
 import psycopg2.extras
 
@@ -33,10 +34,9 @@ def generate_data_file(output_path, str_date, data):
       for line in data:
         if count > 0:
           dat.write('\n')
-        dat.write('''
-          {:6}{:5}{:8}{:6}{:6}{:012.2f}{:012.2f}
-          {:20}{:20}{:20}{:10}{:240}
-        '''.format(line['ofin_branch_code'], line['ofin_cost_profit_center'],
+        dat.write(
+            "{:6}{:5}{:8}{:6}{:6}{:012.2f}{:012.2f}{:20}{:20}{:20}{:10}{:240}".
+            format(line['ofin_branch_code'], line['ofin_cost_profit_center'],
                    line['account_code'], line['subaccount_code'],
                    line['business_date'], line['debit'], line['credit'],
                    line['journal_source_name'], line['journal_category_name'],
@@ -89,7 +89,7 @@ def query_data(str_date):
 
 
 def main():
-  str_date = '20180820'
+  str_date = datetime.today().strftime('%Y%m%d')
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
   target_path = os.path.join(parent_path, 'output/autopos/ofindaily', str_date)
