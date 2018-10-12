@@ -1,4 +1,4 @@
-from common import sftp, cleardir
+from common import sftp, cleardir, replace_pipe
 import csv
 from datetime import datetime
 import math
@@ -194,6 +194,7 @@ with pymssql.connect("10.17.220.55", "central", "Cen@tral",
         writer = csv.DictWriter(
             outfile, fieldnames=headers, delimiter='|', skipinitialspace=True)
         for d in data:
+          d = replace_pipe(d)
           writer.writerow(d)
         outfile.write('9|End')
 
@@ -215,6 +216,7 @@ with pymssql.connect("10.17.220.55", "central", "Cen@tral",
               delimiter='|',
               skipinitialspace=True)
           for d in rbs_data:
+            d = replace_pipe(d)
             writer.writerow(d)
           outfile.write('9|End')
       rbs_data = rbs_data[10000:]
