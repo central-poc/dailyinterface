@@ -1,4 +1,4 @@
-from common import sftp, cleardir
+from common import sftp, cleardir, replace_pipe
 import csv
 from datetime import datetime
 import math
@@ -63,7 +63,7 @@ with pymssql.connect("mssql.production.thecentral.com", "coreapi", "coreapi",
         '01' as CreditConsignmentCode,
         'Credit' as CreditConsignmentDesc,
         'ProductService' AS SourceSystem,
-        CASE WHEN pro.TheOneCardEarn = '1' THEN 'Y' ELSE 'N' END AS PointExclusionFlag
+        CASE WHEN pro.TheOneCardEarn = '1' THEN 'N' ELSE 'Y' END AS PointExclusionFlag
     FROM [DBMKPOnline].[dbo].[Product] Pro
     LEFT JOIN [DBMKPOnline].[dbo].[Brand] Ba ON Pro.BrandId = Ba.BrandId
     LEFT JOIN JDARBS_Dept Dept on Dept.IDEPT = pro.JDADept AND Dept.ISDEPT = 0 AND Dept.ICLAS = 0 AND Dept.ISCLAS = 0
@@ -194,6 +194,7 @@ with pymssql.connect("10.17.220.55", "central", "Cen@tral",
         writer = csv.DictWriter(
             outfile, fieldnames=headers, delimiter='|', skipinitialspace=True)
         for d in data:
+          d = replace_pipe(d)
           writer.writerow(d)
         outfile.write('9|End')
 
@@ -215,6 +216,7 @@ with pymssql.connect("10.17.220.55", "central", "Cen@tral",
               delimiter='|',
               skipinitialspace=True)
           for d in rbs_data:
+            d = replace_pipe(d)
             writer.writerow(d)
           outfile.write('9|End')
       rbs_data = rbs_data[10000:]

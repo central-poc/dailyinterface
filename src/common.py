@@ -90,3 +90,8 @@ def connect_psql():
       user='postgres',
       password='Zxcv123!autopos',
       dbname='dbfms')
+
+def replace_pipe(data):
+  for key,value in data.items():
+    data[key]= str(value).replace('|','')
+  return data
