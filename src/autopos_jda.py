@@ -1,5 +1,5 @@
 from common import connect_psql
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import psycopg2.extras
 
@@ -56,17 +56,19 @@ def query_store():
       return cursor.fetchall()
 
 
-def query_data_by_store(store):
+def query_data_by_store(store, transaction_date):
   with connect_psql() as conn:
     with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-      sql = "select * from mv_autopos_jda where store_code = %s"
-      cursor.execute(sql, (store, ))
+      sql = "refresh materialized view mv_autopos_jda"
+      cursor.execute(sql)
+      sql = "select * from mv_autopos_jda where store_code = %s and transaction_date = %s"
+      cursor.execute(sql, (store, transaction_date, ))
 
       return cursor.fetchall()
 
 
 def main():
-  str_date = datetime.today().strftime('%Y%m%d')
+  str_date = (datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
   target_path = os.path.join(parent_path, 'output/autopos/jda', str_date)

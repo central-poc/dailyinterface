@@ -1,5 +1,5 @@
 from common import connect_psql
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import psycopg2.extras
 
@@ -35,14 +35,16 @@ def generate_data_file(output_path, str_date, data):
 def query_data(str_date):
   with connect_psql() as conn:
     with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-      sql = "select * from mv_autopos_ofin where to_char(trans_date, 'YYYYMMDD') = %s"
+      sql = "refresh materialized view mv_autopos_ofin"
+      cursor.execute(sql)
+      sql = "select * from mv_autopos_ofin where business_date = %s"
       cursor.execute(sql, (str_date, ))
 
       return cursor.fetchall()
 
 
 def main():
-  str_date = datetime.today().strftime('%Y%m%d')
+  str_date = (datetime.now() - timedelta(days=1)).strftime('%d%m%y')
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
   target_path = os.path.join(parent_path, 'output/autopos/ofin', str_date)

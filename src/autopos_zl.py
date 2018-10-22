@@ -1,5 +1,5 @@
 from common import connect_psql
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import psycopg2.extras
 
@@ -7,7 +7,7 @@ import psycopg2.extras
 def is_debit_equals_credit(data_zn):
   sum_debit = sum([row[5] for row in data_zn])
   sum_credit = sum([row[6] for row in data_zn])
-  print('[ZN] - Debit: {}, Credit: {}'.format(sum_debit, sum_credit))
+  print('[ZL] - Debit: {}, Credit: {}'.format(sum_debit, sum_credit))
   return False if sum_debit != sum_credit else True
 
 
@@ -21,7 +21,7 @@ def get_file_seq(prefix, output_path, ext):
 
 
 def generate_data_file(output_path, str_date, data):
-  prefix = 'ZN' + str_date
+  prefix = 'ZL' + str_date
   seq = get_file_seq(prefix, output_path, '.DAT')
   dat_file = prefix + str(seq) + '.DAT'
   dat_file_path = os.path.join(output_path, dat_file)
@@ -45,51 +45,25 @@ def generate_data_file(output_path, str_date, data):
         count = count + 1
 
       val.write('{:14}{:10}'.format(dat_file, count))
-      print('Create Files ZN .DAT & .VAL Complete..')
+      print('Create Files ZL .DAT & .VAL Complete..')
     except Exception as e:
-      print('Create Files ZN .DAT & .VAL Error .. : ')
+      print('Create Files ZL .DAT & .VAL Error .. : ')
       print(str(e))
 
 
 def query_data(str_date):
   with connect_psql() as conn:
     with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-      sql = """
-        select 
-          '056401' as ofin_branch_code, cost_center as ofin_cost_profit_center, 
-          account_code, subaccount_code, to_char(trans_date, 'DDMMYY') as business_date, 
-          sum(debit + additional_amt) as debit, sum(credit + additional_amt) as credit, 
-          'CMOS-Receipts' as journal_source_name, 'RV-Receipts' as journal_category_name, 
-          'RECEIPT-' || to_char(trans_date, 'YYMMDD') as batch_name,
-          ofin_for_cfs, account_description
-        from artransaction
-        where doc_type = 'INV'
-        and trans_type = 'S'
-        and to_char(trans_date, 'YYYYMMDD') = %s
-        group by account_code, subaccount_code, cost_center, account_description, trans_date, ofin_for_cfs
-        union all
-        select 
-          '056401' as ofin_branch_code, cost_center as ofin_cost_profit_center, 
-          account_code, subaccount_code, to_char(trans_date, 'DDMMYY') as business_date, 
-          sum(debit + additional_amt) as debit, sum(credit + additional_amt) as credit, 
-          'CMOS-Receipts' as journal_source_name, 'RC-Return' as journal_category_name, 
-          'RECEIPT-' || to_char(trans_date, 'YYMMDD') as batch_name,
-          ofin_for_cfs, account_description
-        from artransaction
-        where doc_type = 'CN'
-        and trans_type = 'R'
-        and to_char(trans_date, 'YYYYMMDD') = %s
-        group by account_code, subaccount_code, cost_center, account_description, trans_date, ofin_for_cfs
-        """
-      cursor.execute(sql, (
-          str_date,
-          str_date,
-      ))
+      sql = "refresh materialized view mv_autopos_ofin_zl"
+      cursor.execute(sql)
+      sql = "select * from mv_autopos_ofin_zl where business_date = %s"
+      cursor.execute(sql, (str_date, ))
+      
       return cursor.fetchall()
 
 
 def main():
-  str_date = datetime.today().strftime('%Y%m%d')
+  str_date = (datetime.now() - timedelta(days=1)).strftime('%d%m%y')
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
   target_path = os.path.join(parent_path, 'output/autopos/ofindaily', str_date)
@@ -104,7 +78,7 @@ def main():
     generate_data_file(target_path, str_date, data)
 
   except Exception as e:
-    print('Get Data ZN From Stored Procedure Error: %s' % str(e))
+    print('Get Data ZL From Stored Procedure Error: %s' % str(e))
 
 
 if __name__ == '__main__':
