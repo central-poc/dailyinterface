@@ -67,9 +67,9 @@ with pymssql.connect("mssql.production.thecentral.com", "coreapi", "coreapi",
     FROM [DBMKPOnline].[dbo].[Product] Pro
     LEFT JOIN [DBMKPOnline].[dbo].[Brand] Ba ON Pro.BrandId = Ba.BrandId
     LEFT JOIN JDARBS_Dept Dept on Dept.IDEPT = pro.JDADept AND Dept.ISDEPT = 0 AND Dept.ICLAS = 0 AND Dept.ISCLAS = 0
-    LEFT JOIN JDARBS_Dept SubDept on Dept.IDEPT = pro.JDADept AND Dept.ISDEPT = pro.JDASubDept AND Dept.ICLAS = 0 AND Dept.ISCLAS = 0
-    LEFT JOIN JDARBS_Dept Class on Dept.IDEPT = pro.JDADept AND Dept.ISDEPT = pro.JDASubDept AND Dept.ICLAS = pro.ClassCode AND Dept.ISCLAS = 0
-    LEFT JOIN JDARBS_Dept SubClass on Dept.IDEPT = pro.JDADept AND Dept.ISDEPT = pro.JDASubDept AND Dept.ICLAS = pro.ClassCode AND Dept.ISCLAS = pro.SubClassCode
+    LEFT JOIN JDARBS_Dept SubDept on SubDept.IDEPT = pro.JDADept AND SubDept.ISDEPT = pro.JDASubDept AND SubDept.ICLAS = 0 AND SubDept.ISCLAS = 0
+    LEFT JOIN JDARBS_Dept Class on Class.IDEPT = pro.JDADept AND Class.ISDEPT = pro.JDASubDept AND Class.ICLAS = pro.ClassCode AND Class.ISCLAS = 0
+    LEFT JOIN JDARBS_Dept SubClass on SubClass.IDEPT = pro.JDADept AND SubClass.ISDEPT = pro.JDASubDept AND SubClass.ICLAS = pro.ClassCode AND SubClass.ISCLAS = pro.SubClassCode
     WHERE 1 = 1
     AND len(pro.PID) > 0
     AND (cast(getdate() - 1 as date) = cast(pro.createon as date) or cast(getdate() - 1 as date) = cast(pro.updateon as date))
