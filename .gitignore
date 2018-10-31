@@ -107,6 +107,7 @@ ENV/
 # End of https://www.gitignore.io/api/python
 output/
 .DS_Store
+.vscode/
 ReportT1CPath/
 SaleTransaction/
 TenderMemberTransaction/

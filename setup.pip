@@ -3,4 +3,5 @@ pymssql
 pysftp
 pyyaml
 requests
+vulture
 yapf

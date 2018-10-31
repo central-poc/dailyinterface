@@ -4,8 +4,6 @@ import csv
 import os
 import zipfile
 from datetime import datetime, timedelta
-from ftplib import FTP
-import random
 
 CFG_SALES_TRANSACTION_PATH = "SaleTransaction/"
 CFG_TENDER_MEMBER_PATH = "TenderMemberTransaction/"
@@ -50,9 +48,6 @@ def get_order_data():
 
 
 def create_report(rows):
-  head = [
-      "OrderId,BU,ShopId,ShopGroup,InvNo,InvDate,TenderType,NetAmt,T1CNoEarn"
-  ]
   with open(CFG_REPORTT1C_PAHT + _file_name, 'w') as csvfile:
     writer = csv.writer(
         csvfile, delimiter=' ', quotechar=',', quoting=csv.QUOTE_MINIMAL)

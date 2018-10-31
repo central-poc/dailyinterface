@@ -1,7 +1,6 @@
 import _mssql
 import psycopg2
 import pymssql
-import pysftp
 import requests, json
 import time
 import urllib.parse
@@ -86,8 +85,8 @@ def mssql_cmos():
 
 def connect_psql():
   return psycopg2.connect(
-      host='10.86.20.70',
-      port=5432,
+      host='localhost',
+      port=5433,
       user='postgres',
       password='Zxcv123!autopos',
       dbname='dbfms')

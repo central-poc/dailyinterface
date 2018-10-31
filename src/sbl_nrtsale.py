@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 import sys
 import csv
 import os
-import random
 import uuid
 
 order_ids = []
