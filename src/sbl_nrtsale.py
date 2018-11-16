@@ -76,7 +76,12 @@ def get_sale_tran():
                 END as VatAmt ,
                 (Detail.UnitPrice * Detail.Quantity) - (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS NetAmt,
                 (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS TransactionDiscountAmount ,
-                isnull(nullif(LTRIM(RTRIM(cdsmap.sbc)),''), cdsmap.ibc) as ProdBarcode,
+                CASE WHEN Head.SubOrderId like 'MO%'
+                  THEN
+                    ISNULL(rbsprod.Upc, '')
+                  ELSE
+                    isnull(nullif(LTRIM(RTRIM(cdsmap.sbc)),''), cdsmap.ibc)
+                END AS ProdBarcode
                 Head.T1CNoEarn as T1CRefNo,
                 Head.ShipMobileNo as Mobile,
                 oh.CreditCardNo  as PaymentRefNo,
@@ -92,7 +97,8 @@ def get_sale_tran():
               FROM TBSubOrderHead Head
               INNER JOIN TBShopMaster S on S.ShopID = Head.ShopID
               INNER JOIN TBSubOrderDetail Detail ON Head.Suborderid = Detail.Suborderid
-              Left join [10.17.220.55].DBCDSContent.dbo.tbproductmapping cdsmap on cdsmap.pidnew = Detail.PID
+              LEFT JOIN [10.17.220.55].DBCDSContent.dbo.tbproductmapping cdsmap on cdsmap.pidnew = Detail.PID
+              LEFT JOIN [mssql.production.thecentral.com].DBMKPOnline.dbo.Product rbsprod on rbsprod.pid = Detail.PID
               INNER JOIN TBOrderHead oh on Head.OrderId = oh.OrderId
               WHERE 1 = 1
               AND Head.IsGenT1c = 'No'
@@ -172,7 +178,12 @@ def get_sale_tran():
               END as VatAmt ,
               (Detail.UnitPrice * Detail.Quantity) - (Detail.ItemDiscAmt + Detail.OrdDiscAmt) AS NetAmt,
               (Head.ItemDiscAmt + Head.OrdDiscAmt) AS TransactionDiscountAmount ,
-              isnull(nullif(LTRIM(RTRIM(cdsmap.sbc)),''), cdsmap.ibc) as ProdBarcode,
+              CASE WHEN Head.SubOrderId like 'MO%'
+                THEN
+                  ISNULL(rbsprod.Upc, '')
+                ELSE
+                  isnull(nullif(LTRIM(RTRIM(cdsmap.sbc)),''), cdsmap.ibc)
+              END AS ProdBarcode
               Head.T1CNoEarn as T1CRefNo,
               Head.ShipMobileNo as Mobile,
               oh.CreditCardNo as PaymentRefNo,
@@ -188,7 +199,8 @@ def get_sale_tran():
             FROM TBSubSaleReturnHead Head
             INNER JOIN TBShopMaster S on S.ShopID = Head.ShopID
             INNER JOIN TBSubSaleReturnDetail Detail ON Head.SubSRNo = Detail.SubSRNo
-            Left join [10.17.220.55].DBCDSContent.dbo.tbproductmapping cdsmap on cdsmap.pidnew = Detail.PID
+            LEFT JOIN [10.17.220.55].DBCDSContent.dbo.tbproductmapping cdsmap on cdsmap.pidnew = Detail.PID
+            LEFT JOIN [mssql.production.thecentral.com].DBMKPOnline.dbo.Product rbsprod on rbsprod.pid = Detail.PID
             INNER JOIN TBOrderHead oh on Head.OrderId = oh.OrderId
             WHERE 1 = 1
             AND Head.IsGenT1c = 'No'
