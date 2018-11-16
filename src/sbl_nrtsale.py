@@ -81,7 +81,7 @@ def get_sale_tran():
                     ISNULL(rbsprod.Upc, '')
                   ELSE
                     isnull(nullif(LTRIM(RTRIM(cdsmap.sbc)),''), cdsmap.ibc)
-                END AS ProdBarcode
+                END AS ProdBarcode,
                 Head.T1CNoEarn as T1CRefNo,
                 Head.ShipMobileNo as Mobile,
                 oh.CreditCardNo  as PaymentRefNo,
@@ -183,7 +183,7 @@ def get_sale_tran():
                   ISNULL(rbsprod.Upc, '')
                 ELSE
                   isnull(nullif(LTRIM(RTRIM(cdsmap.sbc)),''), cdsmap.ibc)
-              END AS ProdBarcode
+              END AS ProdBarcode,
               Head.T1CNoEarn as T1CRefNo,
               Head.ShipMobileNo as Mobile,
               oh.CreditCardNo as PaymentRefNo,
