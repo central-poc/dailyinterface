@@ -1,5 +1,5 @@
 from common import connect_psql
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import psycopg2.extras
 
@@ -15,46 +15,39 @@ def get_file_seq(prefix, output_path, ext):
 
 def generate_data_file(output_path, str_date, data):
   prefix = 'L' + str_date
-  seq = get_file_seq(prefix, output_path, '.DAT')
-  dat_file = prefix + str(seq) + '.DAT'
+  seq = get_file_seq(prefix, output_path, '.MER')
+  dat_file = prefix + str(seq) + '.MER'
   dat_file_path = os.path.join(output_path, dat_file)
-  val_file = prefix + str(seq) + '.VAL'
-  val_file_path = os.path.join(output_path, val_file)
 
-  with open(dat_file_path, 'w') as dat, open(val_file_path, 'w') as val:
+  with open(dat_file_path, 'w') as dat:
     try:
       count = 0
       for line in data:
         if count > 0:
           dat.write('\n')
         dat.write(
-            "{:6}{:5}{:8}{:6}{:6}{:012.2f}{:012.2f}{:20}{:20}{:20}{:10}{:240}".
-            format(line['ofin_branch_code'], line['ofin_cost_profit_center'],
-                   line['account_code'], line['subaccount_code'],
-                   line['business_date'], line['debit'], line['credit'],
-                   line['journal_source_name'], line['journal_category_name'],
-                   line['batch_name'], line['ofin_for_cfs'],
-                   line['account_description']))
+            "{:3}{:50}{:1}{:30}{:1}{:240}{:014.2f}{:14}{:14}".
+            format(line['source'], line['invoice_no'], line['invoice_type'], 
+                   line['vendor_id'], line['line_type'], line['item_description'],
+                   line['amount'], line['item_qty'], line['item_cost'])) 
         count = count + 1
-
-      val.write('{:14}{:10}'.format(dat_file, count))
-      print('Create Files ZL .DAT & .VAL Complete..')
+      print('Create Files L .MER Complete..')
     except Exception as e:
-      print('Create Files ZL .DAT & .VAL Error .. : ')
+      print('Create Files L .MER Error .. : ')
       print(str(e))
 
 
 def query_data(str_date):
   with connect_psql() as conn:
     with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-      sql = "select * from mv_autopos_ofin_line where to_char(trans_date, 'YYYYMMDD') = %s"
+      sql = "select * from mv_autopos_ofin_line where invoice_date = %s"
       cursor.execute(sql, (str_date, ))
       
       return cursor.fetchall()
 
 
 def main():
-  str_date = datetime.today().strftime('%Y%m%d')
+  str_date = (datetime.now() - timedelta(days=1)).strftime('%d%m%y')
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
   target_path = os.path.join(parent_path, 'output/autopos/ofindaily', str_date)
@@ -62,8 +55,7 @@ def main():
     os.makedirs(target_path)
 
   try:
-    data = query_data(str_date)
-    generate_data_file(target_path, str_date, data)
+    generate_data_file(target_path, str_date, query_data(str_date))
 
   except Exception as e:
     print('[L] - Error: %s' % str(e))
