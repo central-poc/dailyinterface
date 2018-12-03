@@ -13,39 +13,119 @@ def get_file_seq(prefix, output_path, ext):
       int(f[len(prefix)]) if f.startswith(prefix) else 0 for f in files) + 1
 
 
-def generate_data_file(output_path, store, data):
-  file_name = 'SD' + store + '.TXT'
-  file_fullpath = os.path.join(output_path, file_name)
+def gen_sale_tran_data(data):
+  res = []
+  res.append(data['line_identifier'])
+  res.append(data['source_trans_id'])
+  res.append(data['store_code'])
+  res.append(data['pos_no'])
+  res.append(data['receipt_no'])
+  res.append(data['trans_type'])
+  res.append(data['trans_sub_type'])
+  res.append(data['trans_date'])
+  res.append(data['business_date'])
+  res.append(data['invoice_date'])
+  res.append(data['delivery_date'])
+  res.append(data['earn_online_flag'])
+  res.append(data['t1c_cardno'])
+  res.append(data['mobile_no'])
+  res.append(data['pos_user_id'])
+  res.append(data['item_seq_no'])
+  res.append(data['product_code'])
+  res.append(data['product_barcode'])
+  res.append(data['quantity'])
+  res.append(data['price_unit'])
+  res.append(data['price_total'])
+  res.append(data['net_price_unit'])
+  res.append(data['net_price_total'])
+  res.append(data['discount_total'])
+  res.append(data['vat_amt'])
+  res.append(data['tendor_type'])
+  res.append(data['tendor_ref'])
+  res.append(data['orginal_receipt_no'])
+  res.append(data['orginal_item_seq_no'])
+  res.append(data['display_receipt_no'])
+  res.append(data['return_all_flag'])
+  res.append(data['sbl_cancel_redeem'])
+  res.append('' if data['tendor_type'] == 'Coupon' else data['tendor_type'])
+  res.append(data['net_amt'])
+  res.append(data['redeem_amt'])
+  res.append(data['redeem_cash'])
+  res.append(data['display_receipt_no'])
+  res.append(data['receipt_no'])
 
-  with open(file_fullpath, 'w') as f:
-    try:
-      count = 0
-      for d in data:
-        if count > 0:
-          f.write('\n')
-        f.write(
-            "{:0>5}{:0>8}{:0>4}{:0>2}{:9}{:0>3}{:0>16}{:0>16}{:1}{:0>6}{:0>12}{:0>12}{:1}{:0>12}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:21}{:9}{:0>8}{:0>2}{:0>6}{:0>3}{:0>3}{:0>16}{:1}{:16}{:21}{:0>8}{:8}{:8}".
-            format(
-                d['store_code'], d['transaction_date'], d['transaction_time'],
-                d['transaction_type'], d['ticket_no'], d['seq_no'], d['sku'],
-                d['barcode'], d['qty_sign'], d['quantity'], d['jda_price'],
-                d['price_override'], d['price_override_flag'],
-                d['total_net_amt'], d['vat_amt'], d['discount_type1'],
-                d['discount_amt1'], d['discount_type2'], d['discount_amt2'],
-                d['discount_type3'], d['discount_amt3'], d['discount_type4'],
-                d['discount_amt4'], d['discount_type5'], d['discount_amt5'],
-                d['discount_type6'], d['discount_amt6'], d['discount_type7'],
-                d['discount_amt7'], d['discount_type8'], d['discount_amt8'],
-                d['discount_type9'], d['discount_amt9'], d['discount_type10'],
-                d['discount_amt10'], d['ref_id'], d['ref_ticket'],
-                d['ref_date'], d['reason_code'], d['event_no'], d['dept_id'],
-                d['subdept_id'], d['itemized'], d['dtype'], d['credit_cardno'],
-                d['customer_id'], d['member_point'], d['cashier_id'],
-                d['sale_person']))
-        count = count + 1
-      print('[AutoPOS] - JDA Create Files Complete..')
-    except Exception as e:
-      print('[AutoPOS] - JDA Create Files Error: {}: '.format(e))
+  return res
+
+
+def gen_tender(input):
+  values = set(map(lambda x: x[37], input))
+  groups = [[y for y in input if y[37] == x] for x in values]
+  for g in groups:
+    net_amt = 0
+    redeem_amt = 0
+    order_redeem_cash = 0
+    temp_suborder_id = ""
+    product_index = 0
+    for index, sub in enumerate(g):
+      if sub[6] == "P":
+        product_index = index
+      if sub[6] == "C" or temp_suborder_id == sub[37]:
+        continue
+      net_amt = net_amt + sub[33]
+      redeem_amt = redeem_amt + sub[34]
+      order_redeem_cash = order_redeem_cash + sub[35]
+      temp_suborder_id = sub[37]
+
+    if redeem_amt == 0:
+      g.append(tender(g[product_index][:], net_amt, False))
+    else:
+      g.append(tender(g[product_index][:], redeem_amt, True))
+      if order_redeem_cash > 0:
+        g.append(tender(g[product_index][:], order_redeem_cash, False))
+
+    total = g[0][:]
+    total[6] = "A"
+    total[15:27] = ["1", "", "", "1", "", "", "", str(net_amt), "", "", "", ""]
+    g.append(total)
+
+  out = [item[:32] for sublist in groups for item in sublist]
+
+  return ['|'.join(row) for row in out]
+
+
+def tender(data, amount, is_t1c):
+  t = data
+  t[6] = "T"
+  t[16:26] = ["", "", "1", "", "", "", str(amount), "", "", t[32]]
+  if is_t1c and len(t[12]) > 0:
+    t[26] = t[12]
+    t[25] = 'T1CRedeem'
+
+  return t
+
+
+def generate_data_file(output_path, store, sale_transactions):
+  total_row = len(sale_transactions)
+
+  interface_name = 'BCH_{}_T1C_NRTSales'.format(store)
+  now = datetime.now()
+  batchdatetime = now.strftime('%d%m%Y_%H:%M:%S:%f')[:-3]
+  filedatetime = now.strftime('%d%m%Y_%H%M%S')
+  datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime, 1)
+  filepath = os.path.join(output_path, datfile)
+  with open(filepath, 'w') as text_file:
+    text_file.write('0|{}\n'.format(total_row))
+    for transaction in sale_transactions:
+      text_file.write('{}\n'.format(transaction))
+    text_file.write('9|END')
+
+  ctrlfile = '{}_{}.ctrl'.format(interface_name, filedatetime)
+  filepath = os.path.join(output_path, ctrlfile)
+  attribute1 = ""
+  attribute2 = ""
+  with open(filepath, 'w') as outfile:
+    outfile.write('{}|CGO|001|1|{}|{}|CGO|{}|{}'.format(
+        interface_name, total_row, batchdatetime, attribute1, attribute2))
 
 
 def query_store():
@@ -56,13 +136,13 @@ def query_store():
       return cursor.fetchall()
 
 
-def query_data_by_store(store, transaction_date):
+def query_data_by_store(store, invoice_date):
   with connect_psql() as conn:
     with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-      sql = "refresh materialized view mv_autopos_jda"
+      sql = "refresh materialized view mv_autopos_siebel"
       cursor.execute(sql)
-      sql = "select * from mv_autopos_jda where store_code = %s and transaction_date = %s"
-      cursor.execute(sql, (store, transaction_date, ))
+      sql = "select * from mv_autopos_siebel where store_code = %s and invoice_date = %s"
+      cursor.execute(sql, (store, invoice_date, ))
 
       return cursor.fetchall()
 
@@ -78,8 +158,8 @@ def main():
   try:
     stores = [x['store_code'] for x in query_store()]
     for store in stores:
-      data = query_data_by_store(store)
-      generate_data_file(target_path, store, data)
+      data_list = [gen_sale_tran_data(data) for data in query_data_by_store(store, str_date)]
+      generate_data_file(target_path, store, gen_tender(data_list))
   except Exception as e:
     print(e)
 
