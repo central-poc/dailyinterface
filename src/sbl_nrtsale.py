@@ -41,7 +41,7 @@ def generate_text_t1c():
         interface_name, total_row, batchdatetime, attribute1, attribute2))
 
   destination = 'incoming/nrtsale'
-  sftp('cgo-prod', target_path, destination)
+  # sftp('cgo-prod', target_path, destination)
 
 
 def get_sale_tran():
@@ -92,8 +92,16 @@ def get_sale_tran():
                 END as TenderType,
                 Head.NetAmt as OrderNetAmt,
                 Head.VatAmt as OrderVatAmt,
-                isnull(CONVERT(DECIMAL(10,3),Head.RedeemAmt * Head.GrandTotalAmt  / case when oh.GrandTotalAmt=0 THEN 1 else oh.GrandTotalAmt end),0) as RedeemAmt,
-                isnull(CONVERT(DECIMAL(10,3),Head.RedeemCash * Head.GrandTotalAmt / case when oh.GrandTotalAmt=0 THEN 1 else oh.GrandTotalAmt end),0) as RedeemCash
+                CASE
+                    WHEN oh.GrandTotalAmt = 0
+                    THEN 0
+                    ELSE isnull(CONVERT(DECIMAL(10,3),Head.RedeemAmt * Head.GrandTotalAmt  / oh.GrandTotalAmt),0)
+                END as RedeemAmt,
+                CASE
+                    WHEN oh.GrandTotalAmt = 0
+                    THEN 0
+                    ELSE isnull(CONVERT(DECIMAL(10,3),Head.RedeemCash * Head.GrandTotalAmt / oh.GrandTotalAmt),0)
+                END as RedeemCash
               FROM TBSubOrderHead Head
               INNER JOIN TBShopMaster S on S.ShopID = Head.ShopID
               INNER JOIN TBSubOrderDetail Detail ON Head.Suborderid = Detail.Suborderid
@@ -102,7 +110,7 @@ def get_sale_tran():
               INNER JOIN TBOrderHead oh on Head.OrderId = oh.OrderId
               WHERE 1 = 1
               AND Head.IsGenT1c = 'No'
-              AND cast(head.InvDate as date) = cast(getdate() - 1 as date)
+              AND cast(head.InvDate as date) = cast(getdate() - 2 as date)
               AND Head.InvNo != ''
               UNION ALL
 
@@ -146,7 +154,7 @@ def get_sale_tran():
               JOIN TBOrderDiscount dis ON head.OrderId = dis.OrderId AND d.PID = dis.PId
               WHERE 1 = 1
               AND Head.IsGenT1c = 'No'
-              AND cast(head.InvDate as date) = cast(getdate() - 1 as date)
+              AND cast(head.InvDate as date) = cast(getdate() - 2 as date)
               AND Head.InvNo != ''
             ) result
             UNION ALL
@@ -194,8 +202,16 @@ def get_sale_tran():
                 END as TenderType,
               Head.NetAmt as OrderNetAmt,
               Head.VatAmt as OrderVatAmt,
-              isnull(CONVERT(DECIMAL(10,3),Head.RedeemAmt * Detail.TotalAmt / oh.GrandTotalAmt),0) as RedeemAmt,
-              isnull(CONVERT(DECIMAL(10,3),Head.RedeemCash * Detail.TotalAmt / oh.GrandTotalAmt),0) as RedeemCash
+              case
+                WHEN oh.GrandTotalAmt = 0
+                THEN 0
+                ELSE isnull(CONVERT(DECIMAL(10,3),Head.RedeemAmt * Detail.TotalAmt / oh.GrandTotalAmt),0)
+              END as RedeemAmt,
+              case
+                WHEN oh.GrandTotalAmt = 0
+                THEN 0
+                ELSE isnull(CONVERT(DECIMAL(10,3),Head.RedeemCash * Detail.TotalAmt / oh.GrandTotalAmt),0)
+              END as RedeemCash
             FROM TBSubSaleReturnHead Head
             INNER JOIN TBShopMaster S on S.ShopID = Head.ShopID
             INNER JOIN TBSubSaleReturnDetail Detail ON Head.SubSRNo = Detail.SubSRNo
@@ -204,7 +220,7 @@ def get_sale_tran():
             INNER JOIN TBOrderHead oh on Head.OrderId = oh.OrderId
             WHERE 1 = 1
             AND Head.IsGenT1c = 'No'
-            AND cast(head.CnDate as date) = cast(getdate() - 1 as date)
+            AND cast(head.CnDate as date) = cast(getdate() - 2 as date)
             AND Head.SubSaleReturnType IN ('CN', 'Exchange')
             AND Head.Status = 'Completed'
             AND Head.CnNo != ''
