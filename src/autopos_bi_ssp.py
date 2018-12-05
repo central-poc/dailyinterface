@@ -1,5 +1,5 @@
 from common import connect_psql
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import psycopg2.extras
 
@@ -201,9 +201,10 @@ def query_store():
 
 
 def main():
-  str_date = datetime.today().strftime('%Y%m%d')
-  str_time = datetime.today().strftime('%H%M')
-  str_stime = datetime.today().strftime('%H%M%S')
+  now = datetime.now()
+  str_date = (now - timedelta(days=1)).strftime('%Y%m%d')
+  str_time = (now - timedelta(days=1)).strftime('%H%M')
+  str_stime = (now - timedelta(days=1)).strftime('%H%M%S')
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
   target_path = os.path.join(parent_path, 'output/autopos/bissp',

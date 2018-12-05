@@ -1,5 +1,5 @@
 from common import connect_psql
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import psycopg2.extras
 
@@ -108,29 +108,29 @@ def generate_trans_discount(output_path, str_date, str_time, store, data):
       print('[AutoPOS] - BI CDS discount create files error: {}: '.format(e))
 
 
-def query_transaction_payment(store):
+def query_transaction_payment(str_date, store):
   with connect_psql() as conn:
     with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-      sql = "select * from mv_autopos_bi_cds_trans_payment where store_code = %s"
-      cursor.execute(sql, (store, ))
+      sql = "select * from mv_autopos_bi_cds_trans_payment where transaction_date = %s and store_code = %s"
+      cursor.execute(sql, (str_date, store, ))
 
       return cursor.fetchall()
 
 
-def query_transaction_promotion(store):
+def query_transaction_promotion(str_date, store):
   with connect_psql() as conn:
     with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-      sql = "select * from mv_autopos_bi_cds_trans_promo where store_code = %s"
-      cursor.execute(sql, (store, ))
+      sql = "select * from mv_autopos_bi_cds_trans_promo where transaction_date = %s and store_code = %s"
+      cursor.execute(sql, (str_date, store, ))
 
       return cursor.fetchall()
 
 
-def query_transaction_discount(store):
+def query_transaction_discount(str_date, store):
   with connect_psql() as conn:
     with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-      sql = "select * from mv_autopos_bi_cds_trans_discount where store_code = %s"
-      cursor.execute(sql, (store, ))
+      sql = "select * from mv_autopos_bi_cds_trans_discount where transaction_date = %s and store_code = %s"
+      cursor.execute(sql, (str_date, store, ))
 
       return cursor.fetchall()
 
@@ -146,8 +146,9 @@ def query_store():
 
 
 def main():
-  str_date = datetime.today().strftime('%Y%m%d')
-  str_time = datetime.today().strftime('%H%M')
+  now = datetime.now()
+  str_date = (now - timedelta(days=1)).strftime('%Y%m%d')
+  str_time = (now - timedelta(days=1)).strftime('%H%M')
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
   target_path = os.path.join(parent_path, 'output/autopos/bicds',
@@ -159,11 +160,11 @@ def main():
     stores = [x['store_code'] for x in query_store()]
     for store in stores:
       generate_trans_payment(target_path, str_date, str_time, store,
-                             query_transaction_payment(store))
+                             query_transaction_payment(str_date, store))
       generate_trans_promo(target_path, str_date, str_time, store,
-                           query_transaction_promotion(store))
+                           query_transaction_promotion(str_date, store))
       generate_trans_discount(target_path, str_date, str_time, store,
-                              query_transaction_discount(store))
+                              query_transaction_discount(str_date, store))
   except Exception as e:
     print(e)
 

@@ -78,7 +78,7 @@ def main():
   try:
     stores = [x['store_code'] for x in query_store()]
     for store in stores:
-      data = query_data_by_store(store)
+      data = query_data_by_store(store, str_date)
       generate_data_file(target_path, store, data)
   except Exception as e:
     print(e)
