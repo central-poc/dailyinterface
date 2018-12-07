@@ -85,8 +85,9 @@ def mssql_cmos():
 
 def connect_psql():
   return psycopg2.connect(
-      host='localhost',
-      port=5433,
+      host='cds-fms-uat.c1lxkbgl6wrw.ap-southeast-1.rds.amazonaws.com',
+      # host='localhost',
+      port=5432,
       user='postgres',
       password='Zxcv123!autopos',
       dbname='dbfms')
