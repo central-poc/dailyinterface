@@ -26,22 +26,22 @@ def generate_data_file(output_path, store, data):
         f.write(
             "{:0>5}{:0>8}{:0>4}{:0>2}{:9}{:0>3}{:0>16}{:0>16}{:1}{:0>6}{:0>12}{:0>12}{:1}{:0>12}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:21}{:9}{:0>8}{:0>2}{:0>6}{:0>3}{:0>3}{:0>16}{:1}{:16}{:21}{:0>8}{:8}{:8}".
             format(
-                d['store_code'], d['transaction_date'], d['transaction_time'],
-                d['transaction_type'], d['ticket_no'], d['seq_no'], d['sku'],
-                d['barcode'], d['qty_sign'], d['quantity'], d['jda_price'],
-                d['price_override'], d['price_override_flag'],
-                d['total_net_amt'], d['vat_amt'], d['discount_type1'],
-                d['discount_amt1'], d['discount_type2'], d['discount_amt2'],
-                d['discount_type3'], d['discount_amt3'], d['discount_type4'],
-                d['discount_amt4'], d['discount_type5'], d['discount_amt5'],
-                d['discount_type6'], d['discount_amt6'], d['discount_type7'],
-                d['discount_amt7'], d['discount_type8'], d['discount_amt8'],
-                d['discount_type9'], d['discount_amt9'], d['discount_type10'],
-                d['discount_amt10'], d['ref_id'], d['ref_ticket'],
-                d['ref_date'], d['reason_code'], d['event_no'], d['dept_id'],
-                d['subdept_id'], d['itemized'], d['dtype'], d['credit_cardno'],
-                d['customer_id'], d['member_point'], d['cashier_id'],
-                d['sale_person']))
+                d['store_code'][:5], d['transaction_date'][:8], d['transaction_time'][:4],
+                d['transaction_type'][:2], d['ticket_no'][:9], d['seq_no'][:3], d['sku'][:16],
+                d['barcode'][:16], d['qty_sign'][:1], d['quantity'][:6], d['jda_price'][:12],
+                d['price_override'][:12], d['price_override_flag'][:1],
+                d['total_net_amt'][:12], d['vat_amt'][:12], d['discount_type1'][:4],
+                d['discount_amt1'][:12], d['discount_type2'][:4], d['discount_amt2'][:12],
+                d['discount_type3'][:4], d['discount_amt3'][:12], d['discount_type4'][:4],
+                d['discount_amt4'][:12], d['discount_type5'][:4], d['discount_amt5'][:12],
+                d['discount_type6'][:4], d['discount_amt6'][:12], d['discount_type7'][:4],
+                d['discount_amt7'][:12], d['discount_type8'][:4], d['discount_amt8'][:12],
+                d['discount_type9'][:4], d['discount_amt9'][:12], d['discount_type10'][:4],
+                d['discount_amt10'][:12], d['ref_id'][:21], d['ref_ticket'][:9],
+                d['ref_date'][:8], d['reason_code'][:2], d['event_no'][:6], d['dept_id'][:3],
+                d['subdept_id'][:3], d['itemized'][:16], d['dtype'][:1], d['credit_cardno'][:16],
+                d['customer_id'][:21], d['member_point'][:8], d['cashier_id'][:8],
+                d['sale_person'][:8]))
         count = count + 1
       print('[AutoPOS] - JDA Create Files Complete..')
     except Exception as e:

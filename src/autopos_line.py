@@ -27,9 +27,10 @@ def generate_data_file(output_path, str_date, data):
           dat.write('\n')
         dat.write(
             "{:3}{:50}{:1}{:30}{:1}{:240}{:014.2f}{:14}{:14}".
-            format(line['source'], line['invoice_no'], line['invoice_type'], 
-                   line['vendor_id'], line['line_type'], line['item_description'],
-                   line['amount'], line['item_qty'], line['item_cost'])) 
+            format(line['source'][:3], line['invoice_no'][:50], 
+                   line['invoice_type'][:1], line['vendor_id'][:30], 
+                   line['line_type'][:1], line['item_description'][:240],
+                   line['amount'], line['item_qty'][:14], line['item_cost'][:14])) 
         count = count + 1
       print('Create Files L .MER Complete..')
     except Exception as e:

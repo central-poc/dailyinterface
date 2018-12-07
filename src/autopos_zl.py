@@ -36,12 +36,12 @@ def generate_data_file(output_path, str_date, data):
           dat.write('\n')
         dat.write(
             "{:6}{:5}{:8}{:6}{:6}{:012.2f}{:012.2f}{:20}{:20}{:20}{:10}{:240}".
-            format(line['ofin_branch_code'], line['ofin_cost_profit_center'],
-                   line['account_code'], line['subaccount_code'],
-                   line['business_date'], line['debit'], line['credit'],
-                   line['journal_source_name'], line['journal_category_name'],
-                   line['batch_name'], line['ofin_for_cfs'],
-                   line['account_description']))
+            format(line['ofin_branch_code'][:6], line['ofin_cost_profit_center'][:5],
+                   line['account_code'][:8], line['subaccount_code'][:6],
+                   line['business_date'][:6], line['debit'], line['credit'],
+                   line['journal_source_name'][:20], line['journal_category_name'][:20],
+                   line['batch_name'][:20], line['ofin_for_cfs'][:10],
+                   line['account_description'][:240]))
         count = count + 1
 
       val.write('{:14}{:10}'.format(dat_file, count))

@@ -31,12 +31,17 @@ def generate_data_file(output_path, str_date, data):
         line_invoice = line['invoice_total']
         dat.write(
             "{:3}{:50}{:30}{:6}{:014.2f}{:15}{:1}{:1}{:2}{:5}{:50}{:50}{:10}{:3}{:4}{:2}{:15}{:50}{:14}{:6}{:10}{:50}".
-            format(line['source'], line['invoice_no'], line['vendor_id'], line['invoice_date'],
-                   line_invoice, line['store_id'], line['invoice_type'],
-                   line['imported_goods'], line['hold_reason01'], line['invoice_tax_name'], 
-                   line['tax_inv_running_no'], line['blank1'], line['rtv_auth_no'], line['currency_code'],
-                   line['terms'], line['blank2'], line['gr_tran_no'], line['ass_tax_invoice_num'],
-                   line['blank3'], line['tax_invoice_date'], line['invoice_rtv_type'], line['currency_rate']))
+            format(line['source'][:3], line['invoice_no'][:50], 
+                   line['vendor_id'][:30], line['invoice_date'],
+                   line_invoice, line['store_id'][:15], 
+                   line['invoice_type'][:1], line['imported_goods'][:1], 
+                   line['hold_reason01'][:2], line['invoice_tax_name'][:5], 
+                   line['tax_inv_running_no'][:50], line['blank1'][:50], 
+                   line['rtv_auth_no'][:10], line['currency_code'][:3],
+                   line['terms'][:4], line['blank2'][:2], 
+                   line['gr_tran_no'][:15], line['ass_tax_invoice_num'][:50],
+                   line['blank3'][:14], line['tax_invoice_date'], 
+                   line['invoice_rtv_type'][:10], line['currency_rate'][:50]))
         sum_invoice = sum_invoice + line_invoice
         count = count + 1
 

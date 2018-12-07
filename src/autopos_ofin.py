@@ -33,12 +33,12 @@ def generate_data_file(output_path, str_date, bu, data):
         credit = d['credit']
         dat.write(
             "{:6}{:5}{:8}{:6}{:9}{:012.2f}{:012.2f}{:4}{:25}{:25}{:25}{:1}{:10}{:240}".
-            format(d['ofin_branch_code'], d['ofin_cost_profit_center'],
-                   d['account_code'], d['subaccount_code'], d['invoice_date'],
-                   debit, credit, d['bu'],
-                   d['journal_category_name'], d['journal_source_name'],
-                   d['batch_name'], d['seq'], d['ofin_for_cfs'],
-                   d['account_description']))
+            format(d['ofin_branch_code'][:6], d['ofin_cost_profit_center'][:5],
+                   d['account_code'][:8], d['subaccount_code'][:6], d['invoice_date'][:9],
+                   debit, credit, d['bu'][:4],
+                   d['journal_category_name'][:25], d['journal_source_name'][:25],
+                   d['batch_name'][:25], d['seq'][:1], d['ofin_for_cfs'][:10],
+                   d['account_description'][:240]))
         count = count + 1
         debit_accum = debit_accum + debit
         credit_accum = credit_accum + credit
