@@ -1,7 +1,7 @@
-from common import connect_psql, get_file_seq
+from common import connect_psql, get_file_seq, query_matview
 from datetime import datetime, timedelta
 import os
-import psycopg2.extras
+import traceback
 
 
 def prepare_data(data):
@@ -46,31 +46,7 @@ def generate_data_file(output_path, str_date, bu, data):
     result, debit, credit = prepare_data(data)
     dat.write("\n".join(result))
     val.write('{:15}{:10}{:015.2f}{:015.2f}'.format(dat_file, len(result), debit, credit))
-    print('[AutoPOS] - OFIN Create Files Complete..')
-
-
-def query_data(str_date, bu):
-  with connect_psql() as conn:
-    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-      sql = "refresh materialized view mv_autopos_ofin"
-      cursor.execute(sql)
-      sql = "select * from mv_autopos_ofin where business_date = %s and bu = %s"
-      cursor.execute(sql, (str_date, bu, ))
-
-      return cursor.fetchall()
-
-
-def query_bu(str_date):
-  with connect_psql() as conn:
-    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-      sql = "refresh materialized view mv_autopos_ofin"
-      cursor.execute(sql)
-      cursor.execute(
-          "select bu from mv_autopos_ofin where business_date = %s group by bu",
-          (str_date, )
-      )
-
-      return cursor.fetchall()
+    print('[AutoPOS] - OFIN Create Files Completed..')
 
 
 def main():
@@ -82,13 +58,20 @@ def main():
     os.makedirs(target_path)
 
   try:
-    bus = [x['bu'] for x in query_bu(str_date)]
+    refresh_view = "refresh materialized view mv_autopos_ofin"
+    sql = "select bu from mv_autopos_ofin where business_date = '{}' group by bu".format(str_date)
+    data_bu = query_matview(refresh_view, sql)
+
+    bus = [x['bu'] for x in data_bu]
     for bu in bus:
-      data = query_data(str_date, bu)
+      refresh_view = "refresh materialized view mv_autopos_ofin"
+      sql = "select * from mv_autopos_ofin where business_date = '{}' and bu = '{}'".format(str_date, bu)
+      data = query_matview(refresh_view, sql)
       generate_data_file(target_path, str_date, bu, data)
 
   except Exception as e:
-    print(e)
+    print('[AutoPOS] - OFIN Error: %s' % str(e))
+    traceback.print_tb(e.__traceback__)
 
 
 if __name__ == '__main__':

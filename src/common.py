@@ -1,5 +1,6 @@
 import _mssql
 import psycopg2
+import psycopg2.extras
 import pymssql
 import requests, json
 import time
@@ -97,6 +98,7 @@ def replace_pipe(data):
     data[key]= str(value).replace('|','')
   return data
 
+
 def get_file_seq(prefix, output_path, ext):
   files = [
       f.split('.')[0] for f in os.listdir(output_path)
@@ -104,3 +106,19 @@ def get_file_seq(prefix, output_path, ext):
   ]
   return 1 if not files else max(
       int(f[len(prefix)]) if f.startswith(prefix) else 0 for f in files) + 1
+
+
+def query_matview(refresh_view, str_query):
+  with connect_psql() as conn:
+    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+      cursor.execute(refresh_view)
+      cursor.execute(str_query)
+      
+      return cursor.fetchall()
+
+def query_all(sql):
+  with connect_psql() as conn:
+    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+      cursor.execute(sql)
+
+      return cursor.fetchall()

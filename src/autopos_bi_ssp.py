@@ -1,7 +1,7 @@
-from common import connect_psql
+from common import connect_psql, get_file_seq, query_matview
 from datetime import datetime, timedelta
 import os
-import psycopg2.extras
+import traceback
 
 text_format = {
   'sale_detail': [
@@ -109,13 +109,6 @@ text_format = {
   ],
 }
 
-def get_file_seq(prefix, output_path, ext):
-  files = [
-      f.split('.')[0] for f in os.listdir(output_path)
-      if os.path.isfile(os.path.join(output_path, f)) and f.endswith(ext)
-  ]
-  return 1 if not files else max(
-      int(f[len(prefix)]) if f.startswith(prefix) else 0 for f in files) + 1
 
 def prepare_data(data, fields, str_date):
   result = []
@@ -125,6 +118,7 @@ def prepare_data(data, fields, str_date):
     result.append(str_date)
 
   return "|".join(result)
+
 
 def generate_trans_sale_detail(output_path, str_date, str_time, str_stime,
                                store, data):
@@ -138,15 +132,12 @@ def generate_trans_sale_detail(output_path, str_date, str_time, str_stime,
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
     f.write("\n".join(result))
-    l.write('{}|{}|{}'.format(str_date, str_stime, count))
-    print('[AutoPOS] - BI SSP transaction sale detail create files complete..')
+    l.write('{}|{}|{}'.format(str_date, str_stime, len(result)))
+    print('[AutoPOS] - BI SSP transaction sale detail create files completed..')
+  
   with open(file_fullpath, 'r') as f:
     for line in f.read().splitlines():
       print(len(line))
-    # except Exception as e:
-    #   print(
-    #       '[AutoPOS] - BI SSP transaction sale detail create files error: {}: '.
-    #       format(e))
 
 
 def generate_trans_tendor_detail(output_path, str_date, str_time, str_stime,
@@ -161,16 +152,12 @@ def generate_trans_tendor_detail(output_path, str_date, str_time, str_stime,
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
     f.write("\n".join(result))
-    l.write('{}|{}|{}'.format(str_date, str_stime, count))
-    print('[AutoPOS] - BI SSP transaction tendor detail create files complete..')
+    l.write('{}|{}|{}'.format(str_date, str_stime, len(result)))
+    print('[AutoPOS] - BI SSP transaction tendor detail create files completed..')
+  
   with open(file_fullpath, 'r') as f:
     for line in f.read().splitlines():
       print(len(line))
-
-    # except Exception as e:
-    #   print(
-    #       '[AutoPOS] - BI SSP transaction tendor detail create files error: {}: '.
-    #       format(e))
 
 
 def generate_trans_installment(output_path, str_date, str_time, str_stime,
@@ -185,16 +172,12 @@ def generate_trans_installment(output_path, str_date, str_time, str_stime,
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
     f.write("\n".join(result))
-    l.write('{}|{}|{}'.format(str_date, str_stime, count))
-    print('[AutoPOS] - BI SSP transaction installment create files complete..')
+    l.write('{}|{}|{}'.format(str_date, str_stime, len(result)))
+    print('[AutoPOS] - BI SSP transaction installment create files completed..')
+  
   with open(file_fullpath, 'r') as f:
     for line in f.read().splitlines():
       print(len(line))
-
-    # except Exception as e:
-    #   print(
-    #       '[AutoPOS] - BI SSP transaction installment create files error: {}: '.
-    #       format(e))
 
 
 def generate_trans_dcpn(output_path, str_date, str_time, str_stime, store,
@@ -209,61 +192,12 @@ def generate_trans_dcpn(output_path, str_date, str_time, str_stime, store,
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
     f.write("\n".join(result))
-    l.write('{}|{}|{}'.format(str_date, str_stime, count))
-    print('[AutoPOS] - BI SSP transaction dpcn create files complete..')
+    l.write('{}|{}|{}'.format(str_date, str_stime, len(result)))
+    print('[AutoPOS] - BI SSP transaction dpcn create files completed..')
+  
   with open(file_fullpath, 'r') as f:
     for line in f.read().splitlines():
       print(len(line))
-
-    # except Exception as e:
-    #   print('[AutoPOS] - BI SSP transaction dpcn create files error: {}: '.
-    #         format(e))
-
-
-def query_transaction_sale_detail(store):
-  with connect_psql() as conn:
-    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-      sql = "select * from mv_autopos_bi_ssp_trans_sale_detail where store_code = %s"
-      cursor.execute(sql, (store, ))
-
-      return cursor.fetchall()
-
-
-def query_transaction_tendor_detail(store):
-  with connect_psql() as conn:
-    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-      sql = "select * from mv_autopos_bi_ssp_trans_tendor_detail where store_code = %s"
-      cursor.execute(sql, (store, ))
-
-      return cursor.fetchall()
-
-
-def query_transaction_installment(store):
-  with connect_psql() as conn:
-    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-      sql = "select * from mv_autopos_bi_ssp_trans_installment where store_code = %s"
-      cursor.execute(sql, (store, ))
-
-      return cursor.fetchall()
-
-
-def query_transaction_dcpn(store):
-  with connect_psql() as conn:
-    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-      sql = "select * from mv_autopos_bi_ssp_trans_dpcn where store_code = %s"
-      cursor.execute(sql, (store, ))
-
-      return cursor.fetchall()
-
-
-def query_store():
-  with connect_psql() as conn:
-    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-      cursor.execute(
-          "select store_code from mv_autopos_bi_ssp_trans_sale_detail group by store_code"
-      )
-
-      return cursor.fetchall()
 
 
 def main():
@@ -279,19 +213,33 @@ def main():
     os.makedirs(target_path)
 
   try:
-    stores = [x['store_code'] for x in query_store()]
+    refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_sale_detail"
+    sql = "select store_code from mv_autopos_bi_ssp_trans_sale_detail group by store_code"
+    data = query_matview(refresh_view, sql)
+    stores = [x['store_code'] for x in data]
     for store in stores:
-      generate_trans_sale_detail(target_path, str_date, str_time, str_stime,
-                                 store, query_transaction_sale_detail(store))
-      generate_trans_tendor_detail(target_path, str_date, str_time,
-                                   str_stime, store,
-                                   query_transaction_tendor_detail(store))
-      generate_trans_installment(target_path, str_date, str_time, str_stime,
-                                 store, query_transaction_installment(store))
-      generate_trans_dcpn(target_path, str_date, str_time, str_stime, store,
-                          query_transaction_dcpn(store))
+      refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_sale_detail"
+      sql = "select * from mv_autopos_bi_ssp_trans_sale_detail where store_code = '{}' and receipt_date = '{}'".format(store, str_date)
+      data = query_matview(refresh_view, sql)
+      generate_trans_sale_detail(target_path, str_date, str_time, str_stime, str_stime, store, data)
+
+      refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_tendor_detail"
+      sql = "select * from mv_autopos_bi_ssp_trans_tendor_detail where store_code = '{}' and receipt_date = '{}'".format(store, str_date)
+      data = query_matview(refresh_view, sql)
+      generate_trans_tendor_detail(target_path, str_date, str_time, str_stime, store, data)
+
+      refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_installment"
+      sql = "select * from mv_autopos_bi_ssp_trans_installment where store_code = '{}' and receipt_date = '{}'".format(store, str_date)
+      data = query_matview(refresh_view, sql)
+      generate_trans_installment(target_path, str_date, str_time, str_stime, store, data)
+
+      refresh_view = "refresh materialized view mv_autopos_bi_cds_trans_payment"
+      sql = "select * from mv_autopos_bi_ssp_trans_dpcn where store_code = '{}' and receipt_date = '{}'".format(store, str_date)
+      data = query_matview(refresh_view, sql)
+      generate_trans_dcpn(target_path, str_date, str_time, str_stime, store, data)
   except Exception as e:
-    print(e)
+    print('[AutoPOS] - BI SSP Error: %s' % str(e))
+    traceback.print_tb(e.__traceback__)
 
 
 if __name__ == '__main__':

@@ -1,13 +1,13 @@
-from common import connect_psql, get_file_seq
+from common import connect_psql, get_file_seq, query_matview
 from datetime import datetime, timedelta
 import os
-import psycopg2.extras
+import traceback
 
 
 def is_debit_equals_credit(data):
   sum_debit = sum([row[5] for row in data])
   sum_credit = sum([row[6] for row in data])
-  print('[ZL] - Debit: {}, Credit: {}'.format(sum_debit, sum_credit))
+  print('[AutoPOS] - ZL Debit: {}, Credit: {}'.format(sum_debit, sum_credit))
   return False if sum_debit != sum_credit else True
 
 
@@ -47,18 +47,7 @@ def generate_data_file(output_path, str_date, data):
     result = prepare_data(data)
     dat.write("\n".join(data))
     val.write('{:14}{:10}'.format(dat_file, len(result)))
-    print('Create Files ZL .DAT & .VAL Complete..')
-
-
-def query_data(str_date):
-  with connect_psql() as conn:
-    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-      sql = "refresh materialized view mv_autopos_ofin_zl"
-      cursor.execute(sql)
-      sql = "select * from mv_autopos_ofin_zl where business_date = %s"
-      cursor.execute(sql, (str_date, ))
-      
-      return cursor.fetchall()
+    print('[AutoPOS] - ZL .DAT & .VAL Completed..')
 
 
 def main():
@@ -70,15 +59,17 @@ def main():
     os.makedirs(target_path)
 
   try:
-    data = query_data(str_date)
+    refresh_view = "refresh materialized view mv_autopos_ofin_zl"
+    sql = "select * from mv_autopos_ofin_zl where business_date = '{}'".format(str_date)
+    data = query_matview(refresh_view, sql)
     if not is_debit_equals_credit(data):
       return
 
     generate_data_file(target_path, str_date, data)
 
   except Exception as e:
-    print('Get Data ZL From Stored Procedure Error: %s' % str(e))
-
+    print('[AutoPOS] - ZL Error: %s' % str(e))
+    traceback.print_tb(e.__traceback__)
 
 if __name__ == '__main__':
   main()

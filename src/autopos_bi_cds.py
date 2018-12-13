@@ -1,7 +1,7 @@
-from common import connect_psql
+from common import connect_psql, get_file_seq, query_matview
 from datetime import datetime, timedelta
 import os
-import psycopg2.extras
+import traceback
 
 text_format = {
   'promo': [
@@ -69,14 +69,6 @@ text_format = {
 }
 
 
-def get_file_seq(prefix, output_path, ext):
-  files = [
-      f.split('.')[0] for f in os.listdir(output_path)
-      if os.path.isfile(os.path.join(output_path, f)) and f.endswith(ext)
-  ]
-  return 1 if not files else max(
-      int(f[len(prefix)]) if f.startswith(prefix) else 0 for f in files) + 1
-
 def prepare_data(data, fields, str_date):
   result = []
   for field in fields:
@@ -85,6 +77,7 @@ def prepare_data(data, fields, str_date):
     result.append(str_date)
 
   return "|".join(result)
+
 
 def generate_trans_payment(output_path, str_date, str_time, store, data):
   prefix = 'BICDS_' + store + '_Payment_' + str_date + str_time + "_"
@@ -97,13 +90,12 @@ def generate_trans_payment(output_path, str_date, str_time, store, data):
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
     f.write("\n".join(result))
-    l.write('{:8}|{:4}|{}'.format(str_date, str_time, count))
-    print('[AutoPOS] - BI CDS payment create files complete..')
+    l.write('{:8}|{:4}|{}'.format(str_date, str_time, len(result)))
+    print('[AutoPOS] - BI CDS payment create files completed..')
+
   with open(file_fullpath, 'r') as f:
     for line in f.read().splitlines():
       print(len(line))
-  # except Exception as e:
-  #     print('[AutoPOS] - BI CDS payment create files error: {}: '.format(e))
 
 def generate_trans_promo(output_path, str_date, str_time, store, data):
   prefix = 'BICDS_' + store + '_Promotion_' + str_date + str_time + "_"
@@ -116,13 +108,12 @@ def generate_trans_promo(output_path, str_date, str_time, store, data):
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
     f.write("\n".join(result))
-    l.write('{:8}|{:4}|{}'.format(str_date, str_time, count))
+    l.write('{:8}|{:4}|{}'.format(str_date, str_time, len(result)))
+    print('[AutoPOS] - BI CDS promotion create files completed..')
+  
   with open(file_fullpath, 'r') as f:
     for line in f.read().splitlines():
       print(len(line))
-      print('[AutoPOS] - BI CDS promotion create files complete..')
-    # except Exception as e:
-      # print('[AutoPOS] - BI CDS promotion create files error: {}: '.format(e))
 
 
 def generate_trans_discount(output_path, str_date, str_time, store, data):
@@ -136,50 +127,12 @@ def generate_trans_discount(output_path, str_date, str_time, store, data):
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
     f.write("\n".join(result))
-    l.write('{:8}|{:4}|{}'.format(str_date, str_time, count))
-    print('[AutoPOS] - BI CDS discount create files complete..')
+    l.write('{:8}|{:4}|{}'.format(str_date, str_time, len(result)))
+    print('[AutoPOS] - BI CDS discount create files completed..')
+  
   with open(file_fullpath, 'r') as f:
     for line in f.read().splitlines():
       print(len(line))
-    # except Exception as e:
-    #   print('[AutoPOS] - BI CDS discount create files error: {}: '.format(e))
-
-
-def query_transaction_payment(str_date, store):
-  with connect_psql() as conn:
-    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-      sql = "select * from mv_autopos_bi_cds_trans_payment where transaction_date = %s and store_code = %s"
-      cursor.execute(sql, (str_date, store, ))
-
-      return cursor.fetchall()
-
-
-def query_transaction_promotion(str_date, store):
-  with connect_psql() as conn:
-    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-      sql = "select * from mv_autopos_bi_cds_trans_promo where transaction_date = %s and store_code = %s"
-      cursor.execute(sql, (str_date, store, ))
-
-      return cursor.fetchall()
-
-
-def query_transaction_discount(str_date, store):
-  with connect_psql() as conn:
-    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-      sql = "select * from mv_autopos_bi_cds_trans_discount where transaction_date = %s and store_code = %s"
-      cursor.execute(sql, (str_date, store, ))
-
-      return cursor.fetchall()
-
-
-def query_store():
-  with connect_psql() as conn:
-    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-      cursor.execute(
-          "select store_code from mv_autopos_bi_cds_trans_payment group by store_code"
-      )
-
-      return cursor.fetchall()
 
 
 def main():
@@ -188,22 +141,33 @@ def main():
   str_time = (now - timedelta(days=1)).strftime('%H%M')
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
-  target_path = os.path.join(parent_path, 'output/autopos/bicds',
-                             str_date + str_time)
+  target_path = os.path.join(parent_path, 'output/autopos/bicds', str_date + str_time)
   if not os.path.exists(target_path):
     os.makedirs(target_path)
 
   try:
-    stores = [x['store_code'] for x in query_store()]
+    refresh_view = "refresh materialized view mv_autopos_bi_cds_trans_payment"
+    sql = "select store_code from mv_autopos_bi_cds_trans_payment group by store_code"
+    data = query_matview(refresh_view, sql)
+    stores = [x['store_code'] for x in data]
     for store in stores:
-      generate_trans_payment(target_path, str_date, str_time, store,
-                             query_transaction_payment(str_date, store))
-      generate_trans_promo(target_path, str_date, str_time, store,
-                           query_transaction_promotion(str_date, store))
-      generate_trans_discount(target_path, str_date, str_time, store,
-                              query_transaction_discount(str_date, store))
+      refresh_view = "refresh materialized view mv_autopos_bi_cds_trans_payment"
+      sql = "select * from mv_autopos_bi_cds_trans_payment where transaction_date = '{}' and store_code = '{}'".format(str_date, store)
+      data = query_matview(refresh_view, sql)
+      generate_trans_payment(target_path, str_date, str_time, store, data)
+
+      refresh_view = "refresh materialized view mv_autopos_bi_cds_trans_promo"
+      sql = "select * from mv_autopos_bi_cds_trans_promo where transaction_date = '{}' and store_code = '{}'".format(str_date, store)
+      data = query_matview(refresh_view, sql)
+      generate_trans_promo(target_path, str_date, str_time, store, data)
+
+      refresh_view = "refresh materialized view mv_autopos_bi_cds_trans_discount"
+      sql = "select * from mv_autopos_bi_cds_trans_discount where transaction_date = '{}' and store_code = '{}'".format(str_date, store)
+      data = query_matview(refresh_view, sql)
+      generate_trans_discount(target_path, str_date, str_time, store, data)
   except Exception as e:
-    print(e)
+    print('[AutoPOS] - BI CDS Error: %s' % str(e))
+    traceback.print_tb(e.__traceback__)
 
 
 if __name__ == '__main__':

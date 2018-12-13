@@ -1,14 +1,14 @@
-from common import connect_psql, get_file_seq
+from common import connect_psql, get_file_seq, query_matview
 from datetime import datetime, timedelta
 import os
-import psycopg2.extras
+import traceback
 
 
 def prepare_data(data):
   result = []
   sum_invoice = 0
   for d in data:
-    line_invoice = line['invoice_total']
+    line_invoice = d['invoice_total']
     sum_invoice = sum_invoice + line_invoice
     temp = []
     temp.append("{:3}".format(d['source'][:3]))
@@ -51,16 +51,7 @@ def generate_data_file(output_path, str_date, data):
     result, invoice = prepare_data(data)
     dat.write("\n".join(result))
     val.write('{:14}{:0>5}{:0>5}{:0>10}'.format(dat_file, len(result), len(result), invoice))
-    print('Create Files H .MER & .LOG Complete..')
-
-
-def query_data(str_date):
-  with connect_psql() as conn:
-    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-      sql = "select * from mv_autopos_ofin_head where invoice_date = %s"
-      cursor.execute(sql, (str_date, ))
-      
-      return cursor.fetchall()
+    print('[AutoPOS] - H create files .MER & .LOG completed..')
 
 
 def main():
@@ -72,11 +63,14 @@ def main():
     os.makedirs(target_path)
 
   try:
-    generate_data_file(target_path, str_date, query_data(str_date))
+    refresh_view = "refresh materialized view mv_autopos_ofin_head"
+    sql = "select * from mv_autopos_ofin_head where invoice_date = '{}'".format(str_date)
+    data = query_matview(refresh_view, sql)
+    generate_data_file(target_path, str_date, data)
 
   except Exception as e:
+    print('[AutoPOS] - H Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
-    print('[H] - Error: %s' % str(e))
 
 
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
-from common import connect_psql
+from common import connect_psql, query_all, query_matview
 from datetime import datetime, timedelta
 import os
-import psycopg2.extras
+import traceback
 
 
 def gen_sale_tran_data(data):
@@ -117,26 +117,7 @@ def generate_data_file(output_path, store, sale_transactions):
   with open(filepath, 'w') as outfile:
     outfile.write('{}|CGO|001|1|{}|{}|CGO|{}|{}'.format(
         interface_name, total_row, batchdatetime, attribute1, attribute2))
-  print('Create Files Siebel .DAT & .CTRL Complete..')
-
-
-def query_store():
-  with connect_psql() as conn:
-    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-      cursor.execute("select store_code from businessunit")
-
-      return cursor.fetchall()
-
-
-def query_data_by_store(store, invoice_date):
-  with connect_psql() as conn:
-    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-      sql = "refresh materialized view mv_autopos_siebel"
-      cursor.execute(sql)
-      sql = "select * from mv_autopos_siebel where store_code = %s and invoice_date = %s"
-      cursor.execute(sql, (store, invoice_date, ))
-
-      return cursor.fetchall()
+  print('[AUtoPOS] - Siebel({}) create .DAT & .CTRL file completed..'.format(store))
 
 
 def main():
@@ -148,12 +129,17 @@ def main():
     os.makedirs(target_path)
 
   try:
-    stores = [x['store_code'] for x in query_store()]
+    stores = [x['store_code'] for x in query_all("select store_code from businessunit")]
     for store in stores:
-      data_list = [gen_sale_tran_data(data) for data in query_data_by_store(store, str_date)]
+      refresh_view = "refresh materialized view mv_autopos_siebel"
+      sql = "select * from mv_autopos_siebel where store_code = '{}' and invoice_date = '{}'".format(store, str_date)
+      datas = query_matview(refresh_view, sql)
+
+      data_list = [gen_sale_tran_data(data) for data in datas]
       generate_data_file(target_path, store, gen_tender(data_list))
   except Exception as e:
-    print(e)
+    print('[AutoPOS] - Siebel Error: %s' % str(e))
+    traceback.print_tb(e.__traceback__)
 
 
 if __name__ == '__main__':

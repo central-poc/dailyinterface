@@ -1,7 +1,6 @@
-from common import connect_psql
+from common import connect_psql, query_all, query_matview
 from datetime import datetime, timedelta
 import os
-import psycopg2.extras
 import traceback
 
 
@@ -69,29 +68,11 @@ def generate_data_file(output_path, store, data):
 
   with open(file_fullpath, 'w') as f:
     f.write("\n".join(prepare_data(data)))
-    print('[AutoPOS] - JDA Create Files Complete..')
+    print('[AutoPOS] - JDA create files Completed..')
+
   with open(file_fullpath, 'r') as f:
     for line in f.read().splitlines():
       print(len(line))
-
-
-def query_store():
-  with connect_psql() as conn:
-    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-      cursor.execute("select store_code from businessunit")
-
-      return cursor.fetchall()
-
-
-def query_data_by_store(store, transaction_date):
-  with connect_psql() as conn:
-    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-      sql = "refresh materialized view mv_autopos_jda"
-      cursor.execute(sql)
-      sql = "select * from mv_autopos_jda where store_code = %s and transaction_date = %s"
-      cursor.execute(sql, (store, transaction_date, ))
-
-      return cursor.fetchall()
 
 
 def main():
@@ -103,11 +84,15 @@ def main():
     if not os.path.exists(target_path):
       os.makedirs(target_path)
 
-    stores = [x['store_code'] for x in query_store()]
+    stores = [x['store_code'] for x in query_all("select store_code from businessunit")]
     for store in stores:
-      data = query_data_by_store(store, str_date)
+      refresh_view = "refresh materialized view mv_autopos_jda"
+      sql = "select * from mv_autopos_jda where store_code = '{}' and transaction_date = '{}'".format(store, str_date)
+      data = query_matview(refresh_view, sql)
+
       generate_data_file(target_path, store, data)
   except Exception as e:
+    print('[AutoPOS] - JDA Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
 
 
