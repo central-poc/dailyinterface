@@ -13,6 +13,36 @@ def get_file_seq(prefix, output_path, ext):
       int(f[len(prefix)]) if f.startswith(prefix) else 0 for f in files) + 1
 
 
+def prepare_data(data):
+  result = []
+  temp = []
+  debit_accum = 0
+  credit_accum = 0
+  for d in data:
+    debit = d['debit']
+    credit = d['credit']
+    temp.append("{:6}".format(d['ofin_branch_code'][:6]))
+    temp.append("{:5}".format(d['ofin_cost_profit_center'][:5]))
+    temp.append("{:8}".format(d['account_code'][:8]))
+    temp.append("{:6}".format(d['subaccount_code'][:6]))
+    temp.append("{:9}".format(d['invoice_date'][:9]))
+    temp.append("{:012.2f}".format(debit))
+    temp.append("{:012.2f}".format(credit))
+    temp.append("{:4}".format(d['bu'][:4]))
+    temp.append("{:25}".format(d['journal_category_name'][:25]))
+    temp.append("{:25}".format(d['journal_source_name'][:25]))
+    temp.append("{:25}".format(d['batch_name'][:25]))
+    temp.append("{:1}".format(d['seq'][:1]))
+    temp.append("{:10}".format(d['ofin_for_cfs'][:10]))
+    temp.append("{:240}".format(d['account_description'][:240]))
+   
+    debit_accum = debit_accum + debit
+    credit_accum = credit_accum + credit
+    result.append("".join(temp))
+
+  return result, debit_accum, credit_accum
+
+
 def generate_data_file(output_path, str_date, bu, data):
   prefix = 'ZY' + str_date + bu[:2]
   seq = get_file_seq(prefix, output_path, '.DAT')
@@ -22,31 +52,10 @@ def generate_data_file(output_path, str_date, bu, data):
   val_file_path = os.path.join(output_path, val_file)
 
   with open(dat_file_path, 'w') as dat, open(val_file_path, 'w') as val:
-    try:
-      count = 0
-      debit_accum = 0
-      credit_accum = 0
-      for d in data:
-        if count > 0:
-          dat.write('\n')
-        debit = d['debit']
-        credit = d['credit']
-        dat.write(
-            "{:6}{:5}{:8}{:6}{:9}{:012.2f}{:012.2f}{:4}{:25}{:25}{:25}{:1}{:10}{:240}".
-            format(d['ofin_branch_code'][:6], d['ofin_cost_profit_center'][:5],
-                   d['account_code'][:8], d['subaccount_code'][:6], d['invoice_date'][:9],
-                   debit, credit, d['bu'][:4],
-                   d['journal_category_name'][:25], d['journal_source_name'][:25],
-                   d['batch_name'][:25], d['seq'][:1], d['ofin_for_cfs'][:10],
-                   d['account_description'][:240]))
-        count = count + 1
-        debit_accum = debit_accum + debit
-        credit_accum = credit_accum + credit
-
-      val.write('{:15}{:10}{:015.2f}{:015.2f}'.format(dat_file, count, debit_accum, credit_accum))
-      print('[AutoPOS] - OFIN Create Files Complete..')
-    except Exception as e:
-      print('[AutoPOS] - OFIN Create Files Error: {}: '.format(e))
+    result, debit, credit = prepare_data(data)
+    dat.write("\n".join(result))
+    val.write('{:15}{:10}{:015.2f}{:015.2f}'.format(dat_file, len(result), debit, credit))
+    print('[AutoPOS] - OFIN Create Files Complete..')
 
 
 def query_data(str_date, bu):
