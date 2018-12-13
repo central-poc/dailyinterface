@@ -3,6 +3,111 @@ from datetime import datetime, timedelta
 import os
 import psycopg2.extras
 
+text_format = {
+  'sale_detail': [
+    'store_code',
+    'receipt_date',
+    'receipt_time',
+    'transaction_type',
+    'pos_id',
+    'receipt_no',
+    'line_number',
+    'sku',
+    'quantity',
+    'price_before_override',
+    'price_after_override',
+    'price_override_flag',
+    'total_sale',
+    'vat_rate',
+    'vat_amt',
+    'discount_code1',
+    'discount_amt1',
+    'discoune_flag1',
+    'discount_code2',
+    'discount_amt2',
+    'discoune_flag2',
+    'discount_code3',
+    'discount_amt3',
+    'discoune_flag3',
+    'discount_code4',
+    'discount_amt4',
+    'discoune_flag4',
+    'discount_code5',
+    'discount_amt5',
+    'discoune_flag5',
+    'discount_code6',
+    'discount_amt6',
+    'discoune_flag6',
+    'discount_code7',
+    'discount_amt7',
+    'discoune_flag7',
+    'discount_code8',
+    'discount_amt8',
+    'discoune_flag8',
+    'discount_code9',
+    'discount_amt9',
+    'discoune_flag9',
+    'discount_code10',
+    'discount_amt10',
+    'discoune_flag10',
+    'ref_receipt_no',
+    'ref_date',
+    'return_reason_code',
+    'dept_id',
+    'subdept_id',
+    'class_id',
+    'subclass_id',
+    'vendor_id',
+    'brand_id',
+    'itemized',
+    'dtype',
+    'member_id',
+    'cashier_id',
+    'sale_id',
+    'guide_id',
+    'last_modify_date',
+  ],
+  'tendor_detail': [
+    'store_code',
+    'receipt_date',
+    'receipt_time',
+    'transaction_type',
+    'pos_id',
+    'receipt_no',
+    'line_number',
+    'media_member_code',
+    'media_member_desc',
+    'tendor_amt',
+    'credit_cardno'
+  ],
+  'installment': [
+    'store_code',
+    'receipt_date',
+    'receipt_time',
+    'transaction_type',
+    'pos_id',
+    'receipt_no',
+    'vendor_id',
+    'brand_id',
+    'dept_id',
+    'subdept_id',
+    'sku',
+    'tendor_type',
+    'installment_period',
+    'credit_cardno',
+    'interest_rate',
+    'tendor_amt'
+  ],
+  'dcpn': [
+    'store_code',
+    'receipt_date',
+    'receipt_time',
+    'transaction_type',
+    'pos_id',
+    'receipt_no',
+    'coupon_id'
+  ],
+}
 
 def get_file_seq(prefix, output_path, ext):
   files = [
@@ -12,6 +117,14 @@ def get_file_seq(prefix, output_path, ext):
   return 1 if not files else max(
       int(f[len(prefix)]) if f.startswith(prefix) else 0 for f in files) + 1
 
+def prepare_data(data, fields, str_date):
+  result = []
+  for field in fields:
+    result.append(data[field])
+  if str_date:
+    result.append(str_date)
+
+  return "|".join(result)
 
 def generate_trans_sale_detail(output_path, str_date, str_time, str_stime,
                                store, data):
@@ -21,45 +134,19 @@ def generate_trans_sale_detail(output_path, str_date, str_time, str_stime,
   file_fullpath = os.path.join(output_path, file_name)
   log_name = prefix + str(seq) + '_.LOG'
   log_fullpath = os.path.join(output_path, log_name)
+  result = [prepare_data(d, text_format['sale_detail'], str_date) for d in data]
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
-    try:
-      count = 0
-      for d in data:
-        if count > 0:
-          f.write('\n')
-        f.write(
-            "{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}".
-            format(
-                d['store_code'], d['receipt_date'], d['receipt_time'],
-                d['transaction_type'], d['pos_id'], d['receipt_no'],
-                d['line_number'], d['sku'], d['quantity'],
-                d['price_before_override'], d['price_after_override'],
-                d['price_override_flag'], d['total_sale'], d['vat_rate'],
-                d['vat_amt'], d['discount_code1'], d['discount_amt1'],
-                d['discoune_flag1'], d['discount_code2'], d['discount_amt2'],
-                d['discoune_flag2'], d['discount_code3'], d['discount_amt3'],
-                d['discoune_flag3'], d['discount_code4'], d['discount_amt4'],
-                d['discoune_flag4'], d['discount_code5'], d['discount_amt5'],
-                d['discoune_flag5'], d['discount_code6'], d['discount_amt6'],
-                d['discoune_flag6'], d['discount_code7'], d['discount_amt7'],
-                d['discoune_flag7'], d['discount_code8'], d['discount_amt8'],
-                d['discoune_flag8'], d['discount_code9'], d['discount_amt9'],
-                d['discoune_flag9'], d['discount_code10'], d['discount_amt10'],
-                d['discoune_flag10'], d['ref_receipt_no'], d['ref_date'],
-                d['return_reason_code'], d['dept_id'], d['subdept_id'],
-                d['class_id'], d['subclass_id'], d['vendor_id'], d['brand_id'],
-                d['itemized'], d['dtype'], d['member_id'], d['cashier_id'],
-                d['sale_id'], d['guide_id'], d['last_modify_date']))
-        count = count + 1
-
-      l.write('{}|{}|{}'.format(str_date, str_stime, count))
-      print(
-          '[AutoPOS] - BI SSP transaction sale detail create files complete..')
-    except Exception as e:
-      print(
-          '[AutoPOS] - BI SSP transaction sale detail create files error: {}: '.
-          format(e))
+    f.write("\n".join(result))
+    l.write('{}|{}|{}'.format(str_date, str_stime, count))
+    print('[AutoPOS] - BI SSP transaction sale detail create files complete..')
+  with open(file_fullpath, 'r') as f:
+    for line in f.read().splitlines():
+      print(len(line))
+    # except Exception as e:
+    #   print(
+    #       '[AutoPOS] - BI SSP transaction sale detail create files error: {}: '.
+    #       format(e))
 
 
 def generate_trans_tendor_detail(output_path, str_date, str_time, str_stime,
@@ -70,28 +157,20 @@ def generate_trans_tendor_detail(output_path, str_date, str_time, str_stime,
   file_fullpath = os.path.join(output_path, file_name)
   log_name = prefix + str(seq) + '_.LOG'
   log_fullpath = os.path.join(output_path, log_name)
+  result = [prepare_data(d, text_format['tendor_detail'], str_date) for d in data]
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
-    try:
-      count = 0
-      for d in data:
-        if count > 0:
-          f.write('\n')
-        f.write("{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}".format(
-            d['store_code'], d['receipt_date'], d['receipt_time'],
-            d['transaction_type'], d['pos_id'], d['receipt_no'],
-            d['line_number'], d['media_member_code'], d['media_member_desc'],
-            d['tendor_amt'], d['credit_cardno'], str_date))
-        count = count + 1
+    f.write("\n".join(result))
+    l.write('{}|{}|{}'.format(str_date, str_stime, count))
+    print('[AutoPOS] - BI SSP transaction tendor detail create files complete..')
+  with open(file_fullpath, 'r') as f:
+    for line in f.read().splitlines():
+      print(len(line))
 
-      l.write('{}|{}|{}'.format(str_date, str_stime, count))
-      print(
-          '[AutoPOS] - BI SSP transaction tendor detail create files complete..'
-      )
-    except Exception as e:
-      print(
-          '[AutoPOS] - BI SSP transaction tendor detail create files error: {}: '.
-          format(e))
+    # except Exception as e:
+    #   print(
+    #       '[AutoPOS] - BI SSP transaction tendor detail create files error: {}: '.
+    #       format(e))
 
 
 def generate_trans_installment(output_path, str_date, str_time, str_stime,
@@ -102,28 +181,20 @@ def generate_trans_installment(output_path, str_date, str_time, str_stime,
   file_fullpath = os.path.join(output_path, file_name)
   log_name = prefix + str(seq) + '_.LOG'
   log_fullpath = os.path.join(output_path, log_name)
+  result = [prepare_data(d, text_format['tendor_detail'], str_date) for d in data]
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
-    try:
-      count = 0
-      for d in data:
-        if count > 0:
-          f.write('\n')
-        f.write("{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}".format(
-            d['store_code'], d['receipt_date'], d['receipt_time'],
-            d['transaction_type'], d['pos_id'], d['receipt_no'],
-            d['vendor_id'], d['brand_id'], d['dept_id'], d['subdept_id'],
-            d['sku'], d['tendor_type'], d['installment_period'],
-            d['credit_cardno'], d['interest_rate'], d['tendor_amt'], str_date))
-        count = count + 1
+    f.write("\n".join(result))
+    l.write('{}|{}|{}'.format(str_date, str_stime, count))
+    print('[AutoPOS] - BI SSP transaction installment create files complete..')
+  with open(file_fullpath, 'r') as f:
+    for line in f.read().splitlines():
+      print(len(line))
 
-      l.write('{}|{}|{}'.format(str_date, str_stime, count))
-      print(
-          '[AutoPOS] - BI SSP transaction installment create files complete..')
-    except Exception as e:
-      print(
-          '[AutoPOS] - BI SSP transaction installment create files error: {}: '.
-          format(e))
+    # except Exception as e:
+    #   print(
+    #       '[AutoPOS] - BI SSP transaction installment create files error: {}: '.
+    #       format(e))
 
 
 def generate_trans_dcpn(output_path, str_date, str_time, str_stime, store,
@@ -134,24 +205,19 @@ def generate_trans_dcpn(output_path, str_date, str_time, str_stime, store,
   file_fullpath = os.path.join(output_path, file_name)
   log_name = prefix + str(seq) + '_.LOG'
   log_fullpath = os.path.join(output_path, log_name)
+  result = [prepare_data(d, text_format['tendor_detail'], str_date) for d in data]
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
-    try:
-      count = 0
-      for d in data:
-        if count > 0:
-          f.write('\n')
-        f.write("{}|{}|{}|{}|{}|{}|{}|{}".format(
-            d['store_code'], d['receipt_date'], d['receipt_time'],
-            d['transaction_type'], d['pos_id'], d['receipt_no'],
-            d['coupon_id'], str_date))
-        count = count + 1
+    f.write("\n".join(result))
+    l.write('{}|{}|{}'.format(str_date, str_stime, count))
+    print('[AutoPOS] - BI SSP transaction dpcn create files complete..')
+  with open(file_fullpath, 'r') as f:
+    for line in f.read().splitlines():
+      print(len(line))
 
-      l.write('{}|{}|{}'.format(str_date, str_stime, count))
-      print('[AutoPOS] - BI SSP transaction dpcn create files complete..')
-    except Exception as e:
-      print('[AutoPOS] - BI SSP transaction dpcn create files error: {}: '.
-            format(e))
+    # except Exception as e:
+    #   print('[AutoPOS] - BI SSP transaction dpcn create files error: {}: '.
+    #         format(e))
 
 
 def query_transaction_sale_detail(store):

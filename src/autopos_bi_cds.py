@@ -3,6 +3,71 @@ from datetime import datetime, timedelta
 import os
 import psycopg2.extras
 
+text_format = {
+  'promo': [
+    'transaction_date',
+    'store_code',
+    'barcode',
+    'brand_id',
+    'vendor_id',
+    'dept_id',
+    'subdept_id',
+    'global_campaing_id',
+    'discount_code1',
+    'discount_amt_incvat1',
+    'discount_amt_excvat1',
+    'discount_code2',
+    'discount_amt_incvat2',
+    'discount_amt_excvat2',
+    'discount_code3',
+    'discount_amt_incvat3',
+    'discount_amt_excvat3',
+    'discount_code4',
+    'discount_amt_incvat4',
+    'discount_amt_excvat4',
+    'discount_code5',
+    'discount_amt_incvat5',
+    'discount_amt_excvat5',
+    'discount_code6',
+    'discount_amt_incvat6',
+    'discount_amt_excvat6',
+    'discount_code7',
+    'discount_amt_incvat7',
+    'discount_amt_excvat7',
+    'discount_code8',
+    'discount_amt_incvat8',
+    'discount_amt_excvat8',
+    'discount_code9',
+    'discount_amt_incvat9',
+    'discount_amt_excvat9',
+    'discount_code10',
+    'discount_amt_incvat10',
+    'discount_amt_excvat10',
+    'net_amt_incvat',
+    'net_amt_excvat'
+  ],
+  'discount': [
+    'transaction_date',
+    'store_code',
+    'barcode',
+    'brand_id',
+    'vendor_id',
+    'dept_id',
+    'subdept_id',
+    'discount_host_code',
+    'global_campaing_id',
+    'discount_amt_incvat',
+    'discount_amt_excvat'
+  ],
+  'payment': [
+    'transaction_date',
+    'store_code',
+    'media_member_code',
+    'pay_amt_incvat',
+    'pay_amt_excvat'
+  ],
+}
+
 
 def get_file_seq(prefix, output_path, ext):
   files = [
@@ -12,6 +77,14 @@ def get_file_seq(prefix, output_path, ext):
   return 1 if not files else max(
       int(f[len(prefix)]) if f.startswith(prefix) else 0 for f in files) + 1
 
+def prepare_data(data, fields, str_date):
+  result = []
+  for field in fields:
+    result.append(data[field])
+  if str_date:
+    result.append(str_date)
+
+  return "|".join(result)
 
 def generate_trans_payment(output_path, str_date, str_time, store, data):
   prefix = 'BICDS_' + store + '_Payment_' + str_date + str_time + "_"
@@ -20,23 +93,17 @@ def generate_trans_payment(output_path, str_date, str_time, store, data):
   file_fullpath = os.path.join(output_path, file_name)
   log_name = prefix + str(seq) + '_.LOG'
   log_fullpath = os.path.join(output_path, log_name)
+  result = [prepare_data(d, text_format['payment'], str_date) for d in data]
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
-    try:
-      count = 0
-      for d in data:
-        if count > 0:
-          f.write('\n')
-        f.write("{}|{}|{}|{}|{}|{}".format(
-            d['transaction_date'], d['store_code'], d['media_member_code'],
-            d['pay_amt_incvat'], d['pay_amt_excvat'], str_date))
-        count = count + 1
-
-      l.write('{:8}|{:4}|{}'.format(str_date, str_time, count))
-      print('[AutoPOS] - BI CDS payment create files complete..')
-    except Exception as e:
-      print('[AutoPOS] - BI CDS payment create files error: {}: '.format(e))
-
+    f.write("\n".join(result))
+    l.write('{:8}|{:4}|{}'.format(str_date, str_time, count))
+    print('[AutoPOS] - BI CDS payment create files complete..')
+  with open(file_fullpath, 'r') as f:
+    for line in f.read().splitlines():
+      print(len(line))
+  # except Exception as e:
+  #     print('[AutoPOS] - BI CDS payment create files error: {}: '.format(e))
 
 def generate_trans_promo(output_path, str_date, str_time, store, data):
   prefix = 'BICDS_' + store + '_Promotion_' + str_date + str_time + "_"
@@ -45,40 +112,17 @@ def generate_trans_promo(output_path, str_date, str_time, store, data):
   file_fullpath = os.path.join(output_path, file_name)
   log_name = prefix + str(seq) + '_.LOG'
   log_fullpath = os.path.join(output_path, log_name)
+  result = [prepare_data(d, text_format['promo'], str_date) for d in data]
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
-    try:
-      count = 0
-      for d in data:
-        if count > 0:
-          f.write('\n')
-        f.write(
-            "{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}".
-            format(d['transaction_date'], d['store_code'], d['barcode'],
-                   d['brand_id'], d['vendor_id'], d['dept_id'],
-                   d['subdept_id'], d['global_campaing_id'],
-                   d['discount_code1'], d['discount_amt_incvat1'],
-                   d['discount_amt_excvat1'], d['discount_code2'],
-                   d['discount_amt_incvat2'], d['discount_amt_excvat2'],
-                   d['discount_code3'], d['discount_amt_incvat3'],
-                   d['discount_amt_excvat3'], d['discount_code4'],
-                   d['discount_amt_incvat4'], d['discount_amt_excvat4'],
-                   d['discount_code5'], d['discount_amt_incvat5'],
-                   d['discount_amt_excvat5'], d['discount_code6'],
-                   d['discount_amt_incvat6'], d['discount_amt_excvat6'],
-                   d['discount_code7'], d['discount_amt_incvat7'],
-                   d['discount_amt_excvat7'], d['discount_code8'],
-                   d['discount_amt_incvat8'], d['discount_amt_excvat8'],
-                   d['discount_code9'], d['discount_amt_incvat9'],
-                   d['discount_amt_excvat9'], d['discount_code10'],
-                   d['discount_amt_incvat10'], d['discount_amt_excvat10'],
-                   d['net_amt_incvat'], d['net_amt_excvat'], str_date))
-        count = count + 1
-
-      l.write('{:8}|{:4}|{}'.format(str_date, str_time, count))
+    f.write("\n".join(result))
+    l.write('{:8}|{:4}|{}'.format(str_date, str_time, count))
+  with open(file_fullpath, 'r') as f:
+    for line in f.read().splitlines():
+      print(len(line))
       print('[AutoPOS] - BI CDS promotion create files complete..')
-    except Exception as e:
-      print('[AutoPOS] - BI CDS promotion create files error: {}: '.format(e))
+    # except Exception as e:
+      # print('[AutoPOS] - BI CDS promotion create files error: {}: '.format(e))
 
 
 def generate_trans_discount(output_path, str_date, str_time, store, data):
@@ -88,24 +132,17 @@ def generate_trans_discount(output_path, str_date, str_time, store, data):
   file_fullpath = os.path.join(output_path, file_name)
   log_name = prefix + str(seq) + '_.LOG'
   log_fullpath = os.path.join(output_path, log_name)
+  result = [prepare_data(d, text_format['discount'], str_date) for d in data]
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
-    try:
-      count = 0
-      for d in data:
-        if count > 0:
-          f.write('\n')
-        f.write("{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}".format(
-            d['transaction_date'], d['store_code'], d['barcode'],
-            d['brand_id'], d['vendor_id'], d['dept_id'], d['subdept_id'],
-            d['discount_host_code'], d['global_campaing_id'],
-            d['discount_amt_incvat'], d['discount_amt_excvat'], str_date))
-        count = count + 1
-
-      l.write('{:8}|{:4}|{}'.format(str_date, str_time, count))
-      print('[AutoPOS] - BI CDS discount create files complete..')
-    except Exception as e:
-      print('[AutoPOS] - BI CDS discount create files error: {}: '.format(e))
+    f.write("\n".join(result))
+    l.write('{:8}|{:4}|{}'.format(str_date, str_time, count))
+    print('[AutoPOS] - BI CDS discount create files complete..')
+  with open(file_fullpath, 'r') as f:
+    for line in f.read().splitlines():
+      print(len(line))
+    # except Exception as e:
+    #   print('[AutoPOS] - BI CDS discount create files error: {}: '.format(e))
 
 
 def query_transaction_payment(str_date, store):
