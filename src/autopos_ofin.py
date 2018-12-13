@@ -15,12 +15,12 @@ def get_file_seq(prefix, output_path, ext):
 
 def prepare_data(data):
   result = []
-  temp = []
   debit_accum = 0
   credit_accum = 0
   for d in data:
     debit = d['debit']
     credit = d['credit']
+    temp = []
     temp.append("{:6}".format(d['ofin_branch_code'][:6]))
     temp.append("{:5}".format(d['ofin_cost_profit_center'][:5]))
     temp.append("{:8}".format(d['account_code'][:8]))

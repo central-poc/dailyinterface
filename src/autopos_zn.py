@@ -20,6 +20,30 @@ def get_file_seq(prefix, output_path, ext):
       int(f[len(prefix)]) if f.startswith(prefix) else 0 for f in files) + 1
 
 
+def prepare_data(data):
+  result = []
+  for d in data:
+    debit = d['debit']
+    credit = d['credit']
+    temp = []
+    temp.append("{:6}".format(d['ofin_branch_code'][:6]))
+    temp.append("{:5}".format(d['ofin_cost_profit_center'][:5]))
+    temp.append("{:8}".format(d['account_code'][:8]))
+    temp.append("{:6}".format(d['subaccount_code'][:6]))
+    temp.append("{:6}".format(d['business_date'][:6]))
+    temp.append("{:012.2f}".format(debit))
+    temp.append("{:012.2f}".format(credit))
+    temp.append("{:20}".format(d['journal_source_name'][:20]))
+    temp.append("{:20}".format(d['journal_category_name'][:20]))
+    temp.append("{:20}".format(d['batch_name'][:20]))
+    temp.append("{:10}".format(d['ofin_for_cfs'][:10]))
+    temp.append("{:240}".format(d['account_description'][:240]))
+   
+    result.append("".join(temp))
+
+  return result
+
+
 def generate_data_file(output_path, str_date, data):
   prefix = 'ZN' + str_date
   seq = get_file_seq(prefix, output_path, '.DAT')
@@ -29,26 +53,10 @@ def generate_data_file(output_path, str_date, data):
   val_file_path = os.path.join(output_path, val_file)
 
   with open(dat_file_path, 'w') as dat, open(val_file_path, 'w') as val:
-    try:
-      count = 0
-      for line in data:
-        if count > 0:
-          dat.write('\n')
-        dat.write(
-            "{:6}{:5}{:8}{:6}{:6}{:012.2f}{:012.2f}{:20}{:20}{:20}{:10}{:240}".
-            format(line['ofin_branch_code'][:6], line['ofin_cost_profit_center'][:5],
-                   line['account_code'][:8], line['subaccount_code'][:6],
-                   line['business_date'][:6], line['debit'], line['credit'],
-                   line['journal_source_name'][:20], line['journal_category_name'][:20],
-                   line['batch_name'][:20], line['ofin_for_cfs'][:10],
-                   line['account_description'][:240]))
-        count = count + 1
-
-      val.write('{:14}{:10}'.format(dat_file, count))
-      print('Create Files ZN .DAT & .VAL Complete..')
-    except Exception as e:
-      print('Create Files ZN .DAT & .VAL Error .. : ')
-      print(str(e))
+    result = prepare_data(data)
+    dat.write("\n".join(result))
+    val.write('{:14}{:10}'.format(dat_file, len(result)))
+    print('Create Files ZN .DAT & .VAL Complete..')
 
 
 def query_data(str_date):

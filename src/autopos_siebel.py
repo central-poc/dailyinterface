@@ -126,6 +126,7 @@ def generate_data_file(output_path, store, sale_transactions):
   with open(filepath, 'w') as outfile:
     outfile.write('{}|CGO|001|1|{}|{}|CGO|{}|{}'.format(
         interface_name, total_row, batchdatetime, attribute1, attribute2))
+  print('Create Files Siebel .DAT & .CTRL Complete..')
 
 
 def query_store():
