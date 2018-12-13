@@ -121,7 +121,7 @@ def generate_data_file(output_path, store, sale_transactions):
 
 
 def main():
-  str_date = (datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
+  str_date = (datetime.now() - timedelta(days=1)).strftime('%d%m%Y')
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
   target_path = os.path.join(parent_path, 'output/autopos/siebel', str_date)
