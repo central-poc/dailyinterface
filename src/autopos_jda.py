@@ -12,10 +12,45 @@ def get_file_seq(prefix, output_path, ext):
   return 1 if not files else max(
       int(f[len(prefix)]) if f.startswith(prefix) else 0 for f in files) + 1
 
+def prepare_data(data):
+  result = []
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>8}".data['transaction_date'][:8])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+  result.append("{:0>5}".data['store_code'][:5])
+
 
 def generate_data_file(output_path, store, data):
   file_name = 'SD' + store + '.TXT'
   file_fullpath = os.path.join(output_path, file_name)
+  result_fullpath = os.path.join(output_path, 'SD' + store + '.csv')
 
   with open(file_fullpath, 'w') as f:
     try:
@@ -24,7 +59,7 @@ def generate_data_file(output_path, store, data):
         if count > 0:
           f.write('\n')
         f.write(
-            "{:0>5}{:0>8}{:0>4}{:0>2}{:9}{:0>3}{:0>16}{:0>16}{:1}{:0>6}{:0>12}{:0>12}{:1}{:0>12}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:21}{:9}{:0>8}{:0>2}{:0>6}{:0>3}{:0>3}{:0>16}{:1}{:16}{:21}{:0>8}{:8}{:8}".
+            "{:0>5}{:0>8}{:0>4}{:0>2}{:9}{:0>3}{:0>16}{:0>16}{:1}{:0>6}{:0>12}{:0>12}{:1}{:0>12}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:4}{:0>12}{:21}{:9}{:0>8}{:0>2}{:0>6}{:0>3}{:0>3}{:0>16}{:1}{:16}{:21}{:0>8}{:8}{:8}.".
             format(
                 d['store_code'][:5], d['transaction_date'][:8], d['transaction_time'][:4],
                 d['transaction_type'][:2], d['ticket_no'][:9], d['seq_no'][:3], d['sku'][:16],
@@ -46,6 +81,9 @@ def generate_data_file(output_path, store, data):
       print('[AutoPOS] - JDA Create Files Complete..')
     except Exception as e:
       print('[AutoPOS] - JDA Create Files Error: {}: '.format(e))
+  with open(file_fullpath, 'r') as f:
+    for line in f.read().splitlines():
+      print(line[-1])
 
 
 def query_store():
