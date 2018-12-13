@@ -4,15 +4,6 @@ import os
 import psycopg2.extras
 
 
-def get_file_seq(prefix, output_path, ext):
-  files = [
-      f.split('.')[0] for f in os.listdir(output_path)
-      if os.path.isfile(os.path.join(output_path, f)) and f.endswith(ext)
-  ]
-  return 1 if not files else max(
-      int(f[len(prefix)]) if f.startswith(prefix) else 0 for f in files) + 1
-
-
 def gen_sale_tran_data(data):
   res = []
   res.append(data['line_identifier'])

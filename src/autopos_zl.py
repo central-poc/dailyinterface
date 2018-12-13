@@ -1,23 +1,14 @@
-from common import connect_psql
+from common import connect_psql, get_file_seq
 from datetime import datetime, timedelta
 import os
 import psycopg2.extras
 
 
-def is_debit_equals_credit(data_zn):
-  sum_debit = sum([row[5] for row in data_zn])
-  sum_credit = sum([row[6] for row in data_zn])
+def is_debit_equals_credit(data):
+  sum_debit = sum([row[5] for row in data])
+  sum_credit = sum([row[6] for row in data])
   print('[ZL] - Debit: {}, Credit: {}'.format(sum_debit, sum_credit))
   return False if sum_debit != sum_credit else True
-
-
-def get_file_seq(prefix, output_path, ext):
-  files = [
-      f.split('.')[0] for f in os.listdir(output_path)
-      if os.path.isfile(os.path.join(output_path, f)) and f.endswith(ext)
-  ]
-  return 1 if not files else max(
-      int(f[len(prefix)]) if f.startswith(prefix) else 0 for f in files) + 1
 
 
 def prepare_data(data):
