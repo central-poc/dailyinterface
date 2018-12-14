@@ -121,7 +121,7 @@ def generate_data_file(output_path, store, sale_transactions):
 
 
 def main():
-  str_date = (datetime.now() - timedelta(days=1)).strftime('%d%m%Y')
+  str_date = (datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
   target_path = os.path.join(parent_path, 'output/autopos/siebel', str_date)
@@ -132,7 +132,7 @@ def main():
     stores = [x['store_code'] for x in query_all("select store_code from businessunit")]
     for store in stores:
       refresh_view = "refresh materialized view mv_autopos_siebel"
-      sql = "select * from mv_autopos_siebel where store_code = '{}' and invoice_date = '{}'".format(store, str_date)
+      sql = "select * from mv_autopos_siebel where store_code = '{}' and interface_date = '{}'".format(store, str_date)
       datas = query_matview(refresh_view, sql)
 
       data_list = [gen_sale_tran_data(data) for data in datas]

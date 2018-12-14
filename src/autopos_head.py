@@ -55,18 +55,18 @@ def generate_data_file(output_path, str_date, data):
 
 
 def main():
-  str_date = (datetime.now() - timedelta(days=1)).strftime('%d%m%y')
+  batch_date = datetime.now() - timedelta(days=1)
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
-  target_path = os.path.join(parent_path, 'output/autopos/ofindaily', str_date)
+  target_path = os.path.join(parent_path, 'output/autopos/ofindaily', batch_date.strftime('%Y%m%d'))
   if not os.path.exists(target_path):
     os.makedirs(target_path)
 
   try:
     refresh_view = "refresh materialized view mv_autopos_ofin_head"
-    sql = "select * from mv_autopos_ofin_head where invoice_date = '{}'".format(str_date)
+    sql = "select * from mv_autopos_ofin_head where interface_date = '{}'".format(batch_date.strftime('%Y%m%d'))
     data = query_matview(refresh_view, sql)
-    generate_data_file(target_path, str_date, data)
+    generate_data_file(target_path, batch_date.strftime('%d%m%y'), data)
 
   except Exception as e:
     print('[AutoPOS] - H Error: %s' % str(e))

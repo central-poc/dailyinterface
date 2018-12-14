@@ -50,24 +50,24 @@ def generate_data_file(output_path, str_date, bu, data):
 
 
 def main():
-  str_date = (datetime.now() - timedelta(days=1)).strftime('%y%m%d')
+  batch_date = datetime.now() - timedelta(days=1)
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
-  target_path = os.path.join(parent_path, 'output/autopos/ofin', str_date)
+  target_path = os.path.join(parent_path, 'output/autopos/ofin', batch_date.strftime('%Y%m%d'))
   if not os.path.exists(target_path):
     os.makedirs(target_path)
 
   try:
     refresh_view = "refresh materialized view mv_autopos_ofin"
-    sql = "select bu from mv_autopos_ofin where business_date = '{}' group by bu".format(str_date)
+    sql = "select bu from mv_autopos_ofin where interface_date = '{}' group by bu".format(batch_date.strftime('%Y%m%d'))
     data_bu = query_matview(refresh_view, sql)
 
     bus = [x['bu'] for x in data_bu]
     for bu in bus:
       refresh_view = "refresh materialized view mv_autopos_ofin"
-      sql = "select * from mv_autopos_ofin where business_date = '{}' and bu = '{}'".format(str_date, bu)
+      sql = "select * from mv_autopos_ofin where interface_date = '{}' and bu = '{}'".format(batch_date.strftime('%Y%m%d'), bu)
       data = query_matview(refresh_view, sql)
-      generate_data_file(target_path, str_date, bu, data)
+      generate_data_file(target_path, batch_date.strftime('%y%m%d'), bu, data)
 
   except Exception as e:
     print('[AutoPOS] - OFIN Error: %s' % str(e))

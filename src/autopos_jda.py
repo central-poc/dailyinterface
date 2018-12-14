@@ -87,7 +87,7 @@ def main():
     stores = [x['store_code'] for x in query_all("select store_code from businessunit")]
     for store in stores:
       refresh_view = "refresh materialized view mv_autopos_jda"
-      sql = "select * from mv_autopos_jda where store_code = '{}' and transaction_date = '{}'".format(store, str_date)
+      sql = "select * from mv_autopos_jda where store_code = '{}' and interface_date = '{}'".format(store, str_date)
       data = query_matview(refresh_view, sql)
 
       generate_data_file(target_path, store, data)

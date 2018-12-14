@@ -152,17 +152,17 @@ def main():
     stores = [x['store_code'] for x in data]
     for store in stores:
       refresh_view = "refresh materialized view mv_autopos_bi_cds_trans_payment"
-      sql = "select * from mv_autopos_bi_cds_trans_payment where transaction_date = '{}' and store_code = '{}'".format(str_date, store)
+      sql = "select * from mv_autopos_bi_cds_trans_payment where interface_date = '{}' and store_code = '{}'".format(str_date, store)
       data = query_matview(refresh_view, sql)
       generate_trans_payment(target_path, str_date, str_time, store, data)
 
       refresh_view = "refresh materialized view mv_autopos_bi_cds_trans_promo"
-      sql = "select * from mv_autopos_bi_cds_trans_promo where transaction_date = '{}' and store_code = '{}'".format(str_date, store)
+      sql = "select * from mv_autopos_bi_cds_trans_promo where interface_date = '{}' and store_code = '{}'".format(str_date, store)
       data = query_matview(refresh_view, sql)
       generate_trans_promo(target_path, str_date, str_time, store, data)
 
       refresh_view = "refresh materialized view mv_autopos_bi_cds_trans_discount"
-      sql = "select * from mv_autopos_bi_cds_trans_discount where transaction_date = '{}' and store_code = '{}'".format(str_date, store)
+      sql = "select * from mv_autopos_bi_cds_trans_discount where interface_date = '{}' and store_code = '{}'".format(str_date, store)
       data = query_matview(refresh_view, sql)
       generate_trans_discount(target_path, str_date, str_time, store, data)
   except Exception as e:

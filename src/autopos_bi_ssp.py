@@ -219,22 +219,22 @@ def main():
     stores = [x['store_code'] for x in data]
     for store in stores:
       refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_sale_detail"
-      sql = "select * from mv_autopos_bi_ssp_trans_sale_detail where store_code = '{}' and receipt_date = '{}'".format(store, str_date)
+      sql = "select * from mv_autopos_bi_ssp_trans_sale_detail where store_code = '{}' and interface_date = '{}'".format(store, str_date)
       data = query_matview(refresh_view, sql)
       generate_trans_sale_detail(target_path, str_date, str_time, str_stime, str_stime, store, data)
 
       refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_tendor_detail"
-      sql = "select * from mv_autopos_bi_ssp_trans_tendor_detail where store_code = '{}' and receipt_date = '{}'".format(store, str_date)
+      sql = "select * from mv_autopos_bi_ssp_trans_tendor_detail where store_code = '{}' and interface_date = '{}'".format(store, str_date)
       data = query_matview(refresh_view, sql)
       generate_trans_tendor_detail(target_path, str_date, str_time, str_stime, store, data)
 
       refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_installment"
-      sql = "select * from mv_autopos_bi_ssp_trans_installment where store_code = '{}' and receipt_date = '{}'".format(store, str_date)
+      sql = "select * from mv_autopos_bi_ssp_trans_installment where store_code = '{}' and interface_date = '{}'".format(store, str_date)
       data = query_matview(refresh_view, sql)
       generate_trans_installment(target_path, str_date, str_time, str_stime, store, data)
 
       refresh_view = "refresh materialized view mv_autopos_bi_cds_trans_payment"
-      sql = "select * from mv_autopos_bi_ssp_trans_dpcn where store_code = '{}' and receipt_date = '{}'".format(store, str_date)
+      sql = "select * from mv_autopos_bi_ssp_trans_dpcn where store_code = '{}' and interface_date = '{}'".format(store, str_date)
       data = query_matview(refresh_view, sql)
       generate_trans_dcpn(target_path, str_date, str_time, str_stime, store, data)
   except Exception as e:
