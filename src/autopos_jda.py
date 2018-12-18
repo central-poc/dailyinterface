@@ -1,4 +1,4 @@
-from common import connect_psql, query_all, query_matview
+from common import connect_psql, query_all, query_matview, sftp
 from datetime import datetime, timedelta
 import os
 import traceback
@@ -68,7 +68,7 @@ def generate_data_file(output_path, store, data):
 
   with open(file_fullpath, 'w') as f:
     f.write("\n".join(prepare_data(data)))
-    print('[AutoPOS] - JDA create files Completed..')
+    print('[AutoPOS] - JDA[{}] create files completed..'.format(store))
 
   with open(file_fullpath, 'r') as f:
     for line in f.read().splitlines():
@@ -84,7 +84,7 @@ def main():
     if not os.path.exists(target_path):
       os.makedirs(target_path)
 
-    stores = [x['store_code'] for x in query_all("select store_code from businessunit")]
+    stores = [x['store_code'] for x in query_all("select store_code from businessunit group by store_code")]
     for store in stores:
       refresh_view = "refresh materialized view mv_autopos_jda"
       sql = "select * from mv_autopos_jda where store_code = '{}' and interface_date = '{}'".format(store, str_date)

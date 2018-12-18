@@ -1,4 +1,4 @@
-from common import connect_psql, get_file_seq, query_matview
+from common import connect_psql, get_file_seq, query_all, query_matview, sftp
 from datetime import datetime, timedelta
 import os
 import traceback
@@ -133,7 +133,7 @@ def generate_trans_sale_detail(output_path, str_date, str_time, str_stime,
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
     f.write("\n".join(result))
     l.write('{}|{}|{}'.format(str_date, str_stime, len(result)))
-    print('[AutoPOS] - BI SSP transaction sale detail create files completed..')
+    print('[AutoPOS] - BI SSP[{}] transaction sale detail create files completed..'.format(store))
   
   with open(file_fullpath, 'r') as f:
     for line in f.read().splitlines():
@@ -153,7 +153,7 @@ def generate_trans_tendor_detail(output_path, str_date, str_time, str_stime,
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
     f.write("\n".join(result))
     l.write('{}|{}|{}'.format(str_date, str_stime, len(result)))
-    print('[AutoPOS] - BI SSP transaction tendor detail create files completed..')
+    print('[AutoPOS] - BI SSP[{}] transaction tendor detail create files completed..'.format(store))
   
   with open(file_fullpath, 'r') as f:
     for line in f.read().splitlines():
@@ -173,7 +173,7 @@ def generate_trans_installment(output_path, str_date, str_time, str_stime,
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
     f.write("\n".join(result))
     l.write('{}|{}|{}'.format(str_date, str_stime, len(result)))
-    print('[AutoPOS] - BI SSP transaction installment create files completed..')
+    print('[AutoPOS] - BI SSP[{}] transaction installment create files completed..'.format(store))
   
   with open(file_fullpath, 'r') as f:
     for line in f.read().splitlines():
@@ -193,7 +193,7 @@ def generate_trans_dcpn(output_path, str_date, str_time, str_stime, store,
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
     f.write("\n".join(result))
     l.write('{}|{}|{}'.format(str_date, str_stime, len(result)))
-    print('[AutoPOS] - BI SSP transaction dpcn create files completed..')
+    print('[AutoPOS] - BI SSP[{}] transaction dpcn create files completed..'.format(store))
   
   with open(file_fullpath, 'r') as f:
     for line in f.read().splitlines():
@@ -224,15 +224,12 @@ def main():
     os.makedirs(target_path_master)
 
   try:
-    refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_sale_detail"
-    sql = "select store_code from mv_autopos_bi_ssp_trans_sale_detail group by store_code"
-    data = query_matview(refresh_view, sql)
-    stores = [x['store_code'] for x in data]
+    stores = [x['store_code'] for x in query_all("select store_code from businessunit group by store_code")]
     for store in stores:
       refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_sale_detail"
       sql = "select * from mv_autopos_bi_ssp_trans_sale_detail where store_code = '{}' and interface_date = '{}'".format(store, str_date)
       data = query_matview(refresh_view, sql)
-      generate_trans_sale_detail(target_path_sale, str_date, str_time, str_stime, str_stime, store, data)
+      generate_trans_sale_detail(target_path_sale, str_date, str_time, str_stime, store, data)
 
       refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_tendor_detail"
       sql = "select * from mv_autopos_bi_ssp_trans_tendor_detail where store_code = '{}' and interface_date = '{}'".format(store, str_date)

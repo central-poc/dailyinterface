@@ -1,4 +1,4 @@
-from common import connect_psql, query_all, query_matview
+from common import connect_psql, query_all, query_matview, sftp
 from datetime import datetime, timedelta
 import os
 import traceback
@@ -117,7 +117,7 @@ def generate_data_file(output_path, store, sale_transactions):
   with open(filepath, 'w') as outfile:
     outfile.write('{}|CGO|001|1|{}|{}|CGO|{}|{}'.format(
         interface_name, total_row, batchdatetime, attribute1, attribute2))
-  print('[AUtoPOS] - Siebel({}) create .DAT & .CTRL file completed..'.format(store))
+  print('[AUtoPOS] - Siebel[{}] create .DAT & .CTRL file completed..'.format(store))
 
 
 def main():

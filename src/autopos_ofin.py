@@ -1,4 +1,4 @@
-from common import connect_psql, get_file_seq, query_matview, sftp
+from common import connect_psql, get_file_seq, query_all, query_matview, sftp
 from datetime import datetime, timedelta
 import os
 import traceback
@@ -46,7 +46,7 @@ def generate_data_file(output_path, str_date, bu, data):
     result, debit, credit = prepare_data(data)
     dat.write("\n".join(result))
     val.write('{:15}{:10}{:015.2f}{:015.2f}'.format(dat_file, len(result), debit, credit))
-    print('[AutoPOS] - OFIN Create Files Completed..')
+    print('[AutoPOS] - OFIN[{}] create files completed..'.format(bu))
 
 
 def main():
@@ -58,11 +58,7 @@ def main():
     os.makedirs(target_path)
 
   try:
-    refresh_view = "refresh materialized view mv_autopos_ofin"
-    sql = "select bu from mv_autopos_ofin where interface_date = '{}' group by bu".format(batch_date.strftime('%Y%m%d'))
-    data_bu = query_matview(refresh_view, sql)
-
-    bus = [x['bu'] for x in data_bu]
+    bus = [x['businessunit_code'] for x in query_all("select businessunit_code from businessunit group by businessunit_code")]
     for bu in bus:
       refresh_view = "refresh materialized view mv_autopos_ofin"
       sql = "select * from mv_autopos_ofin where interface_date = '{}' and bu = '{}'".format(batch_date.strftime('%Y%m%d'), bu)

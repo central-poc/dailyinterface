@@ -1,4 +1,4 @@
-from common import connect_psql, get_file_seq, query_matview
+from common import connect_psql, get_file_seq, query_all, query_matview, sftp
 from datetime import datetime, timedelta
 import os
 import traceback
@@ -91,7 +91,7 @@ def generate_trans_payment(output_path, str_date, str_time, store, data):
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
     f.write("\n".join(result))
     l.write('{:8}|{:4}|{}'.format(str_date, str_time, len(result)))
-    print('[AutoPOS] - BI CDS payment create files completed..')
+    print('[AutoPOS] - BI CDS[{}] payment create files completed..'.format(store))
 
   with open(file_fullpath, 'r') as f:
     for line in f.read().splitlines():
@@ -109,7 +109,7 @@ def generate_trans_promo(output_path, str_date, str_time, store, data):
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
     f.write("\n".join(result))
     l.write('{:8}|{:4}|{}'.format(str_date, str_time, len(result)))
-    print('[AutoPOS] - BI CDS promotion create files completed..')
+    print('[AutoPOS] - BI CDS[{}] promotion create files completed..'.format(store))
   
   with open(file_fullpath, 'r') as f:
     for line in f.read().splitlines():
@@ -128,7 +128,7 @@ def generate_trans_discount(output_path, str_date, str_time, store, data):
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
     f.write("\n".join(result))
     l.write('{:8}|{:4}|{}'.format(str_date, str_time, len(result)))
-    print('[AutoPOS] - BI CDS discount create files completed..')
+    print('[AutoPOS] - BI CDS[{}] discount create files completed..'.format(store))
   
   with open(file_fullpath, 'r') as f:
     for line in f.read().splitlines():
@@ -155,10 +155,7 @@ def main():
     os.makedirs(target_path_master)
 
   try:
-    refresh_view = "refresh materialized view mv_autopos_bi_cds_trans_payment"
-    sql = "select store_code from mv_autopos_bi_cds_trans_payment group by store_code"
-    data = query_matview(refresh_view, sql)
-    stores = [x['store_code'] for x in data]
+    stores = [x['store_code'] for x in query_all("select store_code from businessunit group by store_code")]
     for store in stores:
       refresh_view = "refresh materialized view mv_autopos_bi_cds_trans_payment"
       sql = "select * from mv_autopos_bi_cds_trans_payment where interface_date = '{}' and store_code = '{}'".format(str_date, store)

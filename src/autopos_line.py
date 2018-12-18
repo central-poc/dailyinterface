@@ -1,4 +1,4 @@
-from common import connect_psql, get_file_seq, query_matview
+from common import connect_psql, get_file_seq, query_matview, sftp
 from datetime import datetime, timedelta
 import os
 import traceback
