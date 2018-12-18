@@ -82,9 +82,9 @@ def prepare_data(data, fields, str_date):
 def generate_trans_payment(output_path, str_date, str_time, store, data):
   prefix = 'BICDS_' + store + '_Payment_' + str_date + str_time + "_"
   seq = get_file_seq(prefix, output_path, '.TXT')
-  file_name = prefix + str(seq) + '_.TXT'
+  file_name = prefix + str(seq) + '.TXT'
   file_fullpath = os.path.join(output_path, file_name)
-  log_name = prefix + str(seq) + '_.LOG'
+  log_name = prefix + str(seq) + '.LOG'
   log_fullpath = os.path.join(output_path, log_name)
   result = [prepare_data(d, text_format['payment'], str_date) for d in data]
 
@@ -100,9 +100,9 @@ def generate_trans_payment(output_path, str_date, str_time, store, data):
 def generate_trans_promo(output_path, str_date, str_time, store, data):
   prefix = 'BICDS_' + store + '_Promotion_' + str_date + str_time + "_"
   seq = get_file_seq(prefix, output_path, '.TXT')
-  file_name = prefix + str(seq) + '_.TXT'
+  file_name = prefix + str(seq) + '.TXT'
   file_fullpath = os.path.join(output_path, file_name)
-  log_name = prefix + str(seq) + '_.LOG'
+  log_name = prefix + str(seq) + '.LOG'
   log_fullpath = os.path.join(output_path, log_name)
   result = [prepare_data(d, text_format['promo'], str_date) for d in data]
 
@@ -119,9 +119,9 @@ def generate_trans_promo(output_path, str_date, str_time, store, data):
 def generate_trans_discount(output_path, str_date, str_time, store, data):
   prefix = 'BICDS_' + store + '_Discount_' + str_date + str_time + "_"
   seq = get_file_seq(prefix, output_path, '.TXT')
-  file_name = prefix + str(seq) + '_.TXT'
+  file_name = prefix + str(seq) + '.TXT'
   file_fullpath = os.path.join(output_path, file_name)
-  log_name = prefix + str(seq) + '_.LOG'
+  log_name = prefix + str(seq) + '.LOG'
   log_fullpath = os.path.join(output_path, log_name)
   result = [prepare_data(d, text_format['discount'], str_date) for d in data]
 

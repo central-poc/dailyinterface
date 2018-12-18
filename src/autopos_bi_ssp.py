@@ -124,9 +124,9 @@ def generate_trans_sale_detail(output_path, str_date, str_time, str_stime,
                                store, data):
   prefix = 'BISSP_' + store + '_Sales_' + str_date + str_time + "_"
   seq = get_file_seq(prefix, output_path, '.DAT')
-  file_name = prefix + str(seq) + '_.DAT'
+  file_name = prefix + str(seq) + '.DAT'
   file_fullpath = os.path.join(output_path, file_name)
-  log_name = prefix + str(seq) + '_.LOG'
+  log_name = prefix + str(seq) + '.LOG'
   log_fullpath = os.path.join(output_path, log_name)
   result = [prepare_data(d, text_format['sale_detail'], str_date) for d in data]
 
@@ -144,9 +144,9 @@ def generate_trans_tendor_detail(output_path, str_date, str_time, str_stime,
                                  store, data):
   prefix = 'BISSP_' + store + '_Tendor_' + str_date + str_time + "_"
   seq = get_file_seq(prefix, output_path, '.DAT')
-  file_name = prefix + str(seq) + '_.DAT'
+  file_name = prefix + str(seq) + '.DAT'
   file_fullpath = os.path.join(output_path, file_name)
-  log_name = prefix + str(seq) + '_.LOG'
+  log_name = prefix + str(seq) + '.LOG'
   log_fullpath = os.path.join(output_path, log_name)
   result = [prepare_data(d, text_format['tendor_detail'], str_date) for d in data]
 
@@ -164,9 +164,9 @@ def generate_trans_installment(output_path, str_date, str_time, str_stime,
                                store, data):
   prefix = 'BISSP_' + store + '_Installment_' + str_date + str_time + "_"
   seq = get_file_seq(prefix, output_path, '.DAT')
-  file_name = prefix + str(seq) + '_.DAT'
+  file_name = prefix + str(seq) + '.DAT'
   file_fullpath = os.path.join(output_path, file_name)
-  log_name = prefix + str(seq) + '_.LOG'
+  log_name = prefix + str(seq) + '.LOG'
   log_fullpath = os.path.join(output_path, log_name)
   result = [prepare_data(d, text_format['tendor_detail'], str_date) for d in data]
 
@@ -184,9 +184,9 @@ def generate_trans_dcpn(output_path, str_date, str_time, str_stime, store,
                         data):
   prefix = 'BISSP_' + store + '_DCPN_' + str_date + str_time + "_"
   seq = get_file_seq(prefix, output_path, '.DAT')
-  file_name = prefix + str(seq) + '_.DAT'
+  file_name = prefix + str(seq) + '.DAT'
   file_fullpath = os.path.join(output_path, file_name)
-  log_name = prefix + str(seq) + '_.LOG'
+  log_name = prefix + str(seq) + '.LOG'
   log_fullpath = os.path.join(output_path, log_name)
   result = [prepare_data(d, text_format['tendor_detail'], str_date) for d in data]
 
