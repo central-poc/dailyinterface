@@ -89,8 +89,10 @@ def main():
       refresh_view = "refresh materialized view mv_autopos_jda"
       sql = "select * from mv_autopos_jda where store_code = '{}' and interface_date = '{}'".format(store, str_date)
       data = query_matview(refresh_view, sql)
-
       generate_data_file(target_path, store, data)
+  
+    destination = 'incoming/jda'
+    sftp('autopos.cds-uat', target_path, destination)
   except Exception as e:
     print('[AutoPOS] - JDA Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)

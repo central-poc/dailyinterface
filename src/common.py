@@ -53,17 +53,14 @@ def notifySlack(message):
 
 
 def sftp(owner, source, destination):
-  try:
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    k = paramiko.rsakey.RSAKey.from_private_key_file('key/' + owner)
-    ssh.connect('ai-upload.central.tech', username=owner, pkey=k)
-    sftp = ssh.open_sftp()
-    for filename in os.listdir(source):
-      sftp.put(
-          os.path.join(source, filename), os.path.join(destination, filename))
-  except Exception as e:
-    print(e)
+  print('[SFTP] - source: {}, destionation: {}'.format(source, destination))
+  ssh = paramiko.SSHClient()
+  ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+  k = paramiko.rsakey.RSAKey.from_private_key_file('key/' + owner)
+  ssh.connect('ai-upload.central.tech', username=owner, pkey=k)
+  sftp = ssh.open_sftp()
+  for filename in os.listdir(source):
+    sftp.put(os.path.join(source, filename), os.path.join(destination, filename))
 
 
 def cleardir(path):

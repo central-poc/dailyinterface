@@ -67,7 +67,8 @@ def main():
     sql = "select * from mv_autopos_ofin_head where interface_date = '{}'".format(batch_date.strftime('%Y%m%d'))
     data = query_matview(refresh_view, sql)
     generate_data_file(target_path, batch_date.strftime('%d%m%y'), data)
-
+    destination = 'incoming/ofindaily'
+    sftp('autopos.cds-uat', target_path, destination)
   except Exception as e:
     print('[AutoPOS] - H Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)

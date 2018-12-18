@@ -237,6 +237,9 @@ def main():
       sql = "select * from mv_autopos_bi_ssp_trans_dpcn where store_code = '{}' and interface_date = '{}'".format(store, str_date)
       data = query_matview(refresh_view, sql)
       generate_trans_dcpn(target_path, str_date, str_time, str_stime, store, data)
+
+    destination = 'incoming/bissp'
+    sftp('autopos.cds-uat', target_path, destination)
   except Exception as e:
     print('[AutoPOS] - BI SSP Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)

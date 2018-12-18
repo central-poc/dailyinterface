@@ -67,6 +67,8 @@ def main():
 
     generate_data_file(target_path, batch_date.strftime('%d%m%y'), data)
 
+    destination = 'incoming/ofindaily'
+    sftp('autopos.cds-uat', target_path, destination)
   except Exception as e:
     print('[AutoPOS] - ZL Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)

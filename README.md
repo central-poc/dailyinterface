@@ -3,12 +3,12 @@
 * Prepare environment
 
     ```
-	  $ brew uninstall --force freetds
+	$ brew uninstall --force freetds
     $ brew install freetds@0.91
     $ brew link --force freetds@0.91
     $ brew install python3
     $ python3 -m venv ~/.venv/airflow
-	  $ source ~/.venv/airflow/bin/activate
+	$ source ~/.venv/airflow/bin/activate
     $ pip install -r setup.pip
     ```
 

@@ -1,4 +1,4 @@
-from common import connect_psql, get_file_seq, query_matview
+from common import connect_psql, get_file_seq, query_matview, sftp
 from datetime import datetime, timedelta
 import os
 import traceback
@@ -68,7 +68,9 @@ def main():
       sql = "select * from mv_autopos_ofin where interface_date = '{}' and bu = '{}'".format(batch_date.strftime('%Y%m%d'), bu)
       data = query_matview(refresh_view, sql)
       generate_data_file(target_path, batch_date.strftime('%y%m%d'), bu, data)
-
+  
+    destination = 'incoming/ofin'
+    sftp('autopos.cds-uat', target_path, destination)
   except Exception as e:
     print('[AutoPOS] - OFIN Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)

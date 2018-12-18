@@ -165,6 +165,9 @@ def main():
       sql = "select * from mv_autopos_bi_cds_trans_discount where interface_date = '{}' and store_code = '{}'".format(str_date, store)
       data = query_matview(refresh_view, sql)
       generate_trans_discount(target_path, str_date, str_time, store, data)
+
+    destination = 'incoming/bicds'
+    sftp('autopos.cds-uat', target_path, destination)
   except Exception as e:
     print('[AutoPOS] - BI CDS Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)

@@ -134,9 +134,11 @@ def main():
       refresh_view = "refresh materialized view mv_autopos_siebel"
       sql = "select * from mv_autopos_siebel where store_code = '{}' and interface_date = '{}'".format(store, str_date)
       datas = query_matview(refresh_view, sql)
-
       data_list = [gen_sale_tran_data(data) for data in datas]
       generate_data_file(target_path, store, gen_tender(data_list))
+
+    destination = 'incoming/siebel'
+    sftp('autopos.cds-uat', target_path, destination)
   except Exception as e:
     print('[AutoPOS] - Siebel Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
