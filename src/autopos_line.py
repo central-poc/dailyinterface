@@ -38,7 +38,7 @@ def main():
   batch_date = datetime.now() - timedelta(days=1)
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
-  target_path = os.path.join(parent_path, 'output/autopos/ofindaily', batch_date.strftime('%Y%m%d'))
+  target_path = os.path.join(parent_path, 'output/autopos/ofindaily/ap', batch_date.strftime('%Y%m%d'))
   if not os.path.exists(target_path):
     os.makedirs(target_path)
 
@@ -47,7 +47,7 @@ def main():
     sql = "select * from mv_autopos_ofin_line where interface_date = '{}'".format(batch_date.strftime('%Y%m%d'))
     data = query_matview(refresh_view, sql)
     generate_data_file(target_path, batch_date.strftime('%d%m%y'), data)
-    destination = 'incoming/ofindaily'
+    destination = 'incoming/ofindaily/ap'
     sftp('autopos.cds-uat', target_path, destination)
   except Exception as e:
     print('[AutoPOS] - L Error: %s' % str(e))

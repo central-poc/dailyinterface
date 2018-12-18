@@ -141,9 +141,18 @@ def main():
   str_time = (now - timedelta(days=1)).strftime('%H%M')
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
-  target_path = os.path.join(parent_path, 'output/autopos/bicds', str_date + str_time)
-  if not os.path.exists(target_path):
-    os.makedirs(target_path)
+  target_path_payment = os.path.join(parent_path, 'output/autopos/bicds/payment', str_date + str_time)
+  if not os.path.exists(target_path_payment):
+    os.makedirs(target_path_payment)
+  target_path_promotion = os.path.join(parent_path, 'output/autopos/bicds/promotion', str_date + str_time)
+  if not os.path.exists(target_path_promotion):
+    os.makedirs(target_path_promotion)
+  target_path_discount = os.path.join(parent_path, 'output/autopos/bicds/discount', str_date + str_time)
+  if not os.path.exists(target_path_discount):
+    os.makedirs(target_path_discount)
+  target_path_master = os.path.join(parent_path, 'output/autopos/bicds/master', str_date + str_time)
+  if not os.path.exists(target_path_master):
+    os.makedirs(target_path_master)
 
   try:
     refresh_view = "refresh materialized view mv_autopos_bi_cds_trans_payment"
@@ -154,20 +163,22 @@ def main():
       refresh_view = "refresh materialized view mv_autopos_bi_cds_trans_payment"
       sql = "select * from mv_autopos_bi_cds_trans_payment where interface_date = '{}' and store_code = '{}'".format(str_date, store)
       data = query_matview(refresh_view, sql)
-      generate_trans_payment(target_path, str_date, str_time, store, data)
+      generate_trans_payment(target_path_payment, str_date, str_time, store, data)
 
       refresh_view = "refresh materialized view mv_autopos_bi_cds_trans_promo"
       sql = "select * from mv_autopos_bi_cds_trans_promo where interface_date = '{}' and store_code = '{}'".format(str_date, store)
       data = query_matview(refresh_view, sql)
-      generate_trans_promo(target_path, str_date, str_time, store, data)
+      generate_trans_promo(target_path_promotion, str_date, str_time, store, data)
 
       refresh_view = "refresh materialized view mv_autopos_bi_cds_trans_discount"
       sql = "select * from mv_autopos_bi_cds_trans_discount where interface_date = '{}' and store_code = '{}'".format(str_date, store)
       data = query_matview(refresh_view, sql)
-      generate_trans_discount(target_path, str_date, str_time, store, data)
+      generate_trans_discount(target_path_discount, str_date, str_time, store, data)
 
-    destination = 'incoming/bicds'
-    sftp('autopos.cds-uat', target_path, destination)
+    sftp('autopos.cds-uat', target_path_payment, 'incoming/bicds/payment')
+    sftp('autopos.cds-uat', target_path_promotion, 'incoming/bicds/promotion')
+    sftp('autopos.cds-uat', target_path_discount, 'incoming/bicds/discount')
+    sftp('autopos.cds-uat', target_path_master, 'incoming/bicds/master')
   except Exception as e:
     print('[AutoPOS] - BI CDS Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
