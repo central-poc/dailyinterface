@@ -60,7 +60,7 @@ def main():
 
   try:
     refresh_view = "refresh materialized view mv_autopos_ofin_zn"
-    sql = "select * from mv_autopos_ofin_zn where interface_date = '{}'".format(batch_date.strftime('%Y%m%d'))
+    sql = "select * from mv_autopos_ofin_zn where (credit + debit) > 0 and interface_date = '{}'".format(batch_date.strftime('%Y%m%d'))
     data = query_matview(refresh_view, sql)
     if not is_debit_equals_credit(data):
       return

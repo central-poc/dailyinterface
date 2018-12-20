@@ -61,7 +61,7 @@ def main():
     bus = [x['businessunit_code'] for x in query_all("select businessunit_code from businessunit group by businessunit_code")]
     for bu in bus:
       refresh_view = "refresh materialized view mv_autopos_ofin"
-      sql = "select * from mv_autopos_ofin where interface_date = '{}' and bu = '{}'".format(batch_date.strftime('%Y%m%d'), bu)
+      sql = "select * from mv_autopos_ofin where (credit + debit) > 0 and interface_date = '{}' and bu = '{}'".format(batch_date.strftime('%Y%m%d'), bu)
       data = query_matview(refresh_view, sql)
       generate_data_file(target_path, batch_date.strftime('%y%m%d'), bu, data)
   
