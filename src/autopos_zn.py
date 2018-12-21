@@ -65,7 +65,7 @@ def main():
     if not is_debit_equals_credit(data):
       return
 
-    generate_data_file(target_path, batch_date.strftime('%d%m%y'), data)
+    generate_data_file(target_path, batch_date.strftime('%y%m%d'), data)
 
     destination = 'incoming/ofindaily/gl'
     sftp('autopos.cds-uat', target_path, destination)

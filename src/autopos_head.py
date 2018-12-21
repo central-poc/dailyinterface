@@ -66,7 +66,7 @@ def main():
     refresh_view = "refresh materialized view mv_autopos_ofin_head"
     sql = "select * from mv_autopos_ofin_head where interface_date = '{}'".format(batch_date.strftime('%Y%m%d'))
     data = query_matview(refresh_view, sql)
-    generate_data_file(target_path, batch_date.strftime('%d%m%y'), data)
+    generate_data_file(target_path, batch_date.strftime('%y%m%d'), data)
     destination = 'incoming/ofindaily/ap'
     sftp('autopos.cds-uat', target_path, destination)
   except Exception as e:

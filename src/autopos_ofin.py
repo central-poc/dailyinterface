@@ -58,7 +58,7 @@ def main():
     os.makedirs(target_path)
 
   try:
-    bus = [x['businessunit_code'] for x in query_all("select businessunit_code from businessunit group by businessunit_code")]
+    bus = ['CDS', 'CBN', 'SPB', 'B2N']
     for bu in bus:
       refresh_view = "refresh materialized view mv_autopos_ofin"
       sql = "select * from mv_autopos_ofin where (credit + debit) > 0 and interface_date = '{}' and bu = '{}'".format(batch_date.strftime('%Y%m%d'), bu)

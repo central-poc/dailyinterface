@@ -45,7 +45,7 @@ def generate_data_file(output_path, str_date, data):
 
   with open(dat_file_path, 'w') as dat, open(val_file_path, 'w') as val:
     result = prepare_data(data)
-    dat.write("\n".join(data))
+    dat.write("\n".join(result))
     val.write('{:14}{:10}'.format(dat_file, len(result)))
     print('[AutoPOS] - ZL .DAT & .VAL Completed..')
 
@@ -65,7 +65,7 @@ def main():
     if not is_debit_equals_credit(data):
       return
 
-    generate_data_file(target_path, batch_date.strftime('%d%m%y'), data)
+    generate_data_file(target_path, batch_date.strftime('%y%m%d'), data)
 
     destination = 'incoming/ofindaily/gl'
     sftp('autopos.cds-uat', target_path, destination)

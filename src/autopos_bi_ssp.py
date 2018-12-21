@@ -168,7 +168,7 @@ def generate_trans_installment(output_path, str_date, str_time, str_stime,
   file_fullpath = os.path.join(output_path, file_name)
   log_name = prefix + str(seq) + '.LOG'
   log_fullpath = os.path.join(output_path, log_name)
-  result = [prepare_data(d, text_format['tendor_detail'], str_date) for d in data]
+  result = [prepare_data(d, text_format['installment'], str_date) for d in data]
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
     f.write("\n".join(result))
@@ -188,7 +188,7 @@ def generate_trans_dcpn(output_path, str_date, str_time, str_stime, store,
   file_fullpath = os.path.join(output_path, file_name)
   log_name = prefix + str(seq) + '.LOG'
   log_fullpath = os.path.join(output_path, log_name)
-  result = [prepare_data(d, text_format['tendor_detail'], str_date) for d in data]
+  result = [prepare_data(d, text_format['dcpn'], str_date) for d in data]
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
     f.write("\n".join(result))
@@ -224,7 +224,7 @@ def main():
     os.makedirs(target_path_master)
 
   try:
-    stores = [x['store_code'] for x in query_all("select store_code from businessunit group by store_code")]
+    stores = [x['store_code'] for x in query_all("select store_code from businessunit where businessunit_code = 'SSP' group by store_code")]
     for store in stores:
       refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_sale_detail"
       sql = "select * from mv_autopos_bi_ssp_trans_sale_detail where store_code = '{}' and interface_date = '{}'".format(store, str_date)
