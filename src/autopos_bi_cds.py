@@ -93,9 +93,10 @@ def generate_trans_payment(output_path, str_date, str_time, store, data):
     l.write('{:8}|{:4}|{}'.format(str_date, str_time, len(result)))
     print('[AutoPOS] - BI CDS[{}] payment create files completed..'.format(store))
 
-  with open(file_fullpath, 'r') as f:
-    for line in f.read().splitlines():
-      print(len(line))
+  # with open(file_fullpath, 'r') as f:
+    # for line in f.read().splitlines():
+      # print(len(line))
+
 
 def generate_trans_promo(output_path, str_date, str_time, store, data):
   prefix = 'BICDS_' + store + '_Promotion_' + str_date + str_time + "_"
@@ -111,9 +112,9 @@ def generate_trans_promo(output_path, str_date, str_time, store, data):
     l.write('{:8}|{:4}|{}'.format(str_date, str_time, len(result)))
     print('[AutoPOS] - BI CDS[{}] promotion create files completed..'.format(store))
   
-  with open(file_fullpath, 'r') as f:
-    for line in f.read().splitlines():
-      print(len(line))
+  # with open(file_fullpath, 'r') as f:
+    # for line in f.read().splitlines():
+      # print(len(line))
 
 
 def generate_trans_discount(output_path, str_date, str_time, store, data):
@@ -130,9 +131,9 @@ def generate_trans_discount(output_path, str_date, str_time, store, data):
     l.write('{:8}|{:4}|{}'.format(str_date, str_time, len(result)))
     print('[AutoPOS] - BI CDS[{}] discount create files completed..'.format(store))
   
-  with open(file_fullpath, 'r') as f:
-    for line in f.read().splitlines():
-      print(len(line))
+  # with open(file_fullpath, 'r') as f:
+    # for line in f.read().splitlines():
+      # print(len(line))
 
 
 def main():

@@ -70,9 +70,9 @@ def generate_data_file(output_path, store, data):
     f.write("\n".join(prepare_data(data)))
     print('[AutoPOS] - JDA[{}] create files completed..'.format(store))
 
-  with open(file_fullpath, 'r') as f:
-    for line in f.read().splitlines():
-      print(len(line))
+  # with open(file_fullpath, 'r') as f:
+    # for line in f.read().splitlines():
+      # print(len(line))
 
 
 def main():
