@@ -137,8 +137,8 @@ def main():
       data_list = [gen_sale_tran_data(data) for data in datas]
       generate_data_file(target_path, bu, gen_tender(data_list))
 
-    destination = 'incoming/siebel'
-    sftp('autopos.cds-uat', target_path, destination)
+      destination = 'incoming/siebel/{}'.format(bu.lower())
+      sftp('autopos.cds-uat', target_path, destination)
   except Exception as e:
     print('[AutoPOS] - Siebel Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
