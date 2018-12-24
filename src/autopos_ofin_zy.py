@@ -53,20 +53,20 @@ def main():
   batch_date = datetime.now() - timedelta(days=1)
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
-  target_path = os.path.join(parent_path, 'output/autopos/ofin', batch_date.strftime('%Y%m%d'))
-  if not os.path.exists(target_path):
-    os.makedirs(target_path)
-
   try:
     bus = ['CDS', 'CBN', 'SPB', 'B2N']
     for bu in bus:
+      target_path = os.path.join(parent_path, 'output/autopos/ofin/zy/{}'.format(bu.lower()), batch_date.strftime('%Y%m%d'))
+      if not os.path.exists(target_path):
+        os.makedirs(target_path)
+
       refresh_view = "refresh materialized view mv_autopos_ofin"
       sql = "select * from mv_autopos_ofin where (credit + debit) > 0 and interface_date = '{}' and bu = '{}'".format(batch_date.strftime('%Y%m%d'), bu)
       data = query_matview(refresh_view, sql)
       generate_data_file(target_path, batch_date.strftime('%y%m%d'), bu, data)
   
-    destination = 'incoming/ofin'
-    sftp('autopos.cds-uat', target_path, destination)
+      destination = 'incoming/ofin/zy/{}'.format(bu.lower())
+      sftp('autopos.cds-uat', target_path, destination)
   except Exception as e:
     print('[AutoPOS] - OFIN Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)

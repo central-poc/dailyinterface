@@ -4,10 +4,10 @@ import os
 import traceback
 
 
-def is_debit_equals_credit(data_zn):
-  sum_debit = sum([row[5] for row in data_zn])
-  sum_credit = sum([row[6] for row in data_zn])
-  print('[AutoPOS] - ZN Debit: {}, Credit: {}'.format(sum_debit, sum_credit))
+def is_debit_equals_credit(data):
+  sum_debit = sum([row[5] for row in data])
+  sum_credit = sum([row[6] for row in data])
+  print('[AutoPOS] - ZL Debit: {}, Credit: {}'.format(sum_debit, sum_credit))
   return False if sum_debit != sum_credit else True
 
 
@@ -36,7 +36,7 @@ def prepare_data(data):
 
 
 def generate_data_file(output_path, str_date, data):
-  prefix = 'ZN' + str_date
+  prefix = 'ZL' + str_date
   seq = get_file_seq(prefix, output_path, '.DAT')
   dat_file = prefix + str(seq) + '.DAT'
   dat_file_path = os.path.join(output_path, dat_file)
@@ -47,32 +47,31 @@ def generate_data_file(output_path, str_date, data):
     result = prepare_data(data)
     dat.write("\n".join(result))
     val.write('{:14}{:10}'.format(dat_file, len(result)))
-    print('[AutoPOS] - ZN .DAT & .VAL Completed..')
+    print('[AutoPOS] - ZL .DAT & .VAL Completed..')
 
 
 def main():
   batch_date = datetime.now() - timedelta(days=1)
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
-  target_path = os.path.join(parent_path, 'output/autopos/ofindaily/gl', batch_date.strftime('%Y%m%d'))
+  target_path = os.path.join(parent_path, 'output/autopos/ofin/gl', batch_date.strftime('%Y%m%d'))
   if not os.path.exists(target_path):
     os.makedirs(target_path)
 
   try:
-    refresh_view = "refresh materialized view mv_autopos_ofin_zn"
-    sql = "select * from mv_autopos_ofin_zn where (credit + debit) > 0 and interface_date = '{}'".format(batch_date.strftime('%Y%m%d'))
+    refresh_view = "refresh materialized view mv_autopos_ofin_zl"
+    sql = "select * from mv_autopos_ofin_zl where (credit + debit) > 0 and interface_date = '{}'".format(batch_date.strftime('%Y%m%d'))
     data = query_matview(refresh_view, sql)
     if not is_debit_equals_credit(data):
       return
 
     generate_data_file(target_path, batch_date.strftime('%y%m%d'), data)
 
-    destination = 'incoming/ofindaily/gl'
+    destination = 'incoming/ofin/gl'
     sftp('autopos.cds-uat', target_path, destination)
   except Exception as e:
-    print('[AutoPOS] - ZN Error: %s' % str(e))
+    print('[AutoPOS] - ZL Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
-
 
 if __name__ == '__main__':
   main()
