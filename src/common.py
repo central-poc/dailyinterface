@@ -1,4 +1,5 @@
 import _mssql
+import ftplib
 import psycopg2
 import psycopg2.extras
 import pymssql
@@ -119,3 +120,24 @@ def query_all(sql):
       cursor.execute(sql)
 
       return cursor.fetchall()
+
+
+def ftp(host, user, pwd, src, dest):
+  print('[FTP] - host: {}, user: {}, source: {}, destination: {}'.format(host, user, src, dest))
+  with ftplib.FTP(host) as ftp:
+    try:
+      ftp.login(user, pwd)
+      files = [f for f in os.listdir(src)]
+      for f in files:
+        source = '{}/{}'.format(src, f)
+        destination = '{}/{}'.format(dest, f)
+        with open(source, 'rb') as fp:
+          res = ftp.storlines('STOR {}'.format(destination), fp)
+          if not res.startswith('226 Transfer complete'):
+            print('[FTP] - Upload failed: {}'.format(destination))
+    except ftplib.all_errors as e:
+      print('[FTP] - error:', e)
+
+
+if __name__ == '__main__':
+  ftp('10.0.173.24', 'cdshopos', 'hopos', '/Users/adisorn/Documents/workspace/cng/code/dailyinterface/output/autopos/ofin/zy/cds/20181223', '/p3/fnp/cds/epos/data_in')
