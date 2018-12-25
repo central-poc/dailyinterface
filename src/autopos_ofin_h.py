@@ -40,7 +40,7 @@ def prepare_data(data):
 
 
 def generate_data_file(output_path, str_date, data):
-  prefix = 'H' + str_date
+  prefix = 'H' + str_date + 'FMS'
   seq = get_file_seq(prefix, output_path, '.MER')
   dat_file = prefix + str(seq) + '.MER'
   dat_file_path = os.path.join(output_path, dat_file)

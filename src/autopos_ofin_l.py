@@ -6,7 +6,10 @@ import traceback
 
 def prepare_data(data):
   result = []
+  sum_amount = 0
   for d in data:
+    amount = d['amount']
+    sum_amount = sum_amount + amount
     temp = []
     temp.append("{:3}".format(d['source'][:3]))
     temp.append("{:50}".format(d['invoice_no'][:50]))
@@ -14,23 +17,27 @@ def prepare_data(data):
     temp.append("{:30}".format(d['vendor_id'][:30]))
     temp.append("{:1}".format(d['line_type'][:1]))
     temp.append("{:240}".format(d['item_description'][:240]))
-    temp.append("{:014.2f}".format(d['amount']))
+    temp.append("{:014.2f}".format(amount))
     temp.append("{:14}".format(d['item_qty'][:14]))
     temp.append("{:14}".format(d['item_cost'][:14]))
    
     result.append("".join(temp))
 
-  return result
+  return result, sum_amount
 
 
 def generate_data_file(output_path, str_date, data):
-  prefix = 'L' + str_date
+  prefix = 'L' + str_date + 'FMS'
   seq = get_file_seq(prefix, output_path, '.MER')
   dat_file = prefix + str(seq) + '.MER'
   dat_file_path = os.path.join(output_path, dat_file)
+  val_file = prefix + str(seq) + '.LOG'
+  val_file_path = os.path.join(output_path, val_file)
 
-  with open(dat_file_path, 'w') as dat:
-    dat.write("\n".join(prepare_data(data)))
+  with open(dat_file_path, 'w') as dat, open(val_file_path, 'w') as val:
+    result, sum_amount = prepare_data(data)
+    dat.write("\n".join(result))
+    val.write('{:14}{:0>5}{:0>5}{:0>10}'.format(dat_file, len(result), len(result), sum_amount))
     print('[AutoPOS] - L create file .MER completed..')
 
 
