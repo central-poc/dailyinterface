@@ -126,7 +126,7 @@ def main():
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
 
   try:
-    bus = [x['businessunit_code'] for x in query_all("select businessunit_code from businessunit group by businessunit_code")]
+    bus = [x['businessunit_code'] for x in query_all("select businessunit_code from businessunit where status = 'AT' group by businessunit_code")]
     for bu in bus:
       target_path = os.path.join(parent_path, 'output/autopos/siebel/{}'.format(bu.lower()), str_date)
       if not os.path.exists(target_path):

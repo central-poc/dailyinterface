@@ -224,7 +224,7 @@ def main():
     os.makedirs(target_path_master)
 
   try:
-    stores = [x['store_code'] for x in query_all("select store_code from businessunit where businessunit_code = 'SSP' group by store_code")]
+    stores = [x['store_code'] for x in query_all("select store_code from businessunit where businessunit_code = 'SSP' and status = 'AT' group by store_code")]
     for store in stores:
       refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_sale_detail"
       sql = "select * from mv_autopos_bi_ssp_trans_sale_detail where store_code = '{}' and interface_date = '{}'".format(store, str_date)
