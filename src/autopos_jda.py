@@ -80,19 +80,21 @@ def main():
     str_date = (datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
     dir_path = os.path.dirname(os.path.realpath(__file__))
     parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
-    target_path = os.path.join(parent_path, 'output/autopos/jda', str_date)
-    if not os.path.exists(target_path):
-      os.makedirs(target_path)
 
-    stores = [x['store_code'] for x in query_all("select store_code from businessunit group by store_code")]
-    for store in stores:
+    for x in query_all("select store_code, businessunit_code from businessunit where status = 'AT' group by store_code, businessunit_code"):
+      store = x['store_code']
+      bu = x['businessunit_code']
+      target_path = os.path.join(parent_path, 'output/autopos/jda/{}'.format(bu.lower()), str_date)
+      if not os.path.exists(target_path):
+        os.makedirs(target_path)
+
       refresh_view = "refresh materialized view mv_autopos_jda"
       sql = "select * from mv_autopos_jda where store_code = '{}' and interface_date = '{}'".format(store, str_date)
       data = query_matview(refresh_view, sql)
       generate_data_file(target_path, store, data)
   
-    destination = 'incoming/jda'
-    sftp('autopos.cds-uat', target_path, destination)
+      destination = 'incoming/jda/{}'.format(bu.lower())
+      sftp('autopos.cds-uat', target_path, destination)
   except Exception as e:
     print('[AutoPOS] - JDA Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
