@@ -16,7 +16,7 @@ def prepare_data(data):
     temp.append("{:30}".format(d['vendor_id'][:30]))
     temp.append("{:6}".format(d['invoice_date'][:6]))
     temp.append("{:014.2f}".format(line_invoice))
-    temp.append("{:15}".format(d['store_id'][:14]))
+    temp.append("{:6}".format(d['store_id'][:6]))
     temp.append("{:1}".format(d['invoice_type'][:1]))
     temp.append("{:1}".format(d['imported_goods'][:1]))
     temp.append("{:2}".format(d['hold_reason01'][:2]))
@@ -50,7 +50,7 @@ def generate_data_file(output_path, str_date, data):
   with open(dat_file_path, 'w') as dat, open(val_file_path, 'w') as val:
     result, invoice = prepare_data(data)
     dat.write("\n".join(result))
-    val.write('{:14}{:0>5}{:0>5}{:0>10}'.format(dat_file, len(result), len(result), invoice))
+    val.write('{:20}{:0>10}{:015.2f}'.format(dat_file, len(result), invoice))
     print('[AutoPOS] - H create files .MER & .LOG completed..')
 
 

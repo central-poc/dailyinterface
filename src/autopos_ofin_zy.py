@@ -45,7 +45,7 @@ def generate_data_file(output_path, str_date, bu, data):
   with open(dat_file_path, 'w') as dat, open(val_file_path, 'w') as val:
     result, debit, credit = prepare_data(data)
     dat.write("\n".join(result))
-    val.write('{:15}{:10}{:015.2f}{:015.2f}'.format(dat_file, len(result), debit, credit))
+    val.write('{:15}{:0>10}{:015.2f}{:015.2f}'.format(dat_file, len(result), debit, credit))
     print('[AutoPOS] - OFIN[{}] create files completed..'.format(bu))
 
 

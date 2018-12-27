@@ -20,6 +20,9 @@ def prepare_data(data):
     temp.append("{:014.2f}".format(amount))
     temp.append("{:14}".format(d['item_qty'][:14]))
     temp.append("{:14}".format(d['item_cost'][:14]))
+    temp.append("{:35}".format(d['temp_field'][:35]))
+    temp.append("{:5}".format(d['cost_center'][:5]))
+    temp.append("{:8}".format(d['gl_account'][:8]))
    
     result.append("".join(temp))
 
@@ -37,7 +40,7 @@ def generate_data_file(output_path, str_date, data):
   with open(dat_file_path, 'w') as dat, open(val_file_path, 'w') as val:
     result, sum_amount = prepare_data(data)
     dat.write("\n".join(result))
-    val.write('{:14}{:0>5}{:0>5}{:0>10}'.format(dat_file, len(result), len(result), sum_amount))
+    val.write('{:20}{:0>10}{:015.2f}'.format(dat_file, len(result), sum_amount))
     print('[AutoPOS] - L create file .MER completed..')
 
 
