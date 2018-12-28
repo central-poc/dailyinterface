@@ -10,9 +10,9 @@ def prepare_data(data):
     temp = []
     temp.append('{:1}'.format('A'))
     temp.append('{:6}'.format(''))
-    temp.append("{:6}".format(d['id'][:6]))
-    temp.append("{:60}".format(d['name'][:60]))
-    temp.append("{:1}".format(d['type'][:1]))
+    temp.append("{:6}".format(d['vendor_id'][:6]))
+    temp.append("{:60}".format(d['vendor_name'][:60]))
+    temp.append("{:1}".format(d['vendor_type'][:1]))
     temp.append("{:13}".format(d['tax_payer_id'][:13]))
     temp.append("{:1}".format(d['payment_type'][:1]))
     temp.append("{:5}".format(d['tax_rate'][:5]))
