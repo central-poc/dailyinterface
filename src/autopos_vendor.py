@@ -107,7 +107,7 @@ def main():
     os.makedirs(target_path)
 
   try:
-    sql = "select case when status = 'D' then to_char(updated_on, 'DDMMYY') else '' end as delete_date, * from vendor"
+    sql = "select case when status = 'D' then to_char(updated_on, 'DDMMYY') else '' end as delete_date, * from vendor where created_on <> updated_on"
     data = query_all(sql)
     generate_data_file(target_path, batch_date.strftime('%y%m%d'), batch_date.strftime('%H%M%S'), data)
     destination = 'incoming/ofin/vendor'
