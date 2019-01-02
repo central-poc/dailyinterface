@@ -61,7 +61,9 @@ def generate_data_file(output_path, str_date, str_time, data):
     val.write('{:3}{:12}{:9}{:6}{:6}{:15}{:15}{:15}{:15}'.format('HDR', dat_file, len(result), str_date, str_time, '0', '0', '0', '0'))
     print('[AutoPOS] - Vendor .DAT & .VAL Completed..')
 
-  with open(dat_file_path, 'r') as f:
+
+def genrate_report(file_with_path):
+  with open(file_with_path, 'r') as f:
     for line in f.read().splitlines():
       print('Status: {}.'.format(line[0:1]))
       print('Delete Date: {}.'.format(line[1:7]))
