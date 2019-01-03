@@ -39,8 +39,8 @@ def prepare_data(data):
   return result, debit_accum, credit_accum
 
 
-def generate_data_file(output_path, str_date, bu, data):
-  prefix = 'ZN' + str_date + bu[:2]
+def generate_data_file(output_path, str_date, data):
+  prefix = 'ZN' + str_date + 'CD'
   seq = get_file_seq(prefix, output_path, '.DAT')
   dat_file = prefix + str(seq) + '.DAT'
   dat_file_path = os.path.join(output_path, dat_file)
@@ -58,24 +58,21 @@ def main():
   batch_date = datetime.strptime(sys.argv[1], '%Y%m%d') if len(sys.argv) > 1 else datetime.now() - timedelta(days=1)
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
+  target_path = os.path.join(parent_path, 'output/autopos/ofin/gl', batch_date.strftime('%Y%m%d'))
+  if not os.path.exists(target_path):
+    os.makedirs(target_path)
 
   try:
-    bus = ['CDS', 'CBN', 'SPB', 'B2N']
-    for bu in bus:
-      target_path = os.path.join(parent_path, 'output/autopos/ofin/gl/{}'.format(bu.lower()), batch_date.strftime('%Y%m%d'))
-      if not os.path.exists(target_path):
-        os.makedirs(target_path)
+    refresh_view = "refresh materialized view mv_autopos_ofin_zn"
+    sql = "select * from mv_autopos_ofin_zn where (credit + debit) > 0 and interface_date = '{}'".format(batch_date.strftime('%Y%m%d'))
+    data = query_matview(refresh_view, sql)
+    if not is_debit_equals_credit(data):
+      return
 
-      refresh_view = "refresh materialized view mv_autopos_ofin_zn"
-      sql = "select * from mv_autopos_ofin_zn where (credit + debit) > 0 and interface_date = '{}' and bu = '{}'".format(batch_date.strftime('%Y%m%d'), bu)
-      data = query_matview(refresh_view, sql)
-      if not is_debit_equals_credit(data):
-        return
+    generate_data_file(target_path, batch_date.strftime('%y%m%d'), data)
 
-      generate_data_file(target_path, batch_date.strftime('%y%m%d'), bu, data)
-
-      destination = 'incoming/ofin/gl/{}'.format(bu.lower())
-      sftp('autopos.cds-uat', target_path, destination)
+    destination = 'incoming/ofin/gl'
+    sftp('autopos.cds-uat', target_path, destination)
   except Exception as e:
     print('[AutoPOS] - ZN Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
