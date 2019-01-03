@@ -1,7 +1,6 @@
 from common import connect_psql, query_all, query_matview, sftp
 from datetime import datetime, timedelta
-import os
-import traceback
+import os, sys, traceback
 
 
 def prepare_data(datas):
@@ -77,7 +76,7 @@ def generate_data_file(output_path, store, data):
 
 def main():
   try:
-    str_date = (datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
+    str_date = sys.argv[1] if len(sys.argv) > 1 else (datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
     dir_path = os.path.dirname(os.path.realpath(__file__))
     parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
 

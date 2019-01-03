@@ -1,7 +1,6 @@
 from common import connect_psql, get_file_seq, query_matview, sftp
 from datetime import datetime, timedelta
-import os
-import traceback
+import os, sys, traceback
 
 
 def prepare_data(data):
@@ -55,7 +54,7 @@ def generate_data_file(output_path, str_date, data):
 
 
 def main():
-  batch_date = datetime.now() - timedelta(days=1)
+  batch_date = datetime.strptime(sys.argv[1], '%Y%m%d') if len(sys.argv) > 1 else datetime.now() - timedelta(days=1)
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
   target_path = os.path.join(parent_path, 'output/autopos/ofin/ap', batch_date.strftime('%Y%m%d'))

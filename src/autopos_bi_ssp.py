@@ -1,7 +1,7 @@
 from common import connect_psql, get_file_seq, query_all, query_matview, sftp
 from datetime import datetime, timedelta
-import os
-import traceback
+import os, sys, traceback
+
 
 text_format = {
   'sale_detail': [
@@ -202,7 +202,7 @@ def generate_trans_dcpn(output_path, str_date, str_time, str_stime, store,
 
 def main():
   now = datetime.now()
-  str_date = (now - timedelta(days=1)).strftime('%Y%m%d')
+  str_date = sys.argv[1] if len(sys.argv) > 1 else (datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
   str_time = (now - timedelta(days=1)).strftime('%H%M')
   str_stime = (now - timedelta(days=1)).strftime('%H%M%S')
   dir_path = os.path.dirname(os.path.realpath(__file__))
