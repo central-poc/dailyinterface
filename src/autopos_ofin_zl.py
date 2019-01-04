@@ -31,7 +31,7 @@ def prepare_data(data):
     temp.append("{:10}".format(d['ofin_for_cfs'][:10]))
     temp.append("{:240}".format(d['account_description'][:240]))
     temp.append("{:80}".format(d['batch_name'][:80]))
-   
+
     debit_accum = debit_accum + debit
     credit_accum = credit_accum + credit
     result.append("".join(temp))
@@ -50,22 +50,26 @@ def generate_data_file(output_path, str_date, data):
   with open(dat_file_path, 'w') as dat, open(val_file_path, 'w') as val:
     result, debit, credit = prepare_data(data)
     dat.write("\n".join(result))
-    val.write('{:15}{:0>10}{:015.2f}{:015.2f}'.format(dat_file, len(result), debit, credit))
+    val.write('{:15}{:0>10}{:015.2f}{:015.2f}'.format(dat_file, len(result),
+                                                      debit, credit))
     print('[AutoPOS] - ZL .DAT & .VAL Completed..')
 
 
 def main():
-  batch_date = datetime.strptime(sys.argv[1], '%Y%m%d') if len(sys.argv) > 1 else datetime.now() - timedelta(days=1)
+  batch_date = datetime.strptime(
+      sys.argv[1],
+      '%Y%m%d') if len(sys.argv) > 1 else datetime.now() - timedelta(days=1)
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
-  target_path = os.path.join(parent_path, 'output/autopos/ofin/gl', batch_date.strftime('%Y%m%d'))
+  target_path = os.path.join(parent_path, 'output/autopos/ofin/gl',
+                             batch_date.strftime('%Y%m%d'))
   if not os.path.exists(target_path):
     os.makedirs(target_path)
-  
 
   try:
     refresh_view = "refresh materialized view mv_autopos_ofin_zl"
-    sql = "select * from mv_autopos_ofin_zl where (credit + debit) > 0 and interface_date = '{}'".format(batch_date.strftime('%Y%m%d'))
+    sql = "select * from mv_autopos_ofin_zl where (credit + debit) > 0 and interface_date = '{}'".format(
+        batch_date.strftime('%Y%m%d'))
     data = query_matview(refresh_view, sql)
     if not is_debit_equals_credit(data):
       return
@@ -77,6 +81,7 @@ def main():
   except Exception as e:
     print('[AutoPOS] - ZL Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
+
 
 if __name__ == '__main__':
   main()

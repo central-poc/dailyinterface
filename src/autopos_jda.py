@@ -56,10 +56,11 @@ def prepare_data(datas):
     temp.append("{:0>8}".format(data['member_point'][:8]))
     temp.append("{:8}".format(data['cashier_id'][:8]))
     temp.append("{:8}".format(data['sale_person'][:8]))
-    
+
     result.append("".join(temp))
 
   return result
+
 
 def generate_data_file(output_path, store, data):
   file_name = 'SD' + store + '.TXT'
@@ -70,28 +71,33 @@ def generate_data_file(output_path, store, data):
     print('[AutoPOS] - JDA[{}] create files completed..'.format(store))
 
   # with open(file_fullpath, 'r') as f:
-    # for line in f.read().splitlines():
-      # print(len(line))
+  # for line in f.read().splitlines():
+  # print(len(line))
 
 
 def main():
   try:
-    str_date = sys.argv[1] if len(sys.argv) > 1 else (datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
+    str_date = sys.argv[1] if len(sys.argv) > 1 else (
+        datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
     dir_path = os.path.dirname(os.path.realpath(__file__))
     parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
 
-    for x in query_all("select store_code, businessunit_code from businessunit where status = 'AT' group by store_code, businessunit_code"):
+    for x in query_all(
+        "select store_code, businessunit_code from businessunit where status = 'AT' group by store_code, businessunit_code"
+    ):
       store = x['store_code']
       bu = x['businessunit_code']
-      target_path = os.path.join(parent_path, 'output/autopos/jda/{}'.format(bu.lower()), str_date)
+      target_path = os.path.join(parent_path, 'output/autopos/jda/{}'.format(
+          bu.lower()), str_date)
       if not os.path.exists(target_path):
         os.makedirs(target_path)
 
       refresh_view = "refresh materialized view mv_autopos_jda"
-      sql = "select * from mv_autopos_jda where store_code = '{}' and interface_date = '{}'".format(store, str_date)
+      sql = "select * from mv_autopos_jda where store_code = '{}' and interface_date = '{}'".format(
+          store, str_date)
       data = query_matview(refresh_view, sql)
       generate_data_file(target_path, store, data)
-  
+
       destination = 'incoming/jda/{}'.format(bu.lower())
       sftp('autopos.cds-uat', target_path, destination)
   except Exception as e:

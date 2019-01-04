@@ -25,7 +25,7 @@ def prepare_data(data):
     temp.append("{:1}".format(d['seq'][:1]))
     temp.append("{:10}".format(d['ofin_for_cfs'][:10]))
     temp.append("{:240}".format(d['account_description'][:240]))
-   
+
     debit_accum = debit_accum + debit
     credit_accum = credit_accum + credit
     result.append("".join(temp))
@@ -44,26 +44,32 @@ def generate_data_file(output_path, str_date, bu, data):
   with open(dat_file_path, 'w') as dat, open(val_file_path, 'w') as val:
     result, debit, credit = prepare_data(data)
     dat.write("\n".join(result))
-    val.write('{:15}{:0>10}{:015.2f}{:015.2f}'.format(dat_file, len(result), debit, credit))
+    val.write('{:15}{:0>10}{:015.2f}{:015.2f}'.format(dat_file, len(result),
+                                                      debit, credit))
     print('[AutoPOS] - OFIN[{}] create files completed..'.format(bu))
 
 
 def main():
-  batch_date = datetime.strptime(sys.argv[1], '%Y%m%d') if len(sys.argv) > 1 else datetime.now() - timedelta(days=1)
+  batch_date = datetime.strptime(
+      sys.argv[1],
+      '%Y%m%d') if len(sys.argv) > 1 else datetime.now() - timedelta(days=1)
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
   try:
     bus = ['CDS', 'CBN', 'SPB', 'B2N']
     for bu in bus:
-      target_path = os.path.join(parent_path, 'output/autopos/ofin/zy/{}'.format(bu.lower()), batch_date.strftime('%Y%m%d'))
+      target_path = os.path.join(
+          parent_path, 'output/autopos/ofin/zy/{}'.format(bu.lower()),
+          batch_date.strftime('%Y%m%d'))
       if not os.path.exists(target_path):
         os.makedirs(target_path)
 
       refresh_view = "refresh materialized view mv_autopos_ofin"
-      sql = "select * from mv_autopos_ofin where (credit + debit) > 0 and interface_date = '{}' and bu = '{}'".format(batch_date.strftime('%Y%m%d'), bu)
+      sql = "select * from mv_autopos_ofin where (credit + debit) > 0 and interface_date = '{}' and bu = '{}'".format(
+          batch_date.strftime('%Y%m%d'), bu)
       data = query_matview(refresh_view, sql)
       generate_data_file(target_path, batch_date.strftime('%y%m%d'), bu, data)
-  
+
       destination = 'incoming/ofin/zy/{}'.format(bu.lower())
       sftp('autopos.cds-uat', target_path, destination)
   except Exception as e:

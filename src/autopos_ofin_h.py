@@ -32,7 +32,7 @@ def prepare_data(data):
     temp.append("{:6}".format(d['tax_invoice_date'][:6]))
     temp.append("{:10}".format(d['invoice_rtv_type'][:10]))
     temp.append("{:50}".format(d['currency_rate'][:50]))
-   
+
     result.append("".join(temp))
 
   return result, sum_invoice
@@ -54,16 +54,20 @@ def generate_data_file(output_path, str_date, data):
 
 
 def main():
-  batch_date = datetime.strptime(sys.argv[1], '%Y%m%d') if len(sys.argv) > 1 else datetime.now() - timedelta(days=1)
+  batch_date = datetime.strptime(
+      sys.argv[1],
+      '%Y%m%d') if len(sys.argv) > 1 else datetime.now() - timedelta(days=1)
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
-  target_path = os.path.join(parent_path, 'output/autopos/ofin/ap', batch_date.strftime('%Y%m%d'))
+  target_path = os.path.join(parent_path, 'output/autopos/ofin/ap',
+                             batch_date.strftime('%Y%m%d'))
   if not os.path.exists(target_path):
     os.makedirs(target_path)
 
   try:
     refresh_view = "refresh materialized view mv_autopos_ofin_head"
-    sql = "select * from mv_autopos_ofin_head where interface_date = '{}'".format(batch_date.strftime('%Y%m%d'))
+    sql = "select * from mv_autopos_ofin_head where interface_date = '{}'".format(
+        batch_date.strftime('%Y%m%d'))
     data = query_matview(refresh_view, sql)
     generate_data_file(target_path, batch_date.strftime('%y%m%d'), data)
     destination = 'incoming/ofin/ap'

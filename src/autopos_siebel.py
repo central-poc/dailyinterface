@@ -115,23 +115,33 @@ def generate_data_file(output_path, bu, sale_transactions):
   attribute2 = ""
   with open(filepath, 'w') as outfile:
     outfile.write('{}|{}|005|1|{}|{}|{}-CTO|{}|{}'.format(
-        interface_name, bu, total_row, batchdatetime, bu, attribute1, attribute2))
-  print('[AUtoPOS] - Siebel[{}] create .DAT & .CTRL file completed..'.format(bu))
+        interface_name, bu, total_row, batchdatetime, bu, attribute1,
+        attribute2))
+  print(
+      '[AUtoPOS] - Siebel[{}] create .DAT & .CTRL file completed..'.format(bu))
 
 
 def main():
-  str_date = sys.argv[1] if len(sys.argv) > 1 else (datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
+  str_date = sys.argv[1] if len(sys.argv) > 1 else (
+      datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
 
   try:
-    bus = [x['businessunit_code'] for x in query_all("select businessunit_code from businessunit where status = 'AT' group by businessunit_code")]
+    bus = [
+        x['businessunit_code']
+        for x in query_all(
+            "select businessunit_code from businessunit where status = 'AT' group by businessunit_code"
+        )
+    ]
     for bu in bus:
-      target_path = os.path.join(parent_path, 'output/autopos/siebel/{}'.format(bu.lower()), str_date)
+      target_path = os.path.join(
+          parent_path, 'output/autopos/siebel/{}'.format(bu.lower()), str_date)
       if not os.path.exists(target_path):
         os.makedirs(target_path)
       refresh_view = "refresh materialized view mv_autopos_siebel"
-      sql = "select * from mv_autopos_siebel where bu = '{}' and interface_date = '{}'".format(bu, str_date)
+      sql = "select * from mv_autopos_siebel where bu = '{}' and interface_date = '{}'".format(
+          bu, str_date)
       datas = query_matview(refresh_view, sql)
       data_list = [gen_sale_tran_data(data) for data in datas]
       generate_data_file(target_path, bu, gen_tender(data_list))

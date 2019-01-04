@@ -40,7 +40,7 @@ def prepare_data(data):
     temp.append("{:3}".format(d['currency'][:3]))
     temp.append("{:10}".format(d['tax_branch_no'][:10]))
     temp.append("{:30}".format(d['edi_no'][:30]))
-   
+
     result.append("".join(temp))
 
   return result
@@ -54,10 +54,13 @@ def generate_data_file(output_path, str_date, str_time, data):
   val_file = prefix + str(seq) + '.VAL'
   val_file_path = os.path.join(output_path, val_file)
 
-  with open(dat_file_path, 'w', encoding='TIS-620') as dat, open(val_file_path, 'w', encoding='TIS-620') as val:
+  with open(
+      dat_file_path, 'w', encoding='TIS-620') as dat, open(
+          val_file_path, 'w', encoding='TIS-620') as val:
     result = prepare_data(data)
     dat.write("\n".join(result))
-    val.write('{:3}{:12}{:9}{:6}{:6}{:15}{:15}{:15}{:15}'.format('HDR', dat_file, len(result), str_date, str_time, '0', '0', '0', '0'))
+    val.write('{:3}{:12}{:9}{:6}{:6}{:15}{:15}{:15}{:15}'.format(
+        'HDR', dat_file, len(result), str_date, str_time, '0', '0', '0', '0'))
     print('[AutoPOS] - Vendor .DAT & .VAL Completed..')
 
 
@@ -100,17 +103,21 @@ def genrate_report(file_with_path):
 
 
 def main():
-  batch_date = datetime.strptime(sys.argv[1], '%Y%m%d') if len(sys.argv) > 1 else datetime.now() - timedelta(days=1)
+  batch_date = datetime.strptime(
+      sys.argv[1],
+      '%Y%m%d') if len(sys.argv) > 1 else datetime.now() - timedelta(days=1)
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
-  target_path = os.path.join(parent_path, 'output/autopos/ofin/vendor', batch_date.strftime('%Y%m%d'))
+  target_path = os.path.join(parent_path, 'output/autopos/ofin/vendor',
+                             batch_date.strftime('%Y%m%d'))
   if not os.path.exists(target_path):
     os.makedirs(target_path)
 
   try:
     sql = "select case when status = 'D' then to_char(updated_on, 'DDMMYY') else '' end as delete_date, * from vendor where created_on <> updated_on"
     data = query_all(sql)
-    generate_data_file(target_path, batch_date.strftime('%y%m%d'), batch_date.strftime('%H%M%S'), data)
+    generate_data_file(target_path, batch_date.strftime('%y%m%d'),
+                       batch_date.strftime('%H%M%S'), data)
     destination = 'incoming/ofin/vendor'
     sftp('autopos.cds-uat', target_path, destination)
   except Exception as e:

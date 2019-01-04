@@ -22,7 +22,7 @@ def prepare_data(data):
     temp.append("{:35}".format(d['temp_field'][:35]))
     temp.append("{:5}".format(d['cost_center'][:5]))
     temp.append("{:8}".format(d['gl_account'][:8]))
-   
+
     result.append("".join(temp))
 
   return result, sum_amount
@@ -39,21 +39,26 @@ def generate_data_file(output_path, str_date, data):
   with open(dat_file_path, 'w') as dat, open(val_file_path, 'w') as val:
     result, sum_amount = prepare_data(data)
     dat.write("\n".join(result))
-    val.write('{:20}{:0>10}{:015.2f}'.format(dat_file, len(result), sum_amount))
+    val.write('{:20}{:0>10}{:015.2f}'.format(dat_file, len(result),
+                                             sum_amount))
     print('[AutoPOS] - L create file .MER completed..')
 
 
 def main():
-  batch_date = datetime.strptime(sys.argv[1], '%Y%m%d') if len(sys.argv) > 1 else datetime.now() - timedelta(days=1)
+  batch_date = datetime.strptime(
+      sys.argv[1],
+      '%Y%m%d') if len(sys.argv) > 1 else datetime.now() - timedelta(days=1)
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
-  target_path = os.path.join(parent_path, 'output/autopos/ofin/ap', batch_date.strftime('%Y%m%d'))
+  target_path = os.path.join(parent_path, 'output/autopos/ofin/ap',
+                             batch_date.strftime('%Y%m%d'))
   if not os.path.exists(target_path):
     os.makedirs(target_path)
 
   try:
     refresh_view = "refresh materialized view mv_autopos_ofin_line"
-    sql = "select * from mv_autopos_ofin_line where interface_date = '{}'".format(batch_date.strftime('%Y%m%d'))
+    sql = "select * from mv_autopos_ofin_line where interface_date = '{}'".format(
+        batch_date.strftime('%Y%m%d'))
     data = query_matview(refresh_view, sql)
     generate_data_file(target_path, batch_date.strftime('%y%m%d'), data)
     destination = 'incoming/ofin/ap'
