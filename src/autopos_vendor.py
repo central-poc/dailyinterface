@@ -54,7 +54,7 @@ def generate_data_file(output_path, str_date, str_time, data):
   val_file = prefix + str(seq) + '.VAL'
   val_file_path = os.path.join(output_path, val_file)
 
-  with open(dat_file_path, 'w') as dat, open(val_file_path, 'w') as val:
+  with open(dat_file_path, 'w', encoding='TIS-620') as dat, open(val_file_path, 'w', encoding='TIS-620') as val:
     result = prepare_data(data)
     dat.write("\n".join(result))
     val.write('{:3}{:12}{:9}{:6}{:6}{:15}{:15}{:15}{:15}'.format('HDR', dat_file, len(result), str_date, str_time, '0', '0', '0', '0'))
