@@ -22,7 +22,7 @@ def prepare_data(data):
     temp.append("{:5}".format(d['ofin_cost_profit_center'][:5]))
     temp.append("{:8}".format(d['account_code'][:8]))
     temp.append("{:6}".format(d['subaccount_code'][:6]))
-    temp.append("{:9}".format(d['business_date'][:9]))
+    temp.append("{:6}".format(d['business_date'][:6]))
     temp.append("{:012.2f}".format(debit))
     temp.append("{:012.2f}".format(credit))
     temp.append("{:20}".format(d['journal_source_name'][:20]))

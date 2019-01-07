@@ -15,16 +15,15 @@ def prepare_data(data):
     temp.append("{:5}".format(d['ofin_cost_profit_center'][:5]))
     temp.append("{:8}".format(d['account_code'][:8]))
     temp.append("{:6}".format(d['subaccount_code'][:6]))
-    temp.append("{:9}".format(d['invoice_date'][:9]))
+    temp.append("{:6}".format(d['invoice_date'][:6]))
     temp.append("{:012.2f}".format(debit))
     temp.append("{:012.2f}".format(credit))
-    temp.append("{:4}".format(d['bu'][:4]))
-    temp.append("{:25}".format(d['journal_category_name'][:25]))
-    temp.append("{:25}".format(d['journal_source_name'][:25]))
-    temp.append("{:25}".format(d['batch_name'][:25]))
-    temp.append("{:1}".format(d['seq'][:1]))
+    temp.append("{:20}".format(d['journal_source_name'][:20]))
+    temp.append("{:20}".format(d['journal_category_name'][:20]))
+    temp.append("{:20}".format(d['batch_name'][:20]))
     temp.append("{:10}".format(d['ofin_for_cfs'][:10]))
     temp.append("{:240}".format(d['account_description'][:240]))
+    temp.append("{:80}".format(d['batch_name'][:80]))
 
     debit_accum = debit_accum + debit
     credit_accum = credit_accum + credit
