@@ -15,7 +15,7 @@ def prepare_data(data):
     temp.append("{:5}".format(d['ofin_cost_profit_center'][:5]))
     temp.append("{:8}".format(d['account_code'][:8]))
     temp.append("{:6}".format(d['subaccount_code'][:6]))
-    temp.append("{:6}".format(d['invoice_date'][:6]))
+    temp.append("{:6}".format(d['business_date'][:6]))
     temp.append("{:012.2f}".format(debit))
     temp.append("{:012.2f}".format(credit))
     temp.append("{:20}".format(d['journal_source_name'][:20]))
@@ -63,8 +63,8 @@ def main():
       if not os.path.exists(target_path):
         os.makedirs(target_path)
 
-      refresh_view = "refresh materialized view mv_autopos_ofin"
-      sql = "select * from mv_autopos_ofin where (credit + debit) > 0 and interface_date = '{}' and bu = '{}'".format(
+      refresh_view = "refresh materialized view mv_autopos_ofin_zy"
+      sql = "select * from mv_autopos_ofin_zy where (credit + debit) > 0 and interface_date = '{}' and bu = '{}'".format(
           batch_date.strftime('%Y%m%d'), bu)
       data = query_matview(refresh_view, sql)
       generate_data_file(target_path, batch_date.strftime('%y%m%d'), bu, data)
