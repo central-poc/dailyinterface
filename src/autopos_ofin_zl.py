@@ -30,7 +30,7 @@ def prepare_data(data):
     temp.append("{:20}".format(d['batch_name'][:20]))
     temp.append("{:10}".format(d['ofin_for_cfs'][:10]))
     temp.append("{:240}".format(d['account_description'][:240]))
-    temp.append("{:80}".format(d['batch_name'][:80]))
+    temp.append("{:80}".format(d['journal_name'][:80]))
 
     debit_accum = debit_accum + debit
     credit_accum = credit_accum + credit
