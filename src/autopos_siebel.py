@@ -1,6 +1,6 @@
 from common import connect_psql, query_all, query_matview, sftp
 from datetime import datetime, timedelta
-import os, sys, traceback
+import os, sys, traceback, uuid
 
 
 def gen_sale_tran_data(data):
@@ -77,6 +77,17 @@ def gen_tender(input):
     total[6] = "A"
     total[15:27] = ["1", "", "", "1", "", "", "", str(net_amt), "", "", "", ""]
     g.append(total)
+
+  for g in groups:
+    index = 1
+    for o in g:
+      o[1] = str(uuid.uuid4()).upper()
+      o[2] = '{:0>6}'.format(o[2])
+      if o[6] != "A" and o[6] != "C":
+        o[15] = str(index)
+        index = index + 1
+        if o[6] == "P":
+          o[26] = ''
 
   out = [item[:32] for sublist in groups for item in sublist]
 
