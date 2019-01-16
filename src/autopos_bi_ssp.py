@@ -108,7 +108,9 @@ def generate_trans_sale_detail(output_path, str_date, str_time, str_stime,
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
     f.write("\n".join(result))
+    f.write("\n")
     l.write('{}|{}|{}'.format(str_date, str_stime, len(result)))
+    l.write("\n")
     print(
         '[AutoPOS] - BI SSP[{}] transaction sale detail create files completed..'.
         format(store))
@@ -132,7 +134,9 @@ def generate_trans_tendor_detail(output_path, str_date, str_time, str_stime,
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
     f.write("\n".join(result))
+    f.write("\n")
     l.write('{}|{}|{}'.format(str_date, str_stime, len(result)))
+    l.write("\n")
     print(
         '[AutoPOS] - BI SSP[{}] transaction tendor detail create files completed..'.
         format(store))
@@ -156,7 +160,9 @@ def generate_trans_installment(output_path, str_date, str_time, str_stime,
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
     f.write("\n".join(result))
+    f.write("\n")
     l.write('{}|{}|{}'.format(str_date, str_stime, len(result)))
+    l.write("\n")
     print(
         '[AutoPOS] - BI SSP[{}] transaction installment create files completed..'.
         format(store))
@@ -178,7 +184,9 @@ def generate_trans_dcpn(output_path, str_date, str_time, str_stime, store,
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
     f.write("\n".join(result))
+    f.write("\n")
     l.write('{}|{}|{}'.format(str_date, str_stime, len(result)))
+    l.write("\n")
     print('[AutoPOS] - BI SSP[{}] transaction dpcn create files completed..'.
           format(store))
 
