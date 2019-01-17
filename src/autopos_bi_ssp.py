@@ -94,133 +94,106 @@ def prepare_data(data, fields, str_date):
   return "|".join(result)
 
 
-def generate_trans_sale_detail(output_path, str_date, str_time, str_stime,
-                               store, data):
-  prefix = 'BISSP_' + store + '_Sales_' + str_date + str_time + "_"
+def generate_trans_sale_detail(output_path, str_date, store, data):
+  prefix = 'BISSP_' + store + '_Sales_' + str_date[:12] + "_"
   seq = get_file_seq(prefix, output_path, '.DAT')
   file_name = prefix + str(seq) + '.DAT'
   file_fullpath = os.path.join(output_path, file_name)
   log_name = prefix + str(seq) + '.LOG'
   log_fullpath = os.path.join(output_path, log_name)
   result = [
-      prepare_data(d, text_format['sale_detail'], str_date) for d in data
+      prepare_data(d, text_format['sale_detail'], '') for d in data
   ]
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
     f.write("\n".join(result))
     f.write("\n")
-    l.write('{}|{}|{}'.format(str_date, str_stime, len(result)))
+    l.write('{}|{}|{}'.format(str_date[:8], str_date[-6:], len(result)))
     l.write("\n")
     print(
         '[AutoPOS] - BI SSP[{}] transaction sale detail create files completed..'.
         format(store))
 
-  # with open(file_fullpath, 'r') as f:
-  # for line in f.read().splitlines():
-  # print(len(line))
 
-
-def generate_trans_tendor_detail(output_path, str_date, str_time, str_stime,
-                                 store, data):
-  prefix = 'BISSP_' + store + '_Tendor_' + str_date + str_time + "_"
+def generate_trans_tendor_detail(output_path, str_date, store, data):
+  prefix = 'BISSP_' + store + '_Tendor_' + str_date[:12] + "_"
   seq = get_file_seq(prefix, output_path, '.DAT')
   file_name = prefix + str(seq) + '.DAT'
   file_fullpath = os.path.join(output_path, file_name)
   log_name = prefix + str(seq) + '.LOG'
   log_fullpath = os.path.join(output_path, log_name)
   result = [
-      prepare_data(d, text_format['tendor_detail'], str_date) for d in data
+      prepare_data(d, text_format['tendor_detail'], str_date[:8]) for d in data
   ]
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
     f.write("\n".join(result))
     f.write("\n")
-    l.write('{}|{}|{}'.format(str_date, str_stime, len(result)))
+    l.write('{}|{}|{}'.format(str_date[:8], str_date[-6:], len(result)))
     l.write("\n")
     print(
         '[AutoPOS] - BI SSP[{}] transaction tendor detail create files completed..'.
         format(store))
 
-  # with open(file_fullpath, 'r') as f:
-  # for line in f.read().splitlines():
-  # print(len(line))
 
-
-def generate_trans_installment(output_path, str_date, str_time, str_stime,
-                               store, data):
-  prefix = 'BISSP_' + store + '_Installment_' + str_date + str_time + "_"
+def generate_trans_installment(output_path, str_date, store, data):
+  prefix = 'BISSP_' + store + '_Installment_' + str_date[:12] + "_"
   seq = get_file_seq(prefix, output_path, '.DAT')
   file_name = prefix + str(seq) + '.DAT'
   file_fullpath = os.path.join(output_path, file_name)
   log_name = prefix + str(seq) + '.LOG'
   log_fullpath = os.path.join(output_path, log_name)
   result = [
-      prepare_data(d, text_format['installment'], str_date) for d in data
+      prepare_data(d, text_format['installment'], str_date[:8]) for d in data
   ]
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
     f.write("\n".join(result))
     f.write("\n")
-    l.write('{}|{}|{}'.format(str_date, str_stime, len(result)))
+    l.write('{}|{}|{}'.format(str_date[:8], str_date[-6:], len(result)))
     l.write("\n")
     print(
         '[AutoPOS] - BI SSP[{}] transaction installment create files completed..'.
         format(store))
 
-  # with open(file_fullpath, 'r') as f:
-  # for line in f.read().splitlines():
-  # print(len(line))
 
-
-def generate_trans_dcpn(output_path, str_date, str_time, str_stime, store,
-                        data):
-  prefix = 'BISSP_' + store + '_DCPN_' + str_date + str_time + "_"
+def generate_trans_dcpn(output_path, str_date, store, data):
+  prefix = 'BISSP_' + store + '_DCPN_' + str_date[:12] + "_"
   seq = get_file_seq(prefix, output_path, '.DAT')
   file_name = prefix + str(seq) + '.DAT'
   file_fullpath = os.path.join(output_path, file_name)
   log_name = prefix + str(seq) + '.LOG'
   log_fullpath = os.path.join(output_path, log_name)
-  result = [prepare_data(d, text_format['dcpn'], str_date) for d in data]
+  result = [prepare_data(d, text_format['dcpn'], str_date[:8]) for d in data]
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
     f.write("\n".join(result))
     f.write("\n")
-    l.write('{}|{}|{}'.format(str_date, str_stime, len(result)))
+    l.write('{}|{}|{}'.format(str_date[:8], str_date[-6:], len(result)))
     l.write("\n")
     print('[AutoPOS] - BI SSP[{}] transaction dpcn create files completed..'.
           format(store))
 
-  # with open(file_fullpath, 'r') as f:
-  # for line in f.read().splitlines():
-  # print(len(line))
-
 
 def main():
   now = datetime.now()
-  str_date = sys.argv[1] if len(sys.argv) > 1 else (
-      datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
-  str_time = (now - timedelta(days=1)).strftime('%H%M')
-  str_stime = (now - timedelta(days=1)).strftime('%H%M%S')
+  query_date = sys.argv[1] if len(sys.argv) > 1 else (now - timedelta(days=1)).strftime('%Y%m%d')
+  str_date = sys.argv[2] if len(sys.argv) > 1 else now.strftime('%Y%m%d%H%M%S')
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
-  target_path_tendor = os.path.join(parent_path, 'output/autopos/bissp/tendor',
-                                    str_date + str_time)
+  target_path_tendor = os.path.join(parent_path, 'output/autopos/bissp/tendor', str_date)
   if not os.path.exists(target_path_tendor):
     os.makedirs(target_path_tendor)
-  target_path_sale = os.path.join(parent_path, 'output/autopos/bissp/sale',
-                                  str_date + str_time)
+  target_path_sale = os.path.join(parent_path, 'output/autopos/bissp/sale', str_date)
   if not os.path.exists(target_path_sale):
     os.makedirs(target_path_sale)
-  target_path_installment = os.path.join(
-      parent_path, 'output/autopos/bissp/installment', str_date + str_time)
+  target_path_installment = os.path.join(parent_path, 'output/autopos/bissp/installment', str_date)
   if not os.path.exists(target_path_installment):
     os.makedirs(target_path_installment)
-  target_path_dcpn = os.path.join(parent_path, 'output/autopos/bissp/dcpn',
-                                  str_date + str_time)
+  target_path_dcpn = os.path.join(parent_path, 'output/autopos/bissp/dcpn', str_date)
   if not os.path.exists(target_path_dcpn):
     os.makedirs(target_path_dcpn)
-  target_path_master = os.path.join(parent_path, 'output/autopos/bissp/master',
-                                    str_date + str_time)
+  target_path_master = os.path.join(parent_path, 'output/autopos/bissp/master', str_date)
   if not os.path.exists(target_path_master):
     os.makedirs(target_path_master)
 
@@ -234,31 +207,27 @@ def main():
     for store in stores:
       refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_sale_detail"
       sql = "select * from mv_autopos_bi_ssp_trans_sale_detail where store_code = '{}' and interface_date = '{}'".format(
-          store, str_date)
+          store, query_date)
       data = query_matview(refresh_view, sql)
-      generate_trans_sale_detail(target_path_sale, str_date, str_time,
-                                 str_stime, store, data)
+      generate_trans_sale_detail(target_path_sale, str_date, store, data)
 
       refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_tendor_detail"
       sql = "select * from mv_autopos_bi_ssp_trans_tendor_detail where store_code = '{}' and interface_date = '{}'".format(
-          store, str_date)
+          store, query_date)
       data = query_matview(refresh_view, sql)
-      generate_trans_tendor_detail(target_path_tendor, str_date, str_time,
-                                   str_stime, store, data)
+      generate_trans_tendor_detail(target_path_tendor, str_date, store, data)
 
       refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_installment"
       sql = "select * from mv_autopos_bi_ssp_trans_installment where store_code = '{}' and interface_date = '{}'".format(
-          store, str_date)
+          store, query_date)
       data = query_matview(refresh_view, sql)
-      generate_trans_installment(target_path_installment, str_date, str_time,
-                                 str_stime, store, data)
+      generate_trans_installment(target_path_installment, str_date, store, data)
 
       refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_dpcn"
       sql = "select * from mv_autopos_bi_ssp_trans_dpcn where store_code = '{}' and interface_date = '{}'".format(
-          store, str_date)
+          store, query_date)
       data = query_matview(refresh_view, sql)
-      generate_trans_dcpn(target_path_dcpn, str_date, str_time, str_stime,
-                          store, data)
+      generate_trans_dcpn(target_path_dcpn, str_date, store, data)
 
     sftp('autopos.cds-uat', target_path_tendor, 'incoming/bissp/tendor')
     sftp('autopos.cds-uat', target_path_sale, 'incoming/bissp/sale')
