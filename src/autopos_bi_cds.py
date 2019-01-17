@@ -25,7 +25,7 @@ text_format = {
     ],
     'payment': [
         'transaction_date', 'store_code', 'media_member_code',
-        'pay_amt_excvat', 'pay_amt_incvat'
+        'pay_amt_incvat', 'pay_amt_excvat'
     ],
 }
 
