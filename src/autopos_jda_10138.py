@@ -8,7 +8,7 @@ def main():
   try:
     store = '10138'
     bu = 'cds'
-    str_date = sys.argv[1] if len(sys.argv) > 1 else (datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
+    str_date = sys.argv[1] if len(sys.argv) > 1 else datetime.now().strftime('%Y%m%d')
     dir_path = os.path.dirname(os.path.realpath(__file__))
     parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
     target_path = os.path.join(parent_path, 'output/autopos/jda/{}'.format(bu.lower()), str_date)
