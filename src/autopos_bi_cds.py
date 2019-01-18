@@ -41,17 +41,20 @@ def prepare_data(data, fields, str_date):
 
 
 def generate_trans_payment(output_path, str_date, store, data):
-  bu = 'BIMSL_' if store == '17016' else 'BICDS_'
+  bu = 'BIMS_' if store == '17016' else 'BICDS_'
   prefix = bu + store + '_Payment_' + str_date + "_"
   seq = get_file_seq(prefix, output_path, '.TXT')
   file_name = prefix + str(seq) + '.TXT'
   file_fullpath = os.path.join(output_path, file_name)
   log_name = prefix + str(seq) + '.LOG'
   log_fullpath = os.path.join(output_path, log_name)
-  result = [prepare_data(d, text_format['payment'], str_date) for d in data]
+  result = [prepare_data(d, text_format['payment'], str_date[:8]) for d in data]
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
-    f.write("\n".join(result))
+    if len(result) > 0:
+      f.write("\n".join(result))
+    else:
+      f.write("NO RECORD")
     f.write("\n")
     l.write('{:8}|{:4}|{}'.format(str_date[:8], str_date[-4:], len(result)))
     l.write("\n")
@@ -60,17 +63,20 @@ def generate_trans_payment(output_path, str_date, store, data):
 
 
 def generate_trans_promo(output_path, str_date, store, data):
-  bu = 'BIMSL_' if store == '17016' else 'BICDS_'
+  bu = 'BIMS_' if store == '17016' else 'BICDS_'
   prefix = bu + store + '_Promotion_' + str_date + "_"
   seq = get_file_seq(prefix, output_path, '.TXT')
   file_name = prefix + str(seq) + '.TXT'
   file_fullpath = os.path.join(output_path, file_name)
   log_name = prefix + str(seq) + '.LOG'
   log_fullpath = os.path.join(output_path, log_name)
-  result = [prepare_data(d, text_format['promo'], str_date) for d in data]
+  result = [prepare_data(d, text_format['promo'], str_date[:8]) for d in data]
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
-    f.write("\n".join(result))
+    if len(result) > 0:
+      f.write("\n".join(result))
+    else:
+      f.write("NO RECORD")
     f.write("\n")
     l.write('{:8}|{:4}|{}'.format(str_date[:8], str_date[-4:], len(result)))
     l.write("\n")
@@ -79,17 +85,20 @@ def generate_trans_promo(output_path, str_date, store, data):
 
 
 def generate_trans_discount(output_path, str_date, store, data):
-  bu = 'BIMSL_' if store == '17016' else 'BICDS_'
+  bu = 'BIMS_' if store == '17016' else 'BICDS_'
   prefix = bu + store + '_Discount_' + str_date + "_"
   seq = get_file_seq(prefix, output_path, '.TXT')
   file_name = prefix + str(seq) + '.TXT'
   file_fullpath = os.path.join(output_path, file_name)
   log_name = prefix + str(seq) + '.LOG'
   log_fullpath = os.path.join(output_path, log_name)
-  result = [prepare_data(d, text_format['discount'], str_date) for d in data]
+  result = [prepare_data(d, text_format['discount'], str_date[:8]) for d in data]
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
-    f.write("\n".join(result))
+    if len(result) > 0:
+      f.write("\n".join(result))
+    else:
+      f.write("NO RECORD")
     f.write("\n")
     l.write('{:8}|{:4}|{}'.format(str_date[:8], str_date[-4:], len(result)))
     l.write("\n")
