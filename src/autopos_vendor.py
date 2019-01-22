@@ -61,7 +61,8 @@ def generate_data_file(output_path, str_date, str_time, data):
     dat.write("\n".join(result))
     val.write('{:3}{:12}{:9}{:6}{:6}{:15}{:15}{:15}{:15}'.format(
         'HDR', dat_file, len(result), str_date, str_time, '0', '0', '0', '0'))
-    print('[AutoPOS] - Vendor .DAT & .VAL Completed..')
+  print('[AutoPOS] - Vendor .DAT & .VAL Completed..')
+  return [dat_file, val_file]
 
 
 def genrate_report(file_with_path):
@@ -116,10 +117,10 @@ def main():
   try:
     sql = "select case when status = 'D' then to_char(updated_on, 'DDMMYY') else '' end as delete_date, * from vendor where created_on <> updated_on"
     data = query_all(sql)
-    generate_data_file(target_path, batch_date.strftime('%y%m%d'),
+    files = generate_data_file(target_path, batch_date.strftime('%y%m%d'),
                        batch_date.strftime('%H%M%S'), data)
     destination = 'incoming/ofin/vendor'
-    sftp('autopos.cds-uat', target_path, destination)
+    sftp('autopos.cds-uat', target_path, destination, files)
   except Exception as e:
     print('[AutoPOS] - Vendor Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)

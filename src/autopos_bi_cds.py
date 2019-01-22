@@ -58,8 +58,8 @@ def generate_trans_payment(output_path, str_date, store, data):
     f.write("\n")
     l.write('{:8}|{:4}|{}'.format(str_date[:8], str_date[-4:], len(result)))
     l.write("\n")
-    print('[AutoPOS] - BI CDS[{}] payment create files completed..'.format(
-        store))
+  print('[AutoPOS] - BI CDS[{}] payment create files completed..'.format(store))
+  return [file_name, log_name]
 
 
 def generate_trans_promo(output_path, str_date, store, data):
@@ -80,8 +80,8 @@ def generate_trans_promo(output_path, str_date, store, data):
     f.write("\n")
     l.write('{:8}|{:4}|{}'.format(str_date[:8], str_date[-4:], len(result)))
     l.write("\n")
-    print('[AutoPOS] - BI CDS[{}] promotion create files completed..'.format(
-        store))
+  print('[AutoPOS] - BI CDS[{}] promotion create files completed..'.format(store))
+  return [file_name, log_name]
 
 
 def generate_trans_discount(output_path, str_date, store, data):
@@ -102,8 +102,8 @@ def generate_trans_discount(output_path, str_date, store, data):
     f.write("\n")
     l.write('{:8}|{:4}|{}'.format(str_date[:8], str_date[-4:], len(result)))
     l.write("\n")
-    print('[AutoPOS] - BI CDS[{}] discount create files completed..'.format(
-        store))
+  print('[AutoPOS] - BI CDS[{}] discount create files completed..'.format(store))
+  return [file_name, log_name]
 
 
 def main():
@@ -124,9 +124,6 @@ def main():
       parent_path, 'output/autopos/bicds/discount', str_date)
   if not os.path.exists(target_path_discount):
     os.makedirs(target_path_discount)
-  target_path_master = os.path.join(parent_path, 'output/autopos/bicds/master', str_date)
-  if not os.path.exists(target_path_master):
-    os.makedirs(target_path_master)
 
   try:
     stores = [
@@ -140,24 +137,23 @@ def main():
       sql = "select * from mv_autopos_bi_cds_trans_payment where interface_date = '{}' and store_code = '{}'".format(
           query_date, store)
       data = query_matview(refresh_view, sql)
-      generate_trans_payment(target_path_payment, str_date, store, data)
+      payment = generate_trans_payment(target_path_payment, str_date, store, data)
 
       refresh_view = "refresh materialized view mv_autopos_bi_cds_trans_promo"
       sql = "select * from mv_autopos_bi_cds_trans_promo where interface_date = '{}' and store_code = '{}'".format(
           query_date, store)
       data = query_matview(refresh_view, sql)
-      generate_trans_promo(target_path_promotion, str_date, store, data)
+      promo = generate_trans_promo(target_path_promotion, str_date, store, data)
 
       refresh_view = "refresh materialized view mv_autopos_bi_cds_trans_discount"
       sql = "select * from mv_autopos_bi_cds_trans_discount where interface_date = '{}' and store_code = '{}'".format(
           query_date, store)
       data = query_matview(refresh_view, sql)
-      generate_trans_discount(target_path_discount, str_date, store, data)
+      discount = generate_trans_discount(target_path_discount, str_date, store, data)
 
-    sftp('autopos.cds-uat', target_path_payment, 'incoming/bicds/payment')
-    sftp('autopos.cds-uat', target_path_promotion, 'incoming/bicds/promotion')
-    sftp('autopos.cds-uat', target_path_discount, 'incoming/bicds/discount')
-    sftp('autopos.cds-uat', target_path_master, 'incoming/bicds/master')
+      sftp('autopos.cds-uat', target_path_payment, 'incoming/bicds/payment', payment)
+      sftp('autopos.cds-uat', target_path_promotion, 'incoming/bicds/promotion', promo)
+      sftp('autopos.cds-uat', target_path_discount, 'incoming/bicds/discount', discount)
   except Exception as e:
     print('[AutoPOS] - BI CDS Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)

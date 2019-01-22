@@ -53,15 +53,15 @@ def notifySlack(message):
       'Slakc Response: {status_code}'.format(status_code=response.status_code))
 
 
-def sftp(owner, source, destination):
-  print('[SFTP] - source: {}, destionation: {}'.format(source, destination))
+def sftp(owner, source, destination, files):
+  print('[SFTP] - source: {}, destionation: {}, files: {}'.format(source, destination, files))
   ssh = paramiko.SSHClient()
   ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
   k = paramiko.rsakey.RSAKey.from_private_key_file('key/' + owner)
   ssh.connect('ai-upload.central.tech', username=owner, pkey=k)
   sftp = ssh.open_sftp()
-  for filename in os.listdir(source):
-    sftp.put(os.path.join(source, filename), os.path.join(destination, filename))
+  for file in files:
+    sftp.put(os.path.join(source, file), os.path.join(destination, file))
 
 
 def cleardir(path):
@@ -91,9 +91,10 @@ def connect_psql():
       password='Zxcv123!autopos',
       dbname='dbfms')
 
+
 def replace_pipe(data):
-  for key,value in data.items():
-    data[key]= str(value).replace('|','')
+  for key, value in data.items():
+    data[key] = str(value).replace('|', '')
   return data
 
 
@@ -111,8 +112,9 @@ def query_matview(refresh_view, str_query):
     with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
       cursor.execute(refresh_view)
       cursor.execute(str_query)
-      
+
       return cursor.fetchall()
+
 
 def query_all(sql):
   with connect_psql() as conn:
@@ -123,7 +125,8 @@ def query_all(sql):
 
 
 def ftp(host, user, pwd, src, dest):
-  print('[FTP] - host: {}, user: {}, source: {}, destination: {}'.format(host, user, src, dest))
+  print('[FTP] - host: {}, user: {}, source: {}, destination: {}'.format(
+      host, user, src, dest))
   with ftplib.FTP(host) as ftp:
     try:
       ftp.login(user, pwd)
@@ -140,4 +143,6 @@ def ftp(host, user, pwd, src, dest):
 
 
 if __name__ == '__main__':
-  ftp('10.0.173.24', 'cdshopos', 'hopos', '/Users/adisorn/Documents/workspace/cng/code/dailyinterface/output/autopos/ofin/zy/cds/20181223', '/p3/fnp/cds/epos/data_in')
+  ftp('10.0.173.24', 'cdshopos', 'hopos',
+      '/Users/adisorn/Documents/workspace/cng/code/dailyinterface/output/autopos/ofin/zy/cds/20181223',
+      '/p3/fnp/cds/epos/data_in')

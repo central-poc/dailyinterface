@@ -52,7 +52,8 @@ def generate_data_file(output_path, str_date, data):
     dat.write("\n".join(result))
     val.write('{:15}{:0>10}{:015.2f}{:015.2f}'.format(dat_file, len(result),
                                                       debit, credit))
-    print('[AutoPOS] - ZN .DAT & .VAL Completed..')
+  print('[AutoPOS] - ZN .DAT & .VAL Completed..')
+  return [dat_file, val_file]
 
 
 def main():
@@ -74,10 +75,10 @@ def main():
     if not is_debit_equals_credit(data):
       return
 
-    generate_data_file(target_path, batch_date.strftime('%y%m%d'), data)
+    files = generate_data_file(target_path, batch_date.strftime('%y%m%d'), data)
 
     destination = 'incoming/ofin/gl'
-    sftp('autopos.cds-uat', target_path, destination)
+    sftp('autopos.cds-uat', target_path, destination, files)
   except Exception as e:
     print('[AutoPOS] - ZN Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)

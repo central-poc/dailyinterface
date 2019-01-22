@@ -16,9 +16,9 @@ def main():
     if not os.path.exists(target_path):
       os.makedirs(target_path)
 
-    generate_data_file(target_path, store, prepare_data(query_data(store, str_date)))
+    files = generate_data_file(target_path, store, prepare_data(query_data(store, str_date)))
     destination = 'incoming/jda/{}'.format(bu.lower())
-    sftp('autopos.cds-uat', target_path, destination)
+    sftp('autopos.cds-uat', target_path, destination, files)
   except Exception as e:
     print('[AutoPOS] - JDA Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)

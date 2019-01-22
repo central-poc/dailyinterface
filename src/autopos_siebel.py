@@ -130,6 +130,7 @@ def generate_data_file(output_path, bu, sale_transactions):
         attribute2))
   print(
       '[AUtoPOS] - Siebel[{}] create .DAT & .CTRL file completed..'.format(bu))
+  return [datfile, ctrlfile]
 
 
 def main():
@@ -155,10 +156,10 @@ def main():
           bu, str_date)
       datas = query_matview(refresh_view, sql)
       data_list = [gen_sale_tran_data(data) for data in datas]
-      generate_data_file(target_path, bu, gen_tender(data_list))
+      files = generate_data_file(target_path, bu, gen_tender(data_list))
 
       destination = 'incoming/siebel/{}'.format(bu.lower())
-      sftp('autopos.cds-uat', target_path, destination)
+      sftp('autopos.cds-uat', target_path, destination, files)
   except Exception as e:
     print('[AutoPOS] - Siebel Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)

@@ -45,7 +45,8 @@ def generate_data_file(output_path, str_date, bu, data):
     dat.write("\n".join(result))
     val.write('{:15}{:0>10}{:015.2f}{:015.2f}'.format(dat_file, len(result),
                                                       debit, credit))
-    print('[AutoPOS] - OFIN[{}] create files completed..'.format(bu))
+  print('[AutoPOS] - OFIN[{}] create files completed..'.format(bu))
+  return [dat_file, val_file]
 
 
 def main():
@@ -67,10 +68,10 @@ def main():
       sql = "select * from mv_autopos_ofin_zy where (credit + debit) > 0 and interface_date = '{}' and bu = '{}'".format(
           batch_date.strftime('%Y%m%d'), bu)
       data = query_matview(refresh_view, sql)
-      generate_data_file(target_path, batch_date.strftime('%y%m%d'), bu, data)
+      files = generate_data_file(target_path, batch_date.strftime('%y%m%d'), bu, data)
 
       destination = 'incoming/ofin/zy/{}'.format(bu.lower())
-      sftp('autopos.cds-uat', target_path, destination)
+      sftp('autopos.cds-uat', target_path, destination, files)
   except Exception as e:
     print('[AutoPOS] - OFIN Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)

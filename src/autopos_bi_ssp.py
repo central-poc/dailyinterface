@@ -110,9 +110,8 @@ def generate_trans_sale_detail(output_path, str_date, store, data):
     f.write("\n")
     l.write('{}|{}|{}'.format(str_date[:8], str_date[-6:], len(result)))
     l.write("\n")
-    print(
-        '[AutoPOS] - BI SSP[{}] transaction sale detail create files completed..'.
-        format(store))
+  print('[AutoPOS] - BI SSP[{}] transaction sale detail create files completed..'.format(store))
+  return [file_name, log_name]
 
 
 def generate_trans_tendor_detail(output_path, str_date, store, data):
@@ -131,9 +130,8 @@ def generate_trans_tendor_detail(output_path, str_date, store, data):
     f.write("\n")
     l.write('{}|{}|{}'.format(str_date[:8], str_date[-6:], len(result)))
     l.write("\n")
-    print(
-        '[AutoPOS] - BI SSP[{}] transaction tendor detail create files completed..'.
-        format(store))
+  print('[AutoPOS] - BI SSP[{}] transaction tendor detail create files completed..'.format(store))
+  return [file_name, log_name]
 
 
 def generate_trans_installment(output_path, str_date, store, data):
@@ -152,9 +150,8 @@ def generate_trans_installment(output_path, str_date, store, data):
     f.write("\n")
     l.write('{}|{}|{}'.format(str_date[:8], str_date[-6:], len(result)))
     l.write("\n")
-    print(
-        '[AutoPOS] - BI SSP[{}] transaction installment create files completed..'.
-        format(store))
+  print('[AutoPOS] - BI SSP[{}] transaction installment create files completed..'.format(store))
+  return [file_name, log_name]
 
 
 def generate_trans_dcpn(output_path, str_date, store, data):
@@ -171,8 +168,8 @@ def generate_trans_dcpn(output_path, str_date, store, data):
     f.write("\n")
     l.write('{}|{}|{}'.format(str_date[:8], str_date[-6:], len(result)))
     l.write("\n")
-    print('[AutoPOS] - BI SSP[{}] transaction dpcn create files completed..'.
-          format(store))
+  print('[AutoPOS] - BI SSP[{}] transaction dpcn create files completed..'.format(store))
+  return [file_name, log_name]
 
 
 def main():
@@ -193,9 +190,6 @@ def main():
   target_path_dcpn = os.path.join(parent_path, 'output/autopos/bissp/dcpn', str_date)
   if not os.path.exists(target_path_dcpn):
     os.makedirs(target_path_dcpn)
-  target_path_master = os.path.join(parent_path, 'output/autopos/bissp/master', str_date)
-  if not os.path.exists(target_path_master):
-    os.makedirs(target_path_master)
 
   try:
     stores = [
@@ -209,32 +203,30 @@ def main():
       sql = "select * from mv_autopos_bi_ssp_trans_sale_detail where store_code = '{}' and interface_date = '{}'".format(
           store, query_date)
       data = query_matview(refresh_view, sql)
-      generate_trans_sale_detail(target_path_sale, str_date, store, data)
+      sale = generate_trans_sale_detail(target_path_sale, str_date, store, data)
 
       refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_tendor_detail"
       sql = "select * from mv_autopos_bi_ssp_trans_tendor_detail where store_code = '{}' and interface_date = '{}'".format(
           store, query_date)
       data = query_matview(refresh_view, sql)
-      generate_trans_tendor_detail(target_path_tendor, str_date, store, data)
+      tendor = generate_trans_tendor_detail(target_path_tendor, str_date, store, data)
 
       refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_installment"
       sql = "select * from mv_autopos_bi_ssp_trans_installment where store_code = '{}' and interface_date = '{}'".format(
           store, query_date)
       data = query_matview(refresh_view, sql)
-      generate_trans_installment(target_path_installment, str_date, store, data)
+      installment = generate_trans_installment(target_path_installment, str_date, store, data)
 
       refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_dpcn"
       sql = "select * from mv_autopos_bi_ssp_trans_dpcn where store_code = '{}' and interface_date = '{}'".format(
           store, query_date)
       data = query_matview(refresh_view, sql)
-      generate_trans_dcpn(target_path_dcpn, str_date, store, data)
+      dcpn = generate_trans_dcpn(target_path_dcpn, str_date, store, data)
 
-    sftp('autopos.cds-uat', target_path_tendor, 'incoming/bissp/tendor')
-    sftp('autopos.cds-uat', target_path_sale, 'incoming/bissp/sale')
-    sftp('autopos.cds-uat', target_path_installment,
-         'incoming/bissp/installment')
-    sftp('autopos.cds-uat', target_path_dcpn, 'incoming/bissp/dcpn')
-    sftp('autopos.cds-uat', target_path_master, 'incoming/bissp/master')
+      sftp('autopos.cds-uat', target_path_tendor, 'incoming/bissp/tendor', tendor)
+      sftp('autopos.cds-uat', target_path_sale, 'incoming/bissp/sale', sale)
+      sftp('autopos.cds-uat', target_path_installment,'incoming/bissp/installment', installment)
+      sftp('autopos.cds-uat', target_path_dcpn, 'incoming/bissp/dcpn', dcpn)
   except Exception as e:
     print('[AutoPOS] - BI SSP Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)

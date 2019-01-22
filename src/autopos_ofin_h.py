@@ -50,7 +50,8 @@ def generate_data_file(output_path, str_date, data):
     result, invoice = prepare_data(data)
     dat.write("\n".join(result))
     val.write('{:20}{:0>10}{:015.2f}'.format(dat_file, len(result), invoice))
-    print('[AutoPOS] - H create files .MER & .LOG completed..')
+  print('[AutoPOS] - H create files .MER & .LOG completed..')
+  return [dat_file, val_file]
 
 
 def main():
@@ -69,9 +70,9 @@ def main():
     sql = "select * from mv_autopos_ofin_head where interface_date = '{}'".format(
         batch_date.strftime('%Y%m%d'))
     data = query_matview(refresh_view, sql)
-    generate_data_file(target_path, batch_date.strftime('%y%m%d'), data)
+    files = generate_data_file(target_path, batch_date.strftime('%y%m%d'), data)
     destination = 'incoming/ofin/ap'
-    sftp('autopos.cds-uat', target_path, destination)
+    sftp('autopos.cds-uat', target_path, destination, files)
   except Exception as e:
     print('[AutoPOS] - H Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)

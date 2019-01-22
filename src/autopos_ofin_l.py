@@ -41,7 +41,8 @@ def generate_data_file(output_path, str_date, data):
     dat.write("\n".join(result))
     val.write('{:20}{:0>10}{:015.2f}'.format(dat_file, len(result),
                                              sum_amount))
-    print('[AutoPOS] - L create file .MER completed..')
+  print('[AutoPOS] - L create file .MER completed..')
+  return [dat_file, val_file]
 
 
 def main():
@@ -60,9 +61,9 @@ def main():
     sql = "select * from mv_autopos_ofin_line where interface_date = '{}'".format(
         batch_date.strftime('%Y%m%d'))
     data = query_matview(refresh_view, sql)
-    generate_data_file(target_path, batch_date.strftime('%y%m%d'), data)
+    files = generate_data_file(target_path, batch_date.strftime('%y%m%d'), data)
     destination = 'incoming/ofin/ap'
-    sftp('autopos.cds-uat', target_path, destination)
+    sftp('autopos.cds-uat', target_path, destination, files)
   except Exception as e:
     print('[AutoPOS] - L Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
