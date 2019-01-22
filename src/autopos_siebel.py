@@ -134,8 +134,8 @@ def generate_data_file(output_path, bu, sale_transactions):
 
 
 def main():
-  str_date = sys.argv[1] if len(sys.argv) > 1 else (
-      datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
+  now = datetime.now()
+  str_date = sys.argv[1] if len(sys.argv) > 1 else (now - timedelta(days=1)).strftime('%Y%m%d')
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
 
@@ -147,8 +147,7 @@ def main():
         )
     ]
     for bu in bus:
-      target_path = os.path.join(
-          parent_path, 'output/autopos/siebel/{}'.format(bu.lower()), str_date)
+      target_path = os.path.join(parent_path, 'output/autopos/siebel/{}'.format(bu.lower()), now.strftime('%Y%m%d'))
       if not os.path.exists(target_path):
         os.makedirs(target_path)
       refresh_view = "refresh materialized view mv_autopos_siebel"
