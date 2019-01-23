@@ -1,4 +1,4 @@
-from common import connect_psql, get_file_seq, query_all, query_matview, sftp
+from common import config, connect_psql, get_file_seq, query_all, query_matview, sftp
 from datetime import datetime, timedelta
 import os, sys, traceback
 
@@ -107,9 +107,12 @@ def generate_trans_discount(output_path, str_date, store, data):
 
 
 def main():
+  env = sys.argv[1] if len(sys.argv) > 1 else 'local'
+  print("\n===== Start Siebel [{}] =====".format(env))
+  cfg = config(env)
   now = datetime.now()
-  query_date = sys.argv[1] if len(sys.argv) > 1 else (now - timedelta(days=1)).strftime('%Y%m%d')
-  str_date = sys.argv[2] if len(sys.argv) > 1 else now.strftime('%Y%m%d%H%M')
+  query_date = cfg['run_date'] if cfg['run_date'] else (now - timedelta(days=1)).strftime('%Y%m%d')
+  str_date = cfg['bicds_date'] if cfg['bicds_date'] else now.strftime('%Y%m%d%H%M')
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
   target_path_payment = os.path.join(
@@ -126,9 +129,10 @@ def main():
     os.makedirs(target_path_discount)
 
   try:
+    dbfms = cfg['fms']
     stores = [
         x['store_code']
-        for x in query_all(
+        for x in query_all(dbfms,
             "select store_code from businessunit where businessunit_code in ('CDS', 'MSL') and status = 'AT' group by store_code"
         )
     ]
@@ -136,24 +140,25 @@ def main():
       refresh_view = "refresh materialized view mv_autopos_bi_cds_trans_payment"
       sql = "select * from mv_autopos_bi_cds_trans_payment where interface_date = '{}' and store_code = '{}'".format(
           query_date, store)
-      data = query_matview(refresh_view, sql)
+      data = query_matview(dbfms, refresh_view, sql)
       payment = generate_trans_payment(target_path_payment, str_date, store, data)
 
       refresh_view = "refresh materialized view mv_autopos_bi_cds_trans_promo"
       sql = "select * from mv_autopos_bi_cds_trans_promo where interface_date = '{}' and store_code = '{}'".format(
           query_date, store)
-      data = query_matview(refresh_view, sql)
+      data = query_matview(dbfms, refresh_view, sql)
       promo = generate_trans_promo(target_path_promotion, str_date, store, data)
 
       refresh_view = "refresh materialized view mv_autopos_bi_cds_trans_discount"
       sql = "select * from mv_autopos_bi_cds_trans_discount where interface_date = '{}' and store_code = '{}'".format(
           query_date, store)
-      data = query_matview(refresh_view, sql)
+      data = query_matview(dbfms, refresh_view, sql)
       discount = generate_trans_discount(target_path_discount, str_date, store, data)
 
-      sftp('autopos.cds-uat', target_path_payment, 'incoming/bicds/payment', payment)
-      sftp('autopos.cds-uat', target_path_promotion, 'incoming/bicds/promotion', promo)
-      sftp('autopos.cds-uat', target_path_discount, 'incoming/bicds/discount', discount)
+      if cfg['ftp']['is_enable']:
+        sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_payment, 'incoming/bicds/payment', payment)
+        sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_promotion, 'incoming/bicds/promotion', promo)
+        sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_discount, 'incoming/bicds/discount', discount)
   except Exception as e:
     print('[AutoPOS] - BI CDS Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)

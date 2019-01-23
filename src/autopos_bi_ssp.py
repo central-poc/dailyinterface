@@ -1,4 +1,4 @@
-from common import connect_psql, get_file_seq, query_all, query_matview, sftp
+from common import config, connect_psql, get_file_seq, query_all, query_matview, sftp
 from datetime import datetime, timedelta
 import os, sys, traceback
 
@@ -96,10 +96,10 @@ def prepare_data(data, fields, str_date):
 
 def generate_trans_sale_detail(output_path, str_date, store, data):
   prefix = 'BISSP_' + store + '_Sales_' + str_date[:12] + "_"
-  seq = get_file_seq(prefix, output_path, '.DAT')
-  file_name = prefix + str(seq) + '.DAT'
+  seq = get_file_seq(prefix, output_path, '.DATA')
+  file_name = '{}{:0>2}.DATA'.format(prefix, seq)
   file_fullpath = os.path.join(output_path, file_name)
-  log_name = prefix + str(seq) + '.LOG'
+  log_name = '{}{:0>2}.LOG'.format(prefix, seq)
   log_fullpath = os.path.join(output_path, log_name)
   result = [
       prepare_data(d, text_format['sale_detail'], '') for d in data
@@ -116,10 +116,10 @@ def generate_trans_sale_detail(output_path, str_date, store, data):
 
 def generate_trans_tendor_detail(output_path, str_date, store, data):
   prefix = 'BISSP_' + store + '_Tendor_' + str_date[:12] + "_"
-  seq = get_file_seq(prefix, output_path, '.DAT')
-  file_name = prefix + str(seq) + '.DAT'
+  seq = get_file_seq(prefix, output_path, '.DATA')
+  file_name = '{}{:0>2}.DATA'.format(prefix, seq)
   file_fullpath = os.path.join(output_path, file_name)
-  log_name = prefix + str(seq) + '.LOG'
+  log_name = '{}{:0>2}.LOG'.format(prefix, seq)
   log_fullpath = os.path.join(output_path, log_name)
   result = [
       prepare_data(d, text_format['tendor_detail'], str_date[:8]) for d in data
@@ -136,10 +136,10 @@ def generate_trans_tendor_detail(output_path, str_date, store, data):
 
 def generate_trans_installment(output_path, str_date, store, data):
   prefix = 'BISSP_' + store + '_Installment_' + str_date[:12] + "_"
-  seq = get_file_seq(prefix, output_path, '.DAT')
-  file_name = prefix + str(seq) + '.DAT'
+  seq = get_file_seq(prefix, output_path, '.DATA')
+  file_name = '{}{:0>2}.DATA'.format(prefix, seq)
   file_fullpath = os.path.join(output_path, file_name)
-  log_name = prefix + str(seq) + '.LOG'
+  log_name = '{}{:0>2}.LOG'.format(prefix, seq)
   log_fullpath = os.path.join(output_path, log_name)
   result = [
       prepare_data(d, text_format['installment'], str_date[:8]) for d in data
@@ -156,10 +156,10 @@ def generate_trans_installment(output_path, str_date, store, data):
 
 def generate_trans_dcpn(output_path, str_date, store, data):
   prefix = 'BISSP_' + store + '_DCPN_' + str_date[:12] + "_"
-  seq = get_file_seq(prefix, output_path, '.DAT')
-  file_name = prefix + str(seq) + '.DAT'
+  seq = get_file_seq(prefix, output_path, '.DATA')
+  file_name = '{}{:0>2}.DATA'.format(prefix, seq)
   file_fullpath = os.path.join(output_path, file_name)
-  log_name = prefix + str(seq) + '.LOG'
+  log_name = '{}{:0>2}.LOG'.format(prefix, seq)
   log_fullpath = os.path.join(output_path, log_name)
   result = [prepare_data(d, text_format['dcpn'], str_date[:8]) for d in data]
 
@@ -173,9 +173,13 @@ def generate_trans_dcpn(output_path, str_date, store, data):
 
 
 def main():
+  env = sys.argv[1] if len(sys.argv) > 1 else 'local'
+  print("\n===== Start Siebel [{}] =====".format(env))
+  cfg = config(env)
   now = datetime.now()
-  query_date = sys.argv[1] if len(sys.argv) > 1 else (now - timedelta(days=1)).strftime('%Y%m%d')
-  str_date = sys.argv[2] if len(sys.argv) > 1 else now.strftime('%Y%m%d%H%M%S')
+  query_date = cfg['run_date'] if cfg['run_date'] else (now - timedelta(days=1)).strftime('%Y%m%d')
+  str_date = cfg['bispp_date'] if cfg['bissp_date'] else now.strftime('%Y%m%d%H%M%S')
+  
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
   target_path_tendor = os.path.join(parent_path, 'output/autopos/bissp/tendor', str_date)
@@ -192,9 +196,10 @@ def main():
     os.makedirs(target_path_dcpn)
 
   try:
+    dbfms = cfg['fms']
     stores = [
         x['store_code']
-        for x in query_all(
+        for x in query_all(dbfms, 
             "select store_code from businessunit where businessunit_code = 'SSP' and status = 'AT' group by store_code"
         )
     ]
@@ -202,31 +207,32 @@ def main():
       refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_sale_detail"
       sql = "select * from mv_autopos_bi_ssp_trans_sale_detail where store_code = '{}' and interface_date = '{}'".format(
           store, query_date)
-      data = query_matview(refresh_view, sql)
+      data = query_matview(dbfms, refresh_view, sql)
       sale = generate_trans_sale_detail(target_path_sale, str_date, store, data)
 
       refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_tendor_detail"
       sql = "select * from mv_autopos_bi_ssp_trans_tendor_detail where store_code = '{}' and interface_date = '{}'".format(
           store, query_date)
-      data = query_matview(refresh_view, sql)
+      data = query_matview(dbfms, refresh_view, sql)
       tendor = generate_trans_tendor_detail(target_path_tendor, str_date, store, data)
 
       refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_installment"
       sql = "select * from mv_autopos_bi_ssp_trans_installment where store_code = '{}' and interface_date = '{}'".format(
           store, query_date)
-      data = query_matview(refresh_view, sql)
+      data = query_matview(dbfms, refresh_view, sql)
       installment = generate_trans_installment(target_path_installment, str_date, store, data)
 
       refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_dpcn"
       sql = "select * from mv_autopos_bi_ssp_trans_dpcn where store_code = '{}' and interface_date = '{}'".format(
           store, query_date)
-      data = query_matview(refresh_view, sql)
+      data = query_matview(dbfms, refresh_view, sql)
       dcpn = generate_trans_dcpn(target_path_dcpn, str_date, store, data)
 
-      sftp('autopos.cds-uat', target_path_tendor, 'incoming/bissp/tendor', tendor)
-      sftp('autopos.cds-uat', target_path_sale, 'incoming/bissp/sale', sale)
-      sftp('autopos.cds-uat', target_path_installment,'incoming/bissp/installment', installment)
-      sftp('autopos.cds-uat', target_path_dcpn, 'incoming/bissp/dcpn', dcpn)
+      if cfg['ftp']['is_enable']:
+        sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_tendor, 'incoming/bissp/tendor', tendor)
+        sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_sale, 'incoming/bissp/sale', sale)
+        sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_installment,'incoming/bissp/installment', installment)
+        sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_dcpn, 'incoming/bissp/dcpn', dcpn)
   except Exception as e:
     print('[AutoPOS] - BI SSP Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
