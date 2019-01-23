@@ -1,6 +1,51 @@
-dev:
+local:
   cmos:
-    host: 10.17.219.173
-    user: app-cmos
-    password: Zxcv123!
-    db: DBMKP
+    host: 'localhost'
+    user: 'app-t1c'
+    password: 'Zxcv123!'
+    db: 'DBMKP'
+  fms:
+    host: 'localhost'
+    port: 5433
+    user: 'postgres'
+    password: 'Zxcv123!autopos'
+    db: 'dbfms'
+  ftp:
+    host: 'ai-upload.central.tech'
+    user: 'autopos.cds-uat'
+    is_enable: false
+  run_date:
+uat:
+  cmos:
+    host: '10.17.221.173'
+    user: 'app-t1c'
+    password: 'Zxcv123!'
+    db: 'DBMKP'
+  fms:
+    host: 'cds-fms-uat.c1lxkbgl6wrw.ap-southeast-1.rds.amazonaws.com'
+    port: 5432
+    user: 'postgres'
+    password: 'Zxcv123!autopos'
+    db: 'dbfms'
+  ftp:
+    host: 'ai-upload.central.tech'
+    user: 'autopos.cds-uat'
+    is_enable: true
+  run_date:
+prod:
+  cmos:
+    host: '10.17.220.173'
+    user: 'app-t1c'
+    password: 'Zxcv123!'
+    db: 'DBMKP'
+  fms:
+    host: 'cds-fms-prod.c1lxkbgl6wrw.ap-southeast-1.rds.amazonaws.com'
+    port: 5432
+    user: 'postgres'
+    password: 'Zxcv123!autopos'
+    db: 'dbfms'
+  ftp:
+    host: 'ai-upload.central.tech'
+    user: 'autopos.cds-prod'
+    is_enable: true
+  run_date:

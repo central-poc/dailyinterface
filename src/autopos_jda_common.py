@@ -110,6 +110,13 @@ def prepare_data_b2s(datas):
   return result
 
 
+def query_data(env, store, str_date):
+  refresh_view = "refresh materialized view mv_autopos_jda"
+  sql = "select * from mv_autopos_jda where store_code = '{}' and interface_date = '{}'".format(store, str_date)
+  
+  return query_matview(env, refresh_view, sql)
+
+
 def generate_data_file(output_path, store, datas):
   file_name = 'SD' + store + '.TXT'
   file_fullpath = os.path.join(output_path, file_name)
@@ -120,8 +127,14 @@ def generate_data_file(output_path, store, datas):
   return [file_name]
 
 
-def query_data(store, str_date):
-  refresh_view = "refresh materialized view mv_autopos_jda"
-  sql = "select * from mv_autopos_jda where store_code = '{}' and interface_date = '{}'".format(store, str_date)
-  
-  return query_matview(refresh_view, sql)
+def process(bu, store, cfg, run_date):
+  dir_path = os.path.dirname(os.path.realpath(__file__))
+  parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
+  target_path = os.path.join(parent_path, 'output/autopos/jda/{}'.format(bu), run_date)
+  if not os.path.exists(target_path):
+    os.makedirs(target_path)
+
+  files = generate_data_file(target_path, store, prepare_data(query_data(cfg['fms'], store, run_date)))
+  if cfg['ftp']['is_enable']:
+      destination = 'incoming/jda/{}'.format(bu)
+      sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path, destination, files)
