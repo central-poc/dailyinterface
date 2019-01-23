@@ -14,7 +14,12 @@ local:
     host: 'ai-upload.central.tech'
     user: 'autopos.cds-uat'
     is_enable: false
+  # format = YYYYMMDD
   run_date:
+  #format = YYYYMMDDHHmm
+  bicds_date:
+  #format = YYYYMMDDHHmmss
+  bissp_date:
 uat:
   cmos:
     host: '10.17.221.173'
@@ -30,8 +35,10 @@ uat:
   ftp:
     host: 'ai-upload.central.tech'
     user: 'autopos.cds-uat'
-    is_enable: true
+    is_enable: false
   run_date:
+  bicds_date:
+  bissp_date:
 prod:
   cmos:
     host: '10.17.220.173'
@@ -49,3 +56,5 @@ prod:
     user: 'autopos.cds-prod'
     is_enable: true
   run_date:
+  bicds_date:
+  bissp_date:
