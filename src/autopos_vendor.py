@@ -1,4 +1,4 @@
-from common import connect_psql, get_file_seq, query_all, sftp
+from common import config, connect_psql, get_file_seq, query_all, sftp
 from datetime import datetime, timedelta
 import os, sys, traceback
 
@@ -104,23 +104,23 @@ def genrate_report(file_with_path):
 
 
 def main():
-  batch_date = datetime.strptime(
-      sys.argv[1],
-      '%Y%m%d') if len(sys.argv) > 1 else datetime.now() - timedelta(days=1)
+  env = sys.argv[1] if len(sys.argv) > 1 else 'local'
+  print("\n===== Start OFIN VENDOR [{}] =====".format(env))
+  cfg = config(env)
+  batch_date = datetime.strptime(cfg['run_date'], '%Y%m%d') if cfg['run_date'] else datetime.now() - timedelta(days=1)
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
-  target_path = os.path.join(parent_path, 'output/autopos/ofin/vendor',
-                             batch_date.strftime('%Y%m%d'))
+  target_path = os.path.join(parent_path, 'output/autopos/ofin/vendor', batch_date.strftime('%Y%m%d'))
   if not os.path.exists(target_path):
     os.makedirs(target_path)
 
   try:
     sql = "select case when status = 'D' then to_char(updated_on, 'DDMMYY') else '' end as delete_date, * from vendor where created_on <> updated_on"
-    data = query_all(sql)
-    files = generate_data_file(target_path, batch_date.strftime('%y%m%d'),
-                       batch_date.strftime('%H%M%S'), data)
-    destination = 'incoming/ofin/vendor'
-    sftp('autopos.cds-uat', target_path, destination, files)
+    data = query_all(cfg['fms'], sql)
+    files = generate_data_file(target_path, batch_date.strftime('%y%m%d'), batch_date.strftime('%H%M%S'), data)
+    if cfg['ftp']['is_enable']:
+      destination = 'incoming/ofin/vendor'
+      sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path, destination, files)    
   except Exception as e:
     print('[AutoPOS] - Vendor Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
