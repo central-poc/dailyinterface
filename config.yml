@@ -35,7 +35,7 @@ uat:
   ftp:
     host: 'ai-upload.central.tech'
     user: 'autopos.cds-uat'
-    is_enable: false
+    is_enable: true
   run_date:
   bicds_date:
   bissp_date:
