@@ -1,4 +1,4 @@
-from common import connect_psql, query_all, query_matview, sftp
+from common import config, connect_psql, query_all, query_matview, sftp
 from datetime import datetime, timedelta
 import os, sys, traceback, uuid
 
@@ -125,7 +125,7 @@ def generate_data_file(output_path, bu, sale_transactions):
   attribute1 = ""
   attribute2 = ""
   with open(filepath, 'w') as outfile:
-    outfile.write('{}|{}|005|1|{}|{}|{}-CTO|{}|{}'.format(
+    outfile.write('{}|{}|001|1|{}|{}|{}-CTO|{}|{}'.format(
         interface_name, bu, total_row, batchdatetime, bu, attribute1,
         attribute2))
   print(
@@ -134,15 +134,17 @@ def generate_data_file(output_path, bu, sale_transactions):
 
 
 def main():
+  env = sys.argv[1] if len(sys.argv) > 1 else 'local'
+  print("\n===== Start Siebel [{}] =====".format(env))
+  cfg = config(env)
   now = datetime.now()
-  str_date = sys.argv[1] if len(sys.argv) > 1 else (now - timedelta(days=1)).strftime('%Y%m%d')
+  batch_date = datetime.strptime(cfg['run_date'], '%Y%m%d') if cfg['run_date'] else (now - timedelta(days=1)).strftime('%Y%m%d')
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
-
   try:
     bus = [
         x['businessunit_code']
-        for x in query_all(
+        for x in query_all(cfg['fms'],
             "select businessunit_code from businessunit where status = 'AT' group by businessunit_code"
         )
     ]
@@ -152,13 +154,14 @@ def main():
         os.makedirs(target_path)
       refresh_view = "refresh materialized view mv_autopos_siebel"
       sql = "select * from mv_autopos_siebel where bu = '{}' and interface_date = '{}'".format(
-          bu, str_date)
-      datas = query_matview(refresh_view, sql)
+          bu, batch_date)
+      datas = query_matview(cfg['fms'], refresh_view, sql)
       data_list = [gen_sale_tran_data(data) for data in datas]
       files = generate_data_file(target_path, bu, gen_tender(data_list))
 
-      destination = 'incoming/siebel/{}'.format(bu.lower())
-      sftp('autopos.cds-uat', target_path, destination, files)
+      if cfg['ftp']['is_enable']:
+        destination = 'incoming/siebel/{}'.format(bu.lower())
+        sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path, destination, files)
   except Exception as e:
     print('[AutoPOS] - Siebel Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
