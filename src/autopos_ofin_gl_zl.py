@@ -1,4 +1,4 @@
-from common import connect_psql, get_file_seq, query_matview, sftp
+from common import config, connect_psql, get_file_seq, query_matview, sftp
 from datetime import datetime, timedelta
 import os, sys, traceback
 
@@ -57,12 +57,13 @@ def generate_data_file(output_path, str_date, data):
 
 
 def main():
-  batch_date = datetime.strptime(
-      sys.argv[1],
-      '%Y%m%d') if len(sys.argv) > 1 else datetime.now() - timedelta(days=1)
+  env = sys.argv[1] if len(sys.argv) > 1 else 'local'
+  print("\n===== Start OFIN ZL [{}] =====".format(env))
+  cfg = config(env)
+  batch_date = datetime.strptime(cfg['run_date'], '%Y%m%d') if cfg['run_date'] else datetime.now() - timedelta(days=1)
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
-  target_path = os.path.join(parent_path, 'output/autopos/ofin/gl',
+  target_path = os.path.join(parent_path, 'output/autopos/{}/ofin/gl'.format(env),
                              batch_date.strftime('%Y%m%d'))
   if not os.path.exists(target_path):
     os.makedirs(target_path)
@@ -71,14 +72,15 @@ def main():
     refresh_view = "refresh materialized view mv_autopos_ofin_zl"
     sql = "select * from mv_autopos_ofin_zl where (credit + debit) > 0 and interface_date = '{}'".format(
         batch_date.strftime('%Y%m%d'))
-    data = query_matview(refresh_view, sql)
+    data = query_matview(cfg['fms'], refresh_view, sql)
     if not is_debit_equals_credit(data):
       return
 
     files = generate_data_file(target_path, batch_date.strftime('%y%m%d'), data)
 
-    destination = 'incoming/ofin/gl'
-    sftp('autopos.cds-uat', target_path, destination, files)
+    if cfg['ftp']['is_enable']:
+      destination = 'incoming/ofin/gl'
+      sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path, destination, files)
   except Exception as e:
     print('[AutoPOS] - ZL Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)

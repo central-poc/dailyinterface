@@ -12,7 +12,7 @@ def main():
     print("\n===== Start JDA-{} [{}] =====".format(store, env))
     cfg = config(env)
     run_date = cfg['run_date'] if cfg['run_date'] else datetime.now().strftime('%Y%m%d')
-    process(bu, store, cfg, run_date)
+    process(env, bu, store, cfg, run_date)
   except Exception as e:
     print('[AutoPOS] - JDA Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)

@@ -182,16 +182,16 @@ def main():
   
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
-  target_path_tendor = os.path.join(parent_path, 'output/autopos/bissp/tendor', str_date)
+  target_path_tendor = os.path.join(parent_path, 'output/autopos/{}/bissp/tendor'.format(env), str_date)
   if not os.path.exists(target_path_tendor):
     os.makedirs(target_path_tendor)
-  target_path_sale = os.path.join(parent_path, 'output/autopos/bissp/sale', str_date)
+  target_path_sale = os.path.join(parent_path, 'output/autopos/{}/bissp/sale'.format(env), str_date)
   if not os.path.exists(target_path_sale):
     os.makedirs(target_path_sale)
-  target_path_installment = os.path.join(parent_path, 'output/autopos/bissp/installment', str_date)
+  target_path_installment = os.path.join(parent_path, 'output/autopos/{}/bissp/installment'.format(env), str_date)
   if not os.path.exists(target_path_installment):
     os.makedirs(target_path_installment)
-  target_path_dcpn = os.path.join(parent_path, 'output/autopos/bissp/dcpn', str_date)
+  target_path_dcpn = os.path.join(parent_path, 'output/autopos/{}/bissp/dcpn'.format(env), str_date)
   if not os.path.exists(target_path_dcpn):
     os.makedirs(target_path_dcpn)
 

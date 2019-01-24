@@ -149,7 +149,7 @@ def main():
         )
     ]
     for bu in bus:
-      target_path = os.path.join(parent_path, 'output/autopos/siebel/{}'.format(bu.lower()), now.strftime('%Y%m%d'))
+      target_path = os.path.join(parent_path, 'output/autopos/{}/siebel/{}'.format(env, bu.lower()), now.strftime('%Y%m%d'))
       if not os.path.exists(target_path):
         os.makedirs(target_path)
       refresh_view = "refresh materialized view mv_autopos_siebel"

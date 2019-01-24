@@ -59,7 +59,7 @@ def main():
   try:
     bus = ['CDS', 'CBN', 'SPB', 'B2N']
     for bu in bus:
-      target_path = os.path.join(parent_path, 'output/autopos/ofin/zy/{}'.format(bu.lower()), batch_date.strftime('%Y%m%d'))
+      target_path = os.path.join(parent_path, 'output/autopos/{}/ofin/zy/{}'.format(env, bu.lower()), batch_date.strftime('%Y%m%d'))
       if not os.path.exists(target_path):
         os.makedirs(target_path)
 
