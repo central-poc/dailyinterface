@@ -11,7 +11,7 @@ def prepare_data(datas):
     temp.append("{:0>8}".format(data['transaction_date'][:8]))
     temp.append("{:0>4}".format(data['transaction_time'][:4]))
     temp.append("{:0>2}".format(data['transaction_type'][:2]))
-    temp.append("{:9}".format(data['ticket_no'][-9:]))
+    temp.append("{:9}".format(data['transaction_type'][:2] + data['ticket_no'][-7:]))
     temp.append("{:0>3}".format(data['seq_no'][:3]))
     temp.append("{:0>16}".format(data['sku'][:16]))
     temp.append("{:0>16}".format(data['barcode'][:16]))
