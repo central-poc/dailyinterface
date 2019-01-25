@@ -100,7 +100,7 @@ def tender(data, amount, is_t1c):
   t[16:26] = ["", "", "1", "", "", "", str(amount), "", "", t[32]]
   if is_t1c and len(t[12]) > 0:
     t[26] = t[12]
-    t[25] = 'T1CRedeem'
+    t[25] = 'T1CP'
 
   return t
 
@@ -138,7 +138,7 @@ def main():
   print("\n===== Start Siebel [{}] =====".format(env))
   cfg = config(env)
   now = datetime.now()
-  batch_date = datetime.strptime(cfg['run_date'], '%Y%m%d') if cfg['run_date'] else (now - timedelta(days=1)).strftime('%Y%m%d')
+  batch_date = cfg['run_date'] if cfg['run_date'] else (now - timedelta(days=1)).strftime('%Y%m%d')
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
   try:
