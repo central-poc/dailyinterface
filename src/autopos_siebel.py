@@ -142,12 +142,13 @@ def main():
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
   try:
-    bus = [
-        x['businessunit_code']
-        for x in query_all(cfg['fms'],
-            "select businessunit_code from businessunit where status = 'AT' group by businessunit_code"
-        )
-    ]
+    # bus = [
+        # x['businessunit_code']
+        # for x in query_all(cfg['fms'],
+            # "select businessunit_code from businessunit where status = 'AT' group by businessunit_code"
+        # )
+    # ]
+    bus = ['CDS', 'MSL']
     for bu in bus:
       target_path = os.path.join(parent_path, 'output/autopos/{}/siebel/{}'.format(env, bu.lower()), now.strftime('%Y%m%d'))
       if not os.path.exists(target_path):
