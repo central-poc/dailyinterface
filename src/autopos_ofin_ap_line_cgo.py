@@ -46,25 +46,25 @@ def generate_data_file(output_path, str_date, data):
 
 def main():
   env = sys.argv[1] if len(sys.argv) > 1 else 'local'
-  print("\n===== Start OFIN AP LINE [{}] =====".format(env))
+  print("\n===== Start OFIN AP LINE CGO [{}] =====".format(env))
   cfg = config(env)
   batch_date = datetime.strptime(cfg['run_date'], '%Y%m%d') if cfg['run_date'] else datetime.now() - timedelta(days=1)
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
-  target_path = os.path.join(parent_path, 'output/autopos/{}/ofin/ap/cds'.format(env), batch_date.strftime('%Y%m%d'))
+  target_path = os.path.join(parent_path, 'output/autopos/{}/ofin/ap/cgo'.format(env), batch_date.strftime('%Y%m%d'))
   if not os.path.exists(target_path):
     os.makedirs(target_path)
 
   try:
-    refresh_view = "refresh materialized view mv_autopos_ofin_line"
-    sql = "select * from mv_autopos_ofin_line where interface_date = '{}'".format(batch_date.strftime('%Y%m%d'))
+    refresh_view = "refresh materialized view mv_autopos_ofin_line_cgo"
+    sql = "select * from mv_autopos_ofin_line_cgo where interface_date = '{}'".format(batch_date.strftime('%Y%m%d'))
     data = query_matview(cfg['fms'], refresh_view, sql)
     files = generate_data_file(target_path, batch_date.strftime('%y%m%d'), data)
     if cfg['ftp']['is_enable']:
-      destination = 'incoming/ofin/ap/cds'
+      destination = 'incoming/ofin/ap/cgo'
       sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path, destination, files)    
   except Exception as e:
-    print('[AutoPOS] - L Error: %s' % str(e))
+    print('[AutoPOS] - L CGO Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
 
 

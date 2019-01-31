@@ -6,7 +6,7 @@ import os, sys, traceback
 def is_debit_equals_credit(data_zn):
   sum_debit = sum([row['debit'] for row in data_zn])
   sum_credit = sum([row['credit'] for row in data_zn])
-  print('[AutoPOS] - ZN Debit: {}, Credit: {}'.format(sum_debit, sum_credit))
+  print('[AutoPOS] - ZN CGO Debit: {}, Credit: {}'.format(sum_debit, sum_credit))
   return False if sum_debit != sum_credit else True
 
 
@@ -40,7 +40,7 @@ def prepare_data(data):
 
 
 def generate_data_file(output_path, str_date, data):
-  prefix = 'ZN' + str_date + 'CD'
+  prefix = 'ZN' + str_date + 'CG'
   seq = get_file_seq(prefix, output_path, '.DAT')
   dat_file = prefix + str(seq) + '.DAT'
   dat_file_path = os.path.join(output_path, dat_file)
@@ -52,24 +52,24 @@ def generate_data_file(output_path, str_date, data):
     dat.write("\n".join(result))
     val.write('{:15}{:0>10}{:015.2f}{:015.2f}'.format(dat_file, len(result),
                                                       debit, credit))
-  print('[AutoPOS] - ZN .DAT & .VAL Completed..')
+  print('[AutoPOS] - ZN CGO .DAT & .VAL Completed..')
   return [dat_file, val_file]
 
 
 def main():
   env = sys.argv[1] if len(sys.argv) > 1 else 'local'
-  print("\n===== Start OFIN ZN [{}] =====".format(env))
+  print("\n===== Start OFIN ZN CGO [{}] =====".format(env))
   cfg = config(env)
   batch_date = datetime.strptime(cfg['run_date'], '%Y%m%d') if cfg['run_date'] else datetime.now() - timedelta(days=1)
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
-  target_path = os.path.join(parent_path, 'output/autopos/{}/ofin/gl/cds'.format(env), batch_date.strftime('%Y%m%d'))
+  target_path = os.path.join(parent_path, 'output/autopos/{}/ofin/gl/cgo'.format(env), batch_date.strftime('%Y%m%d'))
   if not os.path.exists(target_path):
     os.makedirs(target_path)
 
   try:
-    refresh_view = "refresh materialized view mv_autopos_ofin_zn"
-    sql = "select * from mv_autopos_ofin_zn where (credit + debit) > 0 and interface_date = '{}'".format(batch_date.strftime('%Y%m%d'))
+    refresh_view = "refresh materialized view mv_autopos_ofin_zn_cgo"
+    sql = "select * from mv_autopos_ofin_zn_cgo where (credit + debit) > 0 and interface_date = '{}'".format(batch_date.strftime('%Y%m%d'))
     data = query_matview(cfg['fms'], refresh_view, sql)
     if not is_debit_equals_credit(data):
       return
@@ -77,10 +77,10 @@ def main():
     files = generate_data_file(target_path, batch_date.strftime('%y%m%d'), data)
 
     if cfg['ftp']['is_enable']:
-      destination = 'incoming/ofin/gl/cds'
+      destination = 'incoming/ofin/gl/cgo'
       sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path, destination, files)
   except Exception as e:
-    print('[AutoPOS] - ZN Error: %s' % str(e))
+    print('[AutoPOS] - ZN CGO Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
 
 
