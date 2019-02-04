@@ -1,4 +1,4 @@
-from common import config, connect_psql, get_file_seq, query_all, query_matview, sftp
+from common import config, connect_psql, get_file_seq, insert_transaction, query_all, query_matview, sftp
 from datetime import datetime, timedelta
 import os, sys, traceback
 
@@ -142,18 +142,24 @@ def main():
           query_date, store)
       data = query_matview(dbfms, refresh_view, sql)
       payment = generate_trans_payment(target_path_payment, str_date, store, data)
+      sql_insert = "insert into transaction_bi_cds_payment {}".format(sql)
+      insert_transaction(dbfms, sql_insert)
 
       refresh_view = "refresh materialized view mv_autopos_bi_cds_trans_promo"
       sql = "select * from mv_autopos_bi_cds_trans_promo where interface_date = '{}' and store_code = '{}'".format(
           query_date, store)
       data = query_matview(dbfms, refresh_view, sql)
       promo = generate_trans_promo(target_path_promotion, str_date, store, data)
+      sql_insert = "insert into transaction_bi_cds_promo {}".format(sql)
+      insert_transaction(dbfms, sql_insert)
 
       refresh_view = "refresh materialized view mv_autopos_bi_cds_trans_discount"
       sql = "select * from mv_autopos_bi_cds_trans_discount where interface_date = '{}' and store_code = '{}'".format(
           query_date, store)
       data = query_matview(dbfms, refresh_view, sql)
       discount = generate_trans_discount(target_path_discount, str_date, store, data)
+      sql_insert = "insert into transaction_bi_cds_discount {}".format(sql)
+      insert_transaction(dbfms, sql_insert)
 
       if cfg['ftp']['is_enable']:
         sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_payment, 'incoming/bicds/payment', payment)

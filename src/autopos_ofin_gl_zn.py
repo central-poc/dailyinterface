@@ -1,4 +1,4 @@
-from common import config, connect_psql, get_file_seq, query_matview, sftp
+from common import config, connect_psql, get_file_seq, insert_transaction, query_matview, sftp
 from datetime import datetime, timedelta
 import os, sys, traceback
 
@@ -79,6 +79,8 @@ def main():
     if cfg['ftp']['is_enable']:
       destination = 'incoming/ofin/gl/cds'
       sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path, destination, files)
+    sql_insert = "insert into transaction_ofin_zn {}".format(sql)
+    insert_transaction(cfg['fms'], sql_insert)
   except Exception as e:
     print('[AutoPOS] - ZN Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)

@@ -123,6 +123,13 @@ def query_all(env, sql):
       return cursor.fetchall()
 
 
+def insert_transaction(env, sql):
+  with connect_psql(env) as conn:
+    with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+      cursor.execute(sql)
+      count = cursor.rowcount
+      print (count, "Record inserted successfully !!")
+
 def ftp(host, user, pwd, src, dest):
   print('[FTP] - host: {}, user: {}, source: {}, destination: {}'.format(
       host, user, src, dest))

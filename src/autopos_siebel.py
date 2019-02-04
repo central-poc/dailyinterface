@@ -1,4 +1,4 @@
-from common import config, connect_psql, query_all, query_matview, sftp
+from common import config, connect_psql, insert_transaction, query_all, query_matview, sftp
 from datetime import datetime, timedelta
 import os, sys, traceback, uuid
 
@@ -163,6 +163,8 @@ def main():
       if cfg['ftp']['is_enable']:
         destination = 'incoming/siebel/{}'.format(bu.lower())
         sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path, destination, files)
+      sql_insert = "insert into transaction_siebel {}".format(sql)
+      insert_transaction(cfg['fms'], sql_insert)
   except Exception as e:
     print('[AutoPOS] - Siebel Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)

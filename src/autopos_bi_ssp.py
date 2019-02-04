@@ -1,4 +1,4 @@
-from common import config, connect_psql, get_file_seq, query_all, query_matview, sftp
+from common import config, connect_psql, get_file_seq, insert_transaction, query_all, query_matview, sftp
 from datetime import datetime, timedelta
 import os, sys, traceback
 
@@ -178,7 +178,7 @@ def main():
   cfg = config(env)
   now = datetime.now()
   query_date = cfg['run_date'] if cfg['run_date'] else (now - timedelta(days=1)).strftime('%Y%m%d')
-  str_date = cfg['bispp_date'] if cfg['bissp_date'] else now.strftime('%Y%m%d%H%M%S')
+  str_date = cfg['bissp_date'] if cfg['bissp_date'] else now.strftime('%Y%m%d%H%M%S')
   
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
@@ -209,24 +209,32 @@ def main():
           store, query_date)
       data = query_matview(dbfms, refresh_view, sql)
       sale = generate_trans_sale_detail(target_path_sale, str_date, store, data)
+      sql_insert = "insert into transaction_bi_ssp_sale_detail {}".format(sql)
+      insert_transaction(dbfms, sql_insert)
 
       refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_tendor_detail"
       sql = "select * from mv_autopos_bi_ssp_trans_tendor_detail where store_code = '{}' and interface_date = '{}'".format(
           store, query_date)
       data = query_matview(dbfms, refresh_view, sql)
       tendor = generate_trans_tendor_detail(target_path_tendor, str_date, store, data)
+      sql_insert = "insert into transaction_bi_ssp_tendor_detail {}".format(sql)
+      insert_transaction(dbfms, sql_insert)
 
       refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_installment"
       sql = "select * from mv_autopos_bi_ssp_trans_installment where store_code = '{}' and interface_date = '{}'".format(
           store, query_date)
       data = query_matview(dbfms, refresh_view, sql)
       installment = generate_trans_installment(target_path_installment, str_date, store, data)
+      sql_insert = "insert into transaction_bi_ssp_installment {}".format(sql)
+      insert_transaction(dbfms, sql_insert)
 
       refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_dpcn"
       sql = "select * from mv_autopos_bi_ssp_trans_dpcn where store_code = '{}' and interface_date = '{}'".format(
           store, query_date)
       data = query_matview(dbfms, refresh_view, sql)
       dcpn = generate_trans_dcpn(target_path_dcpn, str_date, store, data)
+      sql_insert = "insert into transaction_bi_ssp_dpcn {}".format(sql)
+      insert_transaction(dbfms, sql_insert)
 
       if cfg['ftp']['is_enable']:
         sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_tendor, 'incoming/bissp/tendor', tendor)

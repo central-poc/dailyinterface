@@ -1,4 +1,4 @@
-from common import connect_psql, query_all, query_matview, sftp
+from common import connect_psql, insert_transaction, query_all, query_matview, sftp
 from datetime import datetime, timedelta
 import os, sys, traceback
 
@@ -113,6 +113,8 @@ def prepare_data_b2s(datas):
 def query_data(env, store, str_date):
   refresh_view = "refresh materialized view mv_autopos_jda"
   sql = "select * from mv_autopos_jda where store_code = '{}' and interface_date = '{}'".format(store, str_date)
+  sql_insert = "insert into transaction_jda {}".format(sql)
+  insert_transaction(env, sql_insert)
   
   return query_matview(env, refresh_view, sql)
 
