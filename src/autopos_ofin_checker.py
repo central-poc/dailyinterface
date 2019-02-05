@@ -1,15 +1,15 @@
 from common import notifyLine, notifySlack
 from datetime import date, timedelta
-import ftplib, trackeback
+import ftplib, os, traceback
 
 
 def notify(message):
   print(message)
   # notifyLine(message)
-  # notifySlack(message)
+  notifySlack(message)
 
 
-def ofin_cds_gl():
+def ofin_gl_cds():
   try:
     yesterday = (date.today() - timedelta(days=1)).strftime('%y%m%d')
     gl_path = '/p3/fnp/cds/epos/data_in'
@@ -37,7 +37,7 @@ def ofin_cds_gl():
     ftp.quit()
 
 
-def ofin_ssp_gl():
+def ofin_gl_ssp():
   try:
     yesterday = (date.today() - timedelta(days=1)).strftime('%y%m%d')
     gl_path = '/p3/fnp/sps/epos/data_in'
@@ -57,7 +57,7 @@ def ofin_ssp_gl():
     ftp.quit()
 
 
-def ofin_b2s_gl():
+def ofin_gl_b2s():
   try:
     yesterday = (date.today() - timedelta(days=1)).strftime('%y%m%d')
     gl_path = '/p3/fnp/b2s/epos/data_in'
@@ -77,7 +77,7 @@ def ofin_b2s_gl():
     ftp.quit()
 
 
-def ofin_cds_ap():
+def ofin_ap_cds():
   try:
     yesterday = (date.today() - timedelta(days=1)).strftime('%y%m%d')
     ap_path = '/p3/fnp/cds/invoice/data_in'
@@ -101,7 +101,7 @@ def ofin_cds_ap():
 
 
 if __name__ == '__main__':
-  ofin_cds_gl()
-  ofin_ssp_gl()
-  ofin_b2s_gl()
-  ofin_cds_ap()
+  ofin_gl_cds()
+  ofin_gl_ssp()
+  ofin_gl_b2s()
+  ofin_ap_cds()

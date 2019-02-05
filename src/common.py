@@ -130,6 +130,7 @@ def insert_transaction(env, sql):
       count = cursor.rowcount
       print (count, "Record inserted successfully !!")
 
+
 def ftp(host, user, pwd, src, dest):
   print('[FTP] - host: {}, user: {}, source: {}, destination: {}'.format(
       host, user, src, dest))
