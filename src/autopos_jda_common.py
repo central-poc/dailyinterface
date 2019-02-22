@@ -112,7 +112,23 @@ def prepare_data_b2s(datas):
 
 def query_data(env, store, str_date):
   refresh_view = "refresh materialized view mv_autopos_jda"
-  sql = "select * from mv_autopos_jda where store_code = '{}' and interface_date = '{}'".format(store, str_date)
+  sql = """
+    select * from mv_autopos_jda 
+    where store_code = '{}' 
+    and interface_date = '{}'
+    and not (
+	    (cast(discount_amt1 as numeric) > 0 and discount_type1 = '')
+	    or (cast(discount_amt2 as numeric) > 0 and discount_type2 = '')
+	    or (cast(discount_amt3 as numeric) > 0 and discount_type3 = '')
+	    or (cast(discount_amt4 as numeric) > 0 and discount_type4 = '')
+	    or (cast(discount_amt5 as numeric) > 0 and discount_type5 = '')
+	    or (cast(discount_amt6 as numeric) > 0 and discount_type6 = '')
+	    or (cast(discount_amt7 as numeric) > 0 and discount_type7 = '')
+	    or (cast(discount_amt8 as numeric) > 0 and discount_type8 = '')
+	    or (cast(discount_amt9 as numeric) > 0 and discount_type9 = '')
+	    or (cast(discount_amt10 as numeric) > 0 and discount_type10 = '')
+    )
+  """.format(store, str_date)
   sql_insert = "insert into transaction_jda {}".format(sql)
   insert_transaction(env, sql_insert)
   
