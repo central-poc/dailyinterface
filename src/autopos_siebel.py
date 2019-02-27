@@ -54,17 +54,15 @@ def gen_tender(input):
     net_amt = 0
     redeem_amt = 0
     order_redeem_cash = 0
-    temp_suborder_id = ""
     product_index = 0
     for index, sub in enumerate(g):
       if sub[6] == "P":
         product_index = index
-      if sub[6] == "C" or temp_suborder_id == sub[37]:
+      if sub[6] == "C":
         continue
       net_amt = net_amt + sub[33]
       redeem_amt = redeem_amt + sub[34]
       order_redeem_cash = order_redeem_cash + sub[35]
-      temp_suborder_id = sub[37]
 
     if redeem_amt == 0:
       g.append(tender(g[product_index][:], net_amt, False))
@@ -160,11 +158,11 @@ def main():
       data_list = [gen_sale_tran_data(data) for data in datas]
       files = generate_data_file(target_path, bu, gen_tender(data_list))
 
-      if cfg['ftp']['is_enable']:
-        destination = 'incoming/siebel/{}'.format(bu.lower())
-        sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path, destination, files)
-      sql_insert = "insert into transaction_siebel {}".format(sql)
-      insert_transaction(cfg['fms'], sql_insert)
+      # if cfg['ftp']['is_enable']:
+        # destination = 'incoming/siebel/{}'.format(bu.lower())
+        # sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path, destination, files)
+      # sql_insert = "insert into transaction_siebel {}".format(sql)
+      # insert_transaction(cfg['fms'], sql_insert)
   except Exception as e:
     print('[AutoPOS] - Siebel Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
