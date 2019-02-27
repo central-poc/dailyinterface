@@ -158,11 +158,11 @@ def main():
       data_list = [gen_sale_tran_data(data) for data in datas]
       files = generate_data_file(target_path, bu, gen_tender(data_list))
 
-      # if cfg['ftp']['is_enable']:
-        # destination = 'incoming/siebel/{}'.format(bu.lower())
-        # sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path, destination, files)
-      # sql_insert = "insert into transaction_siebel {}".format(sql)
-      # insert_transaction(cfg['fms'], sql_insert)
+      if cfg['ftp']['is_enable']:
+        destination = 'incoming/siebel/{}'.format(bu.lower())
+        sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path, destination, files)
+      sql_insert = "insert into transaction_siebel {}".format(sql)
+      insert_transaction(cfg['fms'], sql_insert)
   except Exception as e:
     print('[AutoPOS] - Siebel Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
