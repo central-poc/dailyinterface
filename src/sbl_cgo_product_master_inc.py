@@ -72,7 +72,7 @@ with pymssql.connect("mssql.production.thecentral.com", "coreapi", "coreapi",
     LEFT JOIN JDARBS_Dept SubClass on SubClass.IDEPT = pro.JDADept AND SubClass.ISDEPT = pro.JDASubDept AND SubClass.ICLAS = pro.ClassCode AND SubClass.ISCLAS = pro.SubClassCode
     WHERE 1 = 1
     AND len(pro.PID) > 0
-    AND (cast(getdate() - 1 as date) = cast(pro.createon as date) or cast(getdate() - 1 as date) = cast(pro.updateon as date))
+    AND (cast(getdate() - 3 as date) = cast(pro.createon as date) or cast(getdate() - 3 as date) = cast(pro.updateon as date))
     ORDER BY pro.Pid
     """
     cursor.execute(sql)
@@ -149,7 +149,7 @@ with pymssql.connect("10.17.220.55", "central", "Cen@tral",
         left join tbjdahierarchy sc on sc.businessunitid = bu.parentId and sc.idept = m.idept and sc.isdept = m.isdept and sc.iclass = m.iclass and sc.isclass = m.isclass
         where 1 = 1
         AND len(p.pidnew) > 0
-        AND (cast(getdate() - 1 as date) = cast(p.createon as date) or cast(getdate() - 1 as date) = cast(p.updateon as date))
+        AND (cast(getdate() - 3 as date) = cast(p.createon as date) or cast(getdate() - 3 as date) = cast(p.updateon as date))
       ) s
       order by s.pid
     """
@@ -202,11 +202,11 @@ with pymssql.connect("10.17.220.55", "central", "Cen@tral",
     rbs_pages = math.ceil(len(rbs_data) / per_page)
     for i in range(0, rbs_pages):
       write_data = rbs_data[:10000]
-      if len(rbs_data) > 0:
-        headers = rbs_data[0]
-        total_row = len(rbs_data)
+      if len(write_data) > 0:
+        headers = write_data[0]
+        total_row = len(write_data)
         datfile = "{}_{}.dat.{:0>4}".format(interface_name, filedatetime,
-                                            pages + 1)
+                                            pages + i + 1)
         filepath = os.path.join(target_path, datfile)
         with open(filepath, 'w') as outfile:
           outfile.write("0|{}\n".format(total_row))
@@ -215,7 +215,7 @@ with pymssql.connect("10.17.220.55", "central", "Cen@tral",
               fieldnames=headers,
               delimiter='|',
               skipinitialspace=True)
-          for d in rbs_data:
+          for d in write_data:
             d = replace_pipe(d)
             writer.writerow(d)
           outfile.write('9|End')
