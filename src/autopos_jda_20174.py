@@ -6,8 +6,8 @@ import os, sys, traceback
 
 def main():
   try:
-    store = '15016'
-    bu = 'cbn'
+    store = '20174'
+    bu = 'rbs'
     env = sys.argv[1] if len(sys.argv) > 1 else 'local'
     print("\n===== Start JDA-{} [{}] =====".format(store, env))
     cfg = config(env)

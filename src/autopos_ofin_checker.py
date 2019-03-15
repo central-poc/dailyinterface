@@ -12,24 +12,24 @@ def notify(message):
 def ofin_gl_cds():
   try:
     yesterday = (date.today() - timedelta(days=1)).strftime('%y%m%d')
-    gl_path = '/p3/fnp/cds/epos/data_in'
-    ftp = ftplib.FTP('10.101.25.21')
-    ftp.login('cdshopos', 'hopos')
+    gl_path = '/p3/fnp/rbs/epos/data_in'
+    ftp = ftplib.FTP('10.0.173.26')
+    ftp.login('rbshopos', 'hopos')
     gl_files = ftp.nlst(gl_path)
 
-    zn_dat = '{}/ZN{}CD1.DAT'.format(gl_path, yesterday) in gl_files
-    zn_val = '{}/ZN{}CD1.VAL'.format(gl_path, yesterday) in gl_files
-    zycd_dat = '{}/ZY{}CD1.DAT'.format(gl_path, yesterday) in gl_files
-    zycd_val = '{}/ZY{}CD1.VAL'.format(gl_path, yesterday) in gl_files
-    zycb_dat = '{}/ZY{}CB1.DAT'.format(gl_path, yesterday) in gl_files
-    zycb_val = '{}/ZY{}CB1.VAL'.format(gl_path, yesterday) in gl_files
+    zn_dat = '{}/ZN{}RB1.DAT'.format(gl_path, yesterday) in gl_files
+    zn_val = '{}/ZN{}RB1.VAL'.format(gl_path, yesterday) in gl_files
+    zycd_dat = '{}/ZY{}RB1.DAT'.format(gl_path, yesterday) in gl_files
+    zycd_val = '{}/ZY{}RB1.VAL'.format(gl_path, yesterday) in gl_files
+    zycb_dat = '{}/ZY{}RB1.DAT'.format(gl_path, yesterday) in gl_files
+    zycb_val = '{}/ZY{}RB1.VAL'.format(gl_path, yesterday) in gl_files
 
-    notify('[AutoPOS] - ZN CDS Successfully') if zn_dat & zn_val else notify(
-        '[AutoPOS] - ZN CDS not found !!')
-    notify('[AutoPOS] - ZY CDS Successfully') if zycd_dat & zycd_val else notify(
-        '[AutoPOS] - ZY CDS not found !!')
-    notify('[AutoPOS] - ZY CBN Successfully') if zycb_dat & zycb_val else notify(
-        '[AutoPOS] - ZY CBN not found !!')
+    notify('[AutoPOS] - ZN RBS Successfully') if zn_dat & zn_val else notify(
+        '[AutoPOS] - ZN RBS not found !!')
+    notify('[AutoPOS] - ZY RBS Successfully') if zycd_dat & zycd_val else notify(
+        '[AutoPOS] - ZY RBS not found !!')
+    notify('[AutoPOS] - ZY RBS9 Successfully') if zycb_dat & zycb_val else notify(
+        '[AutoPOS] - ZY RBS9 not found !!')
   except Exception as e:
     traceback.print_tb(e.__traceback__)
     notify('[AutoPOS] - FTP Checker error: {}'.format(e))
@@ -80,9 +80,9 @@ def ofin_gl_b2s():
 def ofin_ap_cds():
   try:
     yesterday = (date.today() - timedelta(days=1)).strftime('%y%m%d')
-    ap_path = '/p3/fnp/cds/invoice/data_in'
-    ftp = ftplib.FTP('10.101.25.21')
-    ftp.login('cdshoinv', 'hoinv')
+    ap_path = '/p3/fnp/rbs/invoice/data_in'
+    ftp = ftplib.FTP('10.0.173.26')
+    ftp.login('rbshoinv', 'hoinv')
 
     ap_files = ftp.nlst(ap_path)
 
@@ -102,6 +102,6 @@ def ofin_ap_cds():
 
 if __name__ == '__main__':
   ofin_gl_cds()
-  ofin_gl_ssp()
-  ofin_gl_b2s()
+  # ofin_gl_ssp()
+  # ofin_gl_b2s()
   ofin_ap_cds()

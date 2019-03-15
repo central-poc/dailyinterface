@@ -146,7 +146,7 @@ def main():
             # "select businessunit_code from businessunit where status = 'AT' group by businessunit_code"
         # )
     # ]
-    bus = ['CDS', 'MSL']
+    bus = ['RBS', 'RBS9']
     for bu in bus:
       target_path = os.path.join(parent_path, 'output/autopos/{}/siebel/{}'.format(env, bu.lower()), now.strftime('%Y%m%d'))
       if not os.path.exists(target_path):

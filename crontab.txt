@@ -1,0 +1,9 @@
+5 17 * * * /opt/dailyinterface/scripts/autopos-bi-rbs.sh staging
+5 17 * * * /opt/dailyinterface/scripts/autopos-bi-checker.sh
+5 15 * * * /opt/dailyinterface/scripts/autopos-jda-20174.sh staging
+10 15 * * * /opt/dailyinterface/scripts/autopos-jda-20181.sh staging
+20 15 * * * /opt/dailyinterface/scripts/autopos-jda-checker.sh
+30 23 * * * /opt/dailyinterface/scripts/autopos-ofin.sh staging
+0 12 * * * /opt/dailyinterface/scripts/autopos-ofin-cgo.sh staging
+45 23 * * * /opt/dailyinterface/scripts/autopos-ofin-checker.sh
+0 23 * * * /opt/dailyinterface/scripts/autopos-siebel.sh staging

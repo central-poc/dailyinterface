@@ -57,7 +57,7 @@ def main():
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
   try:
-    bus = ['CDS', 'CBN', 'SPB', 'B2N']
+    bus = ['RBS', 'RBS9']
     for bu in bus:
       target_path = os.path.join(parent_path, 'output/autopos/{}/ofin/zy/{}'.format(env, bu.lower()), batch_date.strftime('%Y%m%d'))
       if not os.path.exists(target_path):

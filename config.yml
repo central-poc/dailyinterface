@@ -20,14 +20,14 @@ local:
   bicds_date:
   #format = YYYYMMDDHHmmss
   bissp_date:
-uat:
+staging:
   cmos:
-    host: '10.17.221.173'
+    host: 'localhost'
     user: 'app-t1c'
     password: 'Zxcv123!'
     db: 'DBMKP'
   fms:
-    host: 'cds-fms-uat.c1lxkbgl6wrw.ap-southeast-1.rds.amazonaws.com'
+    host: 'rbs-fms-staging.chcyqkx1lpmh.ap-southeast-1.rds.amazonaws.com'
     port: 5432
     user: 'postgres'
     password: 'Zxcv123!autopos'
@@ -41,12 +41,12 @@ uat:
   bissp_date:
 prod:
   cmos:
-    host: '10.17.220.173'
+    host: 'localhost'
     user: 'app-t1c'
     password: 'Zxcv123!'
     db: 'DBMKP'
   fms:
-    host: 'cds-fms-prod.c1lxkbgl6wrw.ap-southeast-1.rds.amazonaws.com'
+    host: 'localhost'
     port: 5432
     user: 'postgres'
     password: 'Zxcv123!autopos'
