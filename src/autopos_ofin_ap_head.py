@@ -61,7 +61,7 @@ def main():
   batch_date = datetime.strptime(cfg['run_date'], '%Y%m%d') if cfg['run_date'] else datetime.now() - timedelta(days=1)
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
-  target_path = os.path.join(parent_path, 'output/autopos/{}/ofin/ap/cds'.format(env), batch_date.strftime('%Y%m%d'))
+  target_path = os.path.join(parent_path, 'output/autopos/{}/ofin/ap/rbs'.format(env), batch_date.strftime('%Y%m%d'))
   if not os.path.exists(target_path):
     os.makedirs(target_path)
 
@@ -71,7 +71,7 @@ def main():
     data = query_matview(cfg['fms'], refresh_view, sql)
     files = generate_data_file(target_path, batch_date.strftime('%y%m%d'), data)
     if cfg['ftp']['is_enable']:
-      destination = 'incoming/ofin/ap/cds'
+      destination = 'incoming/ofin/ap/rbs'
       sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path, destination, files)    
     sql_insert = "insert into transaction_ofin_head {}".format(sql)
     insert_transaction(cfg['fms'], sql_insert)

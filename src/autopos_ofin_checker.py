@@ -9,7 +9,7 @@ def notify(message):
   notifySlack(message)
 
 
-def ofin_gl_cds():
+def ofin_gl_rbs():
   try:
     yesterday = (date.today() - timedelta(days=1)).strftime('%y%m%d')
     gl_path = '/p3/fnp/rbs/epos/data_in'
@@ -77,7 +77,7 @@ def ofin_gl_b2s():
     ftp.quit()
 
 
-def ofin_ap_cds():
+def ofin_ap_rbs():
   try:
     yesterday = (date.today() - timedelta(days=1)).strftime('%y%m%d')
     ap_path = '/p3/fnp/rbs/invoice/data_in'
@@ -101,7 +101,7 @@ def ofin_ap_cds():
 
 
 if __name__ == '__main__':
-  ofin_gl_cds()
+  ofin_gl_rbs()
   # ofin_gl_ssp()
   # ofin_gl_b2s()
-  ofin_ap_cds()
+  ofin_ap_rbs()
