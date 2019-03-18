@@ -110,7 +110,7 @@ def generate_trans_sale_detail(output_path, str_date, store, data):
     f.write("\n")
     l.write('{}|{}|{}'.format(str_date[:8], str_date[-6:], len(result)))
     l.write("\n")
-  print('[AutoPOS] - BI SSP[{}] transaction sale detail create files completed..'.format(store))
+  print('[AutoPOS] - BI RBS[{}] transaction sale detail create files completed..'.format(store))
   return [file_name, log_name]
 
 
@@ -130,7 +130,7 @@ def generate_trans_tendor_detail(output_path, str_date, store, data):
     f.write("\n")
     l.write('{}|{}|{}'.format(str_date[:8], str_date[-6:], len(result)))
     l.write("\n")
-  print('[AutoPOS] - BI SSP[{}] transaction tendor detail create files completed..'.format(store))
+  print('[AutoPOS] - BI RBS[{}] transaction tendor detail create files completed..'.format(store))
   return [file_name, log_name]
 
 
@@ -150,7 +150,7 @@ def generate_trans_installment(output_path, str_date, store, data):
     f.write("\n")
     l.write('{}|{}|{}'.format(str_date[:8], str_date[-6:], len(result)))
     l.write("\n")
-  print('[AutoPOS] - BI SSP[{}] transaction installment create files completed..'.format(store))
+  print('[AutoPOS] - BI RBS[{}] transaction installment create files completed..'.format(store))
   return [file_name, log_name]
 
 
@@ -168,7 +168,7 @@ def generate_trans_dcpn(output_path, str_date, store, data):
     f.write("\n")
     l.write('{}|{}|{}'.format(str_date[:8], str_date[-6:], len(result)))
     l.write("\n")
-  print('[AutoPOS] - BI SSP[{}] transaction dpcn create files completed..'.format(store))
+  print('[AutoPOS] - BI RBS[{}] transaction dpcn create files completed..'.format(store))
   return [file_name, log_name]
 
 
@@ -178,7 +178,7 @@ def main():
   cfg = config(env)
   now = datetime.now()
   query_date = cfg['run_date'] if cfg['run_date'] else (now - timedelta(days=1)).strftime('%Y%m%d')
-  str_date = cfg['bissp_date'] if cfg['bissp_date'] else now.strftime('%Y%m%d%H%M%S')
+  str_date = cfg['birbs_date'] if cfg['birbs_date'] else now.strftime('%Y%m%d%H%M%S')
   
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
@@ -204,45 +204,45 @@ def main():
         )
     ]
     for store in stores:
-      refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_sale_detail"
-      sql = "select * from mv_autopos_bi_ssp_trans_sale_detail where store_code = '{}' and interface_date = '{}'".format(
+      refresh_view = "refresh materialized view mv_autopos_bi_rbs_trans_sale_detail"
+      sql = "select * from mv_autopos_bi_rbs_trans_sale_detail where store_code = '{}' and interface_date = '{}'".format(
           store, query_date)
       data = query_matview(dbfms, refresh_view, sql)
       sale = generate_trans_sale_detail(target_path_sale, str_date, store, data)
-      sql_insert = "insert into transaction_bi_ssp_sale_detail {}".format(sql)
+      sql_insert = "insert into transaction_bi_rbs_sale_detail {}".format(sql)
       insert_transaction(dbfms, sql_insert)
 
-      refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_tendor_detail"
-      sql = "select * from mv_autopos_bi_ssp_trans_tendor_detail where store_code = '{}' and interface_date = '{}'".format(
+      refresh_view = "refresh materialized view mv_autopos_bi_rbs_trans_tendor_detail"
+      sql = "select * from mv_autopos_bi_rbs_trans_tendor_detail where store_code = '{}' and interface_date = '{}'".format(
           store, query_date)
       data = query_matview(dbfms, refresh_view, sql)
       tendor = generate_trans_tendor_detail(target_path_tendor, str_date, store, data)
-      sql_insert = "insert into transaction_bi_ssp_tendor_detail {}".format(sql)
+      sql_insert = "insert into transaction_bi_rbs_tendor_detail {}".format(sql)
       insert_transaction(dbfms, sql_insert)
 
-      refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_installment"
-      sql = "select * from mv_autopos_bi_ssp_trans_installment where store_code = '{}' and interface_date = '{}'".format(
+      refresh_view = "refresh materialized view mv_autopos_bi_rbs_trans_installment"
+      sql = "select * from mv_autopos_bi_rbs_trans_installment where store_code = '{}' and interface_date = '{}'".format(
           store, query_date)
       data = query_matview(dbfms, refresh_view, sql)
       installment = generate_trans_installment(target_path_installment, str_date, store, data)
-      sql_insert = "insert into transaction_bi_ssp_installment {}".format(sql)
+      sql_insert = "insert into transaction_bi_rbs_installment {}".format(sql)
       insert_transaction(dbfms, sql_insert)
 
-      refresh_view = "refresh materialized view mv_autopos_bi_ssp_trans_dpcn"
-      sql = "select * from mv_autopos_bi_ssp_trans_dpcn where store_code = '{}' and interface_date = '{}'".format(
+      refresh_view = "refresh materialized view mv_autopos_bi_rbs_trans_dpcn"
+      sql = "select * from mv_autopos_bi_rbs_trans_dpcn where store_code = '{}' and interface_date = '{}'".format(
           store, query_date)
       data = query_matview(dbfms, refresh_view, sql)
       dcpn = generate_trans_dcpn(target_path_dcpn, str_date, store, data)
-      sql_insert = "insert into transaction_bi_ssp_dpcn {}".format(sql)
+      sql_insert = "insert into transaction_bi_rbs_dpcn {}".format(sql)
       insert_transaction(dbfms, sql_insert)
 
       if cfg['ftp']['is_enable']:
-        sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_tendor, 'incoming/bissp/tendor', tendor)
-        sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_sale, 'incoming/bissp/sale', sale)
-        sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_installment,'incoming/bissp/installment', installment)
-        sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_dcpn, 'incoming/bissp/dcpn', dcpn)
+        sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_tendor, 'incoming/birbs/tendor', tendor)
+        sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_sale, 'incoming/birbs/sale', sale)
+        sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_installment,'incoming/birbs/installment', installment)
+        sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_dcpn, 'incoming/birbs/dcpn', dcpn)
   except Exception as e:
-    print('[AutoPOS] - BI SSP Error: %s' % str(e))
+    print('[AutoPOS] - BI RBS Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
 
 

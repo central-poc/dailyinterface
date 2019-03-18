@@ -17,7 +17,7 @@ local:
   # format = YYYYMMDD
   run_date:
   #format = YYYYMMDDHHmm
-  bicds_date:
+  birbs_date:
   #format = YYYYMMDDHHmmss
   bissp_date:
 staging:
@@ -37,7 +37,7 @@ staging:
     user: 'autopos.cds-uat'
     is_enable: true
   run_date:
-  bicds_date:
+  birbs_date:
   bissp_date:
 prod:
   cmos:
@@ -56,5 +56,5 @@ prod:
     user: 'autopos.cds-prod'
     is_enable: true
   run_date:
-  bicds_date:
+  birbs_date:
   bissp_date:
