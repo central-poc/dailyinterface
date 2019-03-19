@@ -18,8 +18,8 @@ def jda():
     parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
     private_key = parent_path + "/key/cgai-jumpbox-dev"
     with pysftp.Connection(host="ai-upload.central.tech", username="admin", private_key=private_key) as sftp:
-      '' if not sftp.exists('/home/jdaprod/incoming/JDA/RBS/SD10138.TXT') else notify('[AutoPOS] - JDA_20174 unsuccessfully')
-      '' if not sftp.exists('/home/jdaprod/incoming/JDA/RBS/SD15016.TXT') else notify('[AutoPOS] - JDA_20181 unsuccessfully')
+      '' if not sftp.exists('/home/jdaprod/incoming/JDA/RBS/SD20174.TXT') else notify('[AutoPOS] - JDA_20174 unsuccessfully')
+      '' if not sftp.exists('/home/jdaprod/incoming/JDA/RBS/SD20181.TXT') else notify('[AutoPOS] - JDA_20181 unsuccessfully')
   except Exception as e:
     traceback.print_tb(e.__traceback__)
     notify('[AutoPOS] - FTP Checker error: {}'.format(e))

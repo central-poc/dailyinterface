@@ -97,6 +97,48 @@ create table transaction_ofin_line
   interface_date   text
 );
 
+create table transaction_ofin_zn
+(
+  ofin_branch_code        varchar(6),
+  ofin_cost_profit_center varchar(10),
+  account_code            text,
+  subaccount_code         varchar(20),
+  business_date           text,
+  debit                   numeric,
+  credit                  numeric,
+  journal_source_name     text,
+  journal_category_name   text,
+  batch_name              text,
+  journal_name            text,
+  account_type            varchar(1),
+  branch_id               varchar(6),
+  ofin_for_cfs            varchar(6),
+  account_description     varchar(255),
+  interface_date          text
+);
+
+create table transaction_ofin_zy
+(
+  ofin_branch_code        varchar(6),
+  ofin_cost_profit_center varchar(10),
+  account_code            text,
+  subaccount_code         varchar(20),
+  business_date           text,
+  debit                   numeric,
+  credit                  numeric,
+  journal_source_name     text,
+  journal_category_name   text,
+  batch_name              text,
+  journal_name            text,
+  account_type            varchar(1),
+  branch_id               varchar(6),
+  ofin_for_cfs            varchar(6),
+  account_description     varchar(255),
+  bu                      text,
+  seq                     text,
+  is_interface            boolean,
+  interface_date          text
+);
 
 create materialized view mv_autopos_ofin_head as
   SELECT 'FMS' :: text                                                                          AS source,
