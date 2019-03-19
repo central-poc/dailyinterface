@@ -5,14 +5,14 @@ local:
     password: 'Zxcv123!'
     db: 'DBMKP'
   fms:
-    host: 'localhost'
+    host: 'rbs-fms-dev.chcyqkx1lpmh.ap-southeast-1.rds.amazonaws.com'
     port: 5433
     user: 'postgres'
     password: 'Zxcv123!autopos'
     db: 'dbfms'
   ftp:
     host: 'ai-upload.central.tech'
-    user: 'autopos.cds-uat'
+    user: 'autopos.rbs-uat'
     is_enable: false
   # format = YYYYMMDD
   run_date:
@@ -34,7 +34,7 @@ staging:
     db: 'dbfms'
   ftp:
     host: 'ai-upload.central.tech'
-    user: 'autopos.cds-uat'
+    user: 'autopos.rbs-uat'
     is_enable: true
   run_date:
   birbs_date:
@@ -53,7 +53,7 @@ prod:
     db: 'dbfms'
   ftp:
     host: 'ai-upload.central.tech'
-    user: 'autopos.cds-prod'
+    user: 'autopos.rbs-prod'
     is_enable: true
   run_date:
   birbs_date:
