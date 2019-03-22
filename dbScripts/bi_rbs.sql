@@ -114,6 +114,9 @@ create table transaction_bi_rbs_dpcn
   interface_date   text
 );
 
+-- Order that already create ticket
+-- Prepaid & COD
+-- Sale & Return
 create materialized view mv_autopos_bi_rbs_trans_tendor_detail as
   SELECT b.store_code,
          to_char(timezone('Asia/Bangkok' :: text, b.ticket_date), 'YYYYMMDD' :: text)              AS receipt_date,
@@ -252,7 +255,7 @@ create materialized view mv_autopos_bi_rbs_trans_installment as
          (to_char(timezone('Asia/Bangkok' :: text, a.settle_date), 'YYYYMMDD' :: text) =
           to_char(timezone('Asia/Bangkok' :: text, a.return_date), 'YYYYMMDD' :: text)));
 
-
+-- Summary of SKU discount by coupon
 create materialized view mv_autopos_bi_rbs_trans_dpcn as
   SELECT b.store_code,
          COALESCE(to_char(timezone('Asia/Bangkok' :: text, b.ticket_date), 'YYYYMMDD' :: text),

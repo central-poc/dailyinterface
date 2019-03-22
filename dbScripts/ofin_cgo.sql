@@ -188,7 +188,7 @@ create materialized view mv_autopos_ofin_line_cgo as
       JOIN payment e ON ((((e.payment_code) :: text = (a.payment_code) :: text) AND (e.is_online_payment = false))))
   WHERE ((a.is_settled = true) AND ((a.doc_no) :: text <> '' :: text));
 
-
+-- RPT 03
 create materialized view mv_autopos_ofin_zn_cgo as
   SELECT a.branch_id                                                                                           AS ofin_branch_code,
          a.cost_center                                                                                         AS ofin_cost_profit_center,
