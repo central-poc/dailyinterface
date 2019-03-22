@@ -50,7 +50,7 @@ def notifySlack(message):
   data = json.dumps(payload)
   response = requests.post(SLACK_URL, data=data)
   print(
-      'Slakc Response: {status_code}'.format(status_code=response.status_code))
+      'Slack Response: {status_code}'.format(status_code=response.status_code))
 
 
 def sftp(host, owner, source, destination, files):
