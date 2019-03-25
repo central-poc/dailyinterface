@@ -1,6 +1,6 @@
 // JDA
 HOST=10.101.14.16
-USER=ftpcds
+USER=ftprbs
 PASSWORD=ftpc
 
 // BI

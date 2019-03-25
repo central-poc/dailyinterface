@@ -1,6 +1,6 @@
 #!/bin/sh
 HOST=10.101.14.16
-USER=ftpcds
+USER=ftprbs
 PASSWORD=ftpc
 
 ftp -inv $HOST <<EOF
