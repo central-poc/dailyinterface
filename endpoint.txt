@@ -1,0 +1,46 @@
+// JDA
+HOST=10.101.14.16
+USER=ftpcds
+PASSWORD=ftpc
+
+// BI
+Host:        "10.0.15.154",
+Port:        21,
+Username:    "magento",
+Password:    "Cdsmagentop0s",
+Destination: "/oradata/Informatica_Source_File/POS_Payment",
+
+// OFIN GL
+Host:        "10.0.173.24",
+Port:        21,
+Username:    "rbshopos",
+Password:    "hopos",
+Destination: "/p3/fnp/rbs/epos/data_in",
+
+// OFIN AP
+Host:        "10.0.173.24",
+Port:        21,
+Username:    "rbshoinv",
+Password:    "hoinv",
+Destination: "/p3/fnp/rbs/invoice/data_in",
+
+// OFIN AR
+Host:        "10.0.173.24",
+Port:        21,
+Username:    "rbsarinv",
+Password:    "arinv",
+Destination: "/p3/fnp/rbs/arinv/data_in",
+
+// OFIN vendor
+Host:        "10.0.173.24",
+Port:        21,
+Username:    "rbshoven",
+Password:    "hoven",
+Destination: "/p3/fnp/rbs/vendor/data_in",
+
+// Seibel
+Host:        "sendfile.central.co.th",
+Port:        22,
+Username:    "rbsctouatftp",
+Password:    "DIAZiC",
+Destination: "/inbound/BCH_SBL_NRTSales/req",

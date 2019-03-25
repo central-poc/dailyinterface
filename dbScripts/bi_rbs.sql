@@ -310,3 +310,261 @@ create materialized view mv_autopos_bi_rbs_trans_dpcn as
           to_char(timezone('Asia/Bangkok' :: text, a.return_date), 'YYYYMMDD' :: text)));
 
 
+
+
+create table transaction_bi_rbs_payment
+(
+  transaction_date  text,
+  store_code        varchar(20),
+  media_member_code text,
+  pay_amt_incvat    text,
+  pay_amt_excvat    text,
+  interface_date    text
+);
+
+create table transaction_bi_rbs_promo
+(
+  transaction_date      text,
+  store_code            varchar(20),
+  barcode               text,
+  brand_id              varchar(50),
+  vendor_id             varchar(50),
+  dept_id               varchar(50),
+  subdept_id            varchar(50),
+  global_campaing_id    varchar(100),
+  discount_code1        varchar,
+  discount_amt_incvat1  text,
+  discount_amt_excvat1  text,
+  discount_code2        varchar,
+  discount_amt_incvat2  text,
+  discount_amt_excvat2  text,
+  discount_code3        varchar,
+  discount_amt_incvat3  text,
+  discount_amt_excvat3  text,
+  discount_code4        varchar,
+  discount_amt_incvat4  text,
+  discount_amt_excvat4  text,
+  discount_code5        varchar,
+  discount_amt_incvat5  text,
+  discount_amt_excvat5  text,
+  discount_code6        varchar,
+  discount_amt_incvat6  text,
+  discount_amt_excvat6  text,
+  discount_code7        varchar,
+  discount_amt_incvat7  text,
+  discount_amt_excvat7  text,
+  discount_code8        varchar,
+  discount_amt_incvat8  text,
+  discount_amt_excvat8  text,
+  discount_code9        varchar,
+  discount_amt_incvat9  text,
+  discount_amt_excvat9  text,
+  discount_code10       varchar,
+  discount_amt_incvat10 text,
+  discount_amt_excvat10 text,
+  net_amt_incvat        text,
+  net_amt_excvat        text,
+  interface_date        text
+);
+
+create table transaction_bi_rbs_discount
+(
+  transaction_date    text,
+  store_code          varchar(20),
+  barcode             text,
+  brand_id            varchar(50),
+  vendor_id           varchar(50),
+  dept_id             varchar(50),
+  subdept_id          varchar(50),
+  discount_host_code  varchar,
+  global_campaing_id  varchar(2),
+  discount_amt_incvat text,
+  discount_amt_excvat text,
+  interface_date      text
+);
+
+create materialized view mv_autopos_bi_rbs_trans_discount as
+SELECT to_char(timezone('Asia/Bangkok'::text, b.ticket_date), 'YYYYMMDD'::text) AS transaction_date,
+       b.store_code,
+       lpad((b.barcode)::text, 13, '0'::text)                                   AS barcode,
+       b.brand_id,
+       b.vendor_id,
+       b.dept_id,
+       b.subdept_id,
+       CASE
+         WHEN ((COALESCE(c.jda_discount_code, ''::character varying))::text = ''::text) THEN '00'::character varying
+         ELSE c.jda_discount_code
+         END                                                                    AS discount_host_code,
+       '00'                                                                     AS global_campaing_id,
+       to_char((sum(COALESCE(c.discount_amt_incvat, (0)::numeric)) * ('-1'::integer)::numeric),
+               'fm9999999990.9990'::text)                                       AS discount_amt_incvat,
+       to_char((sum(COALESCE(c.discount_amt_excvat, (0)::numeric)) * ('-1'::integer)::numeric),
+               'fm9999999990.9990'::text)                                       AS discount_amt_excvat,
+       to_char(timezone('Asia/Bangkok'::text, b.ticket_date), 'YYYYMMDD'::text) AS interface_date
+FROM ((sale_order a
+  JOIN sale_order_detail b ON ((((a.order_id)::text = (b.order_id)::text) AND
+                                ((b.bu)::text = ANY (ARRAY [('RBS'::character varying)::text])))))
+       LEFT JOIN sale_order_discount c
+                 ON ((((c.order_id)::text = (b.order_id)::text) AND (c.line_number = b.line_number) AND
+                      ((c.line_id)::text = (b.line_id)::text) AND (length((c.jda_discount_code)::text) > 0))))
+WHERE ((b.is_genticket = true) AND (COALESCE(c.discount_amt_incvat, (0)::numeric) > (0)::numeric))
+GROUP BY (to_char(timezone('Asia/Bangkok'::text, b.ticket_date), 'YYYYMMDD'::text)), b.store_code, b.barcode,
+         b.brand_id, b.vendor_id, b.dept_id, b.subdept_id, c.jda_discount_code;
+
+create materialized view mv_autopos_bi_rbs_trans_payment as
+SELECT a.transaction_date,
+       a.store_code,
+       a.media_member_code,
+       to_char(sum(a.pay_amt_incvat), 'fm9999999990.9990'::text) AS pay_amt_incvat,
+       to_char(sum(a.pay_amt_excvat), 'fm9999999990.9990'::text) AS pay_amt_excvat,
+       a.interface_date
+FROM (SELECT to_char(timezone('Asia/Bangkok'::text, b.ticket_date), 'YYYYMMDD'::text) AS transaction_date,
+             b.store_code,
+             t.tendor                                                                 AS media_member_code,
+             sum(a_1.total_amt)                                                       AS pay_amt_incvat,
+             sum((a_1.total_amt - ((a_1.total_amt * (7)::numeric) / (107)::numeric))) AS pay_amt_excvat,
+             to_char(timezone('Asia/Bangkok'::text, b.ticket_date), 'YYYYMMDD'::text) AS interface_date
+      FROM ((sale_order a_1
+        JOIN (SELECT sale_order.order_id,
+                     CASE
+                       WHEN ("substring"((sale_order.credit_cardno)::text, 0, 7) = ANY
+                             (ARRAY ['525667'::text, '525668'::text, '525669'::text, '528560'::text, '537798'::text]))
+                         THEN '2CEN'::text
+                       WHEN ((sale_order.payment_code)::text = '2C2P123'::text) THEN 'W123'::text
+                       WHEN ((sale_order.payment_code)::text = 'COD'::text) THEN 'COD'::text
+                       WHEN ((sale_order.payment_code)::text = 'T1C'::text) THEN 'T1CP'::text
+                       WHEN ((sale_order.payment_code)::text = 'LinePay'::text) THEN 'LINE'::text
+                       ELSE '2C2P'::text
+                       END AS tendor
+              FROM sale_order) t ON (((t.order_id)::text = (a_1.order_id)::text)))
+             JOIN sale_order_detail b ON ((((a_1.order_id)::text = (b.order_id)::text) AND
+                                           ((b.bu)::text = ANY (ARRAY [('RBS'::character varying)::text])))))
+      WHERE (b.is_genticket = true)
+      GROUP BY (to_char(timezone('Asia/Bangkok'::text, b.ticket_date), 'YYYYMMDD'::text)), b.store_code, t.tendor
+      UNION ALL
+      SELECT to_char(timezone('Asia/Bangkok'::text, a_1.return_date), 'YYYYMMDD'::text)                        AS transaction_date,
+             a_1.store_code,
+             CASE
+               WHEN ("substring"((a_1.credit_cardno)::text, 0, 7) = ANY
+                     (ARRAY ['525667'::text, '525668'::text, '525669'::text, '528560'::text, '537798'::text]))
+                 THEN '2CEN'::text
+               WHEN ((a_1.payment_code)::text = '2C2P123'::text) THEN 'rTRN'::text
+               WHEN ((a_1.payment_code)::text = 'COD'::text) THEN 'rCOD'::text
+               WHEN ((a_1.payment_code)::text = 'T1C'::text) THEN 'T1CP'::text
+               WHEN ((a_1.payment_code)::text = 'LinePay'::text) THEN 'LINE'::text
+               ELSE '2C2P'::text
+               END                                                                                             AS media_member_code,
+             (sum(b.total_amt) * ('-1'::integer)::numeric)                                                     AS pay_amt_incvat,
+             (sum((b.total_amt - ((b.total_amt * (7)::numeric) / (107)::numeric))) *
+              ('-1'::integer)::numeric)                                                                        AS pay_amt_excvat,
+             to_char(timezone('Asia/Bangkok'::text, a_1.return_date),
+                     'YYYYMMDD'::text)                                                                         AS interface_date
+      FROM (sale_return a_1
+             JOIN (SELECT sale_order_detail.sub_salereturn_no,
+                          sale_order_detail.sku,
+                          sale_order_detail.barcode,
+                          sale_order_detail.sale_price,
+                          sale_order_detail.ticket_date,
+                          sum(sale_order_detail.quantity)  AS quantity,
+                          sum(sale_order_detail.total_amt) AS total_amt
+                   FROM sale_order_detail
+                   WHERE (length((sale_order_detail.sub_salereturn_no)::text) > 0)
+                   GROUP BY sale_order_detail.sub_salereturn_no, sale_order_detail.sku, sale_order_detail.barcode,
+                            sale_order_detail.sale_price, sale_order_detail.ticket_date) b
+                  ON (((a_1.sub_return_no)::text = (b.sub_salereturn_no)::text)))
+      WHERE ((((a_1.status)::text = 'Confirmed'::text) AND
+              ((a_1.bu)::text = ANY (ARRAY [('RBS'::character varying)::text]))) OR
+             (to_char(timezone('Asia/Bangkok'::text, a_1.settle_date), 'YYYYMMDD'::text) =
+              to_char(timezone('Asia/Bangkok'::text, a_1.return_date), 'YYYYMMDD'::text)))
+      GROUP BY (to_char(timezone('Asia/Bangkok'::text, a_1.return_date), 'YYYYMMDD'::text)), a_1.store_code,
+               CASE
+                 WHEN ("substring"((a_1.credit_cardno)::text, 0, 7) = ANY
+                       (ARRAY ['525667'::text, '525668'::text, '525669'::text, '528560'::text, '537798'::text]))
+                   THEN '2CEN'::text
+                 WHEN ((a_1.payment_code)::text = '2C2P123'::text) THEN 'rTRN'::text
+                 WHEN ((a_1.payment_code)::text = 'COD'::text) THEN 'rCOD'::text
+                 WHEN ((a_1.payment_code)::text = 'T1C'::text) THEN 'T1CP'::text
+                 WHEN ((a_1.payment_code)::text = 'LinePay'::text) THEN 'LINE'::text
+                 ELSE '2C2P'::text
+                 END) a
+GROUP BY a.transaction_date, a.store_code, a.media_member_code, a.interface_date;
+
+
+create materialized view mv_autopos_bi_rbs_trans_promo as
+SELECT to_char(timezone('Asia/Bangkok'::text, b.ticket_date), 'YYYYMMDD'::text)                                     AS transaction_date,
+       b.store_code,
+       lpad((b.barcode)::text, 13, '0'::text)                                                                       AS barcode,
+       b.brand_id,
+       b.vendor_id,
+       b.dept_id,
+       b.subdept_id,
+       '00'                                                                                                         AS global_campaing_id,
+       COALESCE(c.discount_code1, '00'::character varying)                                                          AS discount_code1,
+       to_char((COALESCE(c.discount1_amt, (0)::numeric) * ('-1'::integer)::numeric),
+               'fm9999999990.9990'::text)                                                                           AS discount_amt_incvat1,
+       to_char((COALESCE(c.discount_ex1_amt, (0)::numeric) * ('-1'::integer)::numeric),
+               'fm9999999990.9990'::text)                                                                           AS discount_amt_excvat1,
+       COALESCE(c.discount_code2, '00'::character varying)                                                          AS discount_code2,
+       to_char((COALESCE(c.discount2_amt, (0)::numeric) * ('-1'::integer)::numeric),
+               'fm9999999990.9990'::text)                                                                           AS discount_amt_incvat2,
+       to_char((COALESCE(c.discount_ex2_amt, (0)::numeric) * ('-1'::integer)::numeric),
+               'fm9999999990.9990'::text)                                                                           AS discount_amt_excvat2,
+       COALESCE(c.discount_code3, '00'::character varying)                                                          AS discount_code3,
+       to_char((COALESCE(c.discount3_amt, (0)::numeric) * ('-1'::integer)::numeric),
+               'fm9999999990.9990'::text)                                                                           AS discount_amt_incvat3,
+       to_char((COALESCE(c.discount_ex3_amt, (0)::numeric) * ('-1'::integer)::numeric),
+               'fm9999999990.9990'::text)                                                                           AS discount_amt_excvat3,
+       COALESCE(c.discount_code4, '00'::character varying)                                                          AS discount_code4,
+       to_char((COALESCE(c.discount4_amt, (0)::numeric) * ('-1'::integer)::numeric),
+               'fm9999999990.9990'::text)                                                                           AS discount_amt_incvat4,
+       to_char((COALESCE(c.discount_ex4_amt, (0)::numeric) * ('-1'::integer)::numeric),
+               'fm9999999990.9990'::text)                                                                           AS discount_amt_excvat4,
+       COALESCE(c.discount_code5, '00'::character varying)                                                          AS discount_code5,
+       to_char((COALESCE(c.discount5_amt, (0)::numeric) * ('-1'::integer)::numeric),
+               'fm9999999990.9990'::text)                                                                           AS discount_amt_incvat5,
+       to_char((COALESCE(c.discount_ex5_amt, (0)::numeric) * ('-1'::integer)::numeric),
+               'fm9999999990.9990'::text)                                                                           AS discount_amt_excvat5,
+       COALESCE(c.discount_code6, '00'::character varying)                                                          AS discount_code6,
+       to_char((COALESCE(c.discount6_amt, (0)::numeric) * ('-1'::integer)::numeric),
+               'fm9999999990.9990'::text)                                                                           AS discount_amt_incvat6,
+       to_char((COALESCE(c.discount_ex6_amt, (0)::numeric) * ('-1'::integer)::numeric),
+               'fm9999999990.9990'::text)                                                                           AS discount_amt_excvat6,
+       COALESCE(c.discount_code7, '00'::character varying)                                                          AS discount_code7,
+       to_char((COALESCE(c.discount7_amt, (0)::numeric) * ('-1'::integer)::numeric),
+               'fm9999999990.9990'::text)                                                                           AS discount_amt_incvat7,
+       to_char((COALESCE(c.discount_ex7_amt, (0)::numeric) * ('-1'::integer)::numeric),
+               'fm9999999990.9990'::text)                                                                           AS discount_amt_excvat7,
+       COALESCE(c.discount_code8, '00'::character varying)                                                          AS discount_code8,
+       to_char((COALESCE(c.discount8_amt, (0)::numeric) * ('-1'::integer)::numeric),
+               'fm9999999990.9990'::text)                                                                           AS discount_amt_incvat8,
+       to_char((COALESCE(c.discount_ex8_amt, (0)::numeric) * ('-1'::integer)::numeric),
+               'fm9999999990.9990'::text)                                                                           AS discount_amt_excvat8,
+       COALESCE(c.discount_code9, '00'::character varying)                                                          AS discount_code9,
+       to_char((COALESCE(c.discount9_amt, (0)::numeric) * ('-1'::integer)::numeric),
+               'fm9999999990.9990'::text)                                                                           AS discount_amt_incvat9,
+       to_char((COALESCE(c.discount_ex9_amt, (0)::numeric) * ('-1'::integer)::numeric),
+               'fm9999999990.9990'::text)                                                                           AS discount_amt_excvat9,
+       COALESCE(c.discount_code10, '00'::character varying)                                                         AS discount_code10,
+       to_char((COALESCE(c.discount10_amt, (0)::numeric) * ('-1'::integer)::numeric),
+               'fm9999999990.9990'::text)                                                                           AS discount_amt_incvat10,
+       to_char((COALESCE(c.discount_ex10_amt, (0)::numeric) * ('-1'::integer)::numeric),
+               'fm9999999990.9990'::text)                                                                           AS discount_amt_excvat10,
+       to_char(sum(a.net_amt), 'fm9999999990.9990'::text)                                                           AS net_amt_incvat,
+       to_char(sum((a.net_amt - ((a.net_amt * (7)::numeric) / (107)::numeric))),
+               'fm9999999990.9990'::text)                                                                           AS net_amt_excvat,
+       to_char(timezone('Asia/Bangkok'::text, b.ticket_date),
+               'YYYYMMDD'::text)                                                                                    AS interface_date
+FROM ((sale_order a
+  JOIN sale_order_detail b ON ((((a.order_id)::text = (b.order_id)::text) AND
+                                ((b.bu)::text = ANY (ARRAY [('RBS'::character varying)::text])))))
+       LEFT JOIN vw_sale_order_discount c
+                 ON ((((c.order_id)::text = (b.order_id)::text) AND ((c.sku)::text = (b.sku)::text) AND
+                      (c.is_genticket = true))))
+WHERE (b.is_genticket = true)
+GROUP BY (to_char(timezone('Asia/Bangkok'::text, b.ticket_date), 'YYYYMMDD'::text)), b.store_code, b.barcode,
+         b.brand_id, b.vendor_id, b.dept_id, b.subdept_id, c.discount_code1, c.discount_code2, c.discount_code3,
+         c.discount_code4, c.discount_code5, c.discount_code6, c.discount_code7, c.discount_code8, c.discount_code9,
+         c.discount_code10, c.discount1_amt, c.discount2_amt, c.discount3_amt, c.discount4_amt, c.discount5_amt,
+         c.discount6_amt, c.discount7_amt, c.discount8_amt, c.discount9_amt, c.discount10_amt, c.discount_ex1_amt,
+         c.discount_ex2_amt, c.discount_ex3_amt, c.discount_ex4_amt, c.discount_ex5_amt, c.discount_ex6_amt,
+         c.discount_ex7_amt, c.discount_ex8_amt, c.discount_ex9_amt, c.discount_ex10_amt;
