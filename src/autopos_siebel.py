@@ -127,7 +127,7 @@ def generate_data_file(output_path, bu, sale_transactions):
         interface_name, bu, total_row, batchdatetime, bu, attribute1,
         attribute2))
   print(
-      '[AUtoPOS] - Siebel[{}] create .DAT & .CTRL file completed..'.format(bu))
+      '[RBS AutoPOS] - Siebel[{}] create .DAT & .CTRL file completed..'.format(bu))
   return [datfile, ctrlfile]
 
 
@@ -164,7 +164,7 @@ def main():
       sql_insert = "insert into transaction_siebel {}".format(sql)
       insert_transaction(cfg['fms'], sql_insert)
   except Exception as e:
-    print('[AutoPOS] - Siebel Error: %s' % str(e))
+    print('[RBS AutoPOS] - Siebel Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
 
 

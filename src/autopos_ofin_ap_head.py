@@ -50,7 +50,7 @@ def generate_data_file(output_path, str_date, data):
     result, invoice = prepare_data(data)
     dat.write("\n".join(result))
     val.write('{:20}{:0>10}{:015.2f}'.format(dat_file, len(result), invoice))
-  print('[AutoPOS] - H create files .MER & .LOG completed..')
+  print('[RBS AutoPOS] - H create files .MER & .LOG completed..')
   return [dat_file, val_file]
 
 
@@ -76,7 +76,7 @@ def main():
     sql_insert = "insert into transaction_ofin_head {}".format(sql)
     insert_transaction(cfg['fms'], sql_insert)
   except Exception as e:
-    print('[AutoPOS] - H Error: %s' % str(e))
+    print('[RBS AutoPOS] - H Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
 
 

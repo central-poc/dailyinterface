@@ -61,7 +61,7 @@ def generate_data_file(output_path, str_date, str_time, data):
     dat.write("\n".join(result))
     val.write('{:3}{:12}{:9}{:6}{:6}{:15}{:15}{:15}{:15}'.format(
         'HDR', dat_file, len(result), str_date, str_time, '0', '0', '0', '0'))
-  print('[AutoPOS] - Vendor .DAT & .VAL Completed..')
+  print('[RBS AutoPOS] - Vendor .DAT & .VAL Completed..')
   return [dat_file, val_file]
 
 
@@ -122,7 +122,7 @@ def main():
       destination = 'incoming/ofin/vendor'
       sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path, destination, files)    
   except Exception as e:
-    print('[AutoPOS] - Vendor Error: %s' % str(e))
+    print('[RBS AutoPOS] - Vendor Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
 
 

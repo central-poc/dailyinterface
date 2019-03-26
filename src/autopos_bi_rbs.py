@@ -58,7 +58,7 @@ def generate_trans_payment(output_path, str_date, store, data):
     f.write("\n")
     l.write('{:8}|{:4}|{}'.format(str_date[:8], str_date[-4:], len(result)))
     l.write("\n")
-  print('[AutoPOS] - BI RBS[{}] payment create files completed..'.format(store))
+  print('[RBS AutoPOS] - BI RBS[{}] payment create files completed..'.format(store))
   return [file_name, log_name]
 
 
@@ -80,7 +80,7 @@ def generate_trans_promo(output_path, str_date, store, data):
     f.write("\n")
     l.write('{:8}|{:4}|{}'.format(str_date[:8], str_date[-4:], len(result)))
     l.write("\n")
-  print('[AutoPOS] - BI RBS[{}] promotion create files completed..'.format(store))
+  print('[RBS AutoPOS] - BI RBS[{}] promotion create files completed..'.format(store))
   return [file_name, log_name]
 
 
@@ -102,7 +102,7 @@ def generate_trans_discount(output_path, str_date, store, data):
     f.write("\n")
     l.write('{:8}|{:4}|{}'.format(str_date[:8], str_date[-4:], len(result)))
     l.write("\n")
-  print('[AutoPOS] - BI RBS[{}] discount create files completed..'.format(store))
+  print('[RBS AutoPOS] - BI RBS[{}] discount create files completed..'.format(store))
   return [file_name, log_name]
 
 
@@ -166,7 +166,7 @@ def main():
         sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_promotion, 'incoming/birbs/promotion', promo)
         sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_discount, 'incoming/birbs/discount', discount)
   except Exception as e:
-    print('[AutoPOS] - BI RBS Error: %s' % str(e))
+    print('[RBS AutoPOS] - BI RBS Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
 
 

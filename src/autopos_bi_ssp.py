@@ -110,7 +110,7 @@ def generate_trans_sale_detail(output_path, str_date, store, data):
     f.write("\n")
     l.write('{}|{}|{}'.format(str_date[:8], str_date[-6:], len(result)))
     l.write("\n")
-  print('[AutoPOS] - BI SSP[{}] transaction sale detail create files completed..'.format(store))
+  print('[RBS AutoPOS] - BI SSP[{}] transaction sale detail create files completed..'.format(store))
   return [file_name, log_name]
 
 
@@ -130,7 +130,7 @@ def generate_trans_tendor_detail(output_path, str_date, store, data):
     f.write("\n")
     l.write('{}|{}|{}'.format(str_date[:8], str_date[-6:], len(result)))
     l.write("\n")
-  print('[AutoPOS] - BI SSP[{}] transaction tendor detail create files completed..'.format(store))
+  print('[RBS AutoPOS] - BI SSP[{}] transaction tendor detail create files completed..'.format(store))
   return [file_name, log_name]
 
 
@@ -150,7 +150,7 @@ def generate_trans_installment(output_path, str_date, store, data):
     f.write("\n")
     l.write('{}|{}|{}'.format(str_date[:8], str_date[-6:], len(result)))
     l.write("\n")
-  print('[AutoPOS] - BI SSP[{}] transaction installment create files completed..'.format(store))
+  print('[RBS AutoPOS] - BI SSP[{}] transaction installment create files completed..'.format(store))
   return [file_name, log_name]
 
 
@@ -168,7 +168,7 @@ def generate_trans_dcpn(output_path, str_date, store, data):
     f.write("\n")
     l.write('{}|{}|{}'.format(str_date[:8], str_date[-6:], len(result)))
     l.write("\n")
-  print('[AutoPOS] - BI SSP[{}] transaction dpcn create files completed..'.format(store))
+  print('[RBS AutoPOS] - BI SSP[{}] transaction dpcn create files completed..'.format(store))
   return [file_name, log_name]
 
 
@@ -242,7 +242,7 @@ def main():
         sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_installment,'incoming/bissp/installment', installment)
         sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_dcpn, 'incoming/bissp/dcpn', dcpn)
   except Exception as e:
-    print('[AutoPOS] - BI SSP Error: %s' % str(e))
+    print('[RBS AutoPOS] - BI SSP Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
 
 

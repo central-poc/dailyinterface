@@ -25,16 +25,16 @@ def ofin_gl_rbs():
     # zycb_dat = '{}/ZY{}RB1.DAT'.format(gl_path, yesterday) in gl_files
     # zycb_val = '{}/ZY{}RB1.VAL'.format(gl_path, yesterday) in gl_files
 
-    notify('[AutoPOS] - ZN RBS Successfully') if zn_dat & zn_val else notify(
-        '[AutoPOS] - ZN RBS not found !!')
-    notify('[AutoPOS] - ZY RBS Successfully') if zycd_dat & zycd_val else notify(
-        '[AutoPOS] - ZY RBS not found !!')
+    notify('[RBS AutoPOS] - ZN RBS Successfully') if zn_dat & zn_val else notify(
+        '[RBS AutoPOS] - ZN RBS not found !!')
+    notify('[RBS AutoPOS] - ZY RBS Successfully') if zycd_dat & zycd_val else notify(
+        '[RBS AutoPOS] - ZY RBS not found !!')
 
-    # notify('[AutoPOS] - ZY RBS9 Successfully') if zycb_dat & zycb_val else notify(
-    #     '[AutoPOS] - ZY RBS9 not found !!')
+    # notify('[RBS AutoPOS] - ZY RBS9 Successfully') if zycb_dat & zycb_val else notify(
+    #     '[RBS AutoPOS] - ZY RBS9 not found !!')
   except Exception as e:
     traceback.print_tb(e.__traceback__)
-    notify('[AutoPOS] - FTP Checker error: {}'.format(e))
+    notify('[RBS AutoPOS] - FTP Checker error: {}'.format(e))
   finally:
     ftp.quit()
 
@@ -53,17 +53,15 @@ def ofin_ap_rbs():
     l = '{}/L{}FMS1.MER'.format(ap_path, yesterday) in ap_files
     llog = '{}/L{}FMS1.LOG'.format(ap_path, yesterday) in ap_files
 
-    notify('[AutoPOS] - H Successfully') if h & hlog else notify('[AutoPOS] - H not found !!')
-    notify('[AutoPOS] - L Successfully') if l & llog else notify('[AUtoPOS] - L not found !!')
+    notify('[RBS AutoPOS] - H Successfully') if h & hlog else notify('[RBS AutoPOS] - H not found !!')
+    notify('[RBS AutoPOS] - L Successfully') if l & llog else notify('[RBS AUtoPOS] - L not found !!')
   except Exception as e:
     traceback.print_tb(e.__traceback__)
-    notify('[AutoPOS] - FTP Checker error: {}'.format(e))
+    notify('[RBS AutoPOS] - FTP Checker error: {}'.format(e))
   finally:
     ftp.quit()
 
 
 if __name__ == '__main__':
   ofin_gl_rbs()
-  # ofin_gl_ssp()
-  # ofin_gl_b2s()
   ofin_ap_rbs()

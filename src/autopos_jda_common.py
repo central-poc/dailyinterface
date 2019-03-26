@@ -141,7 +141,7 @@ def generate_data_file(output_path, store, datas):
 
   with open(file_fullpath, 'w') as f:
     f.write("\n".join(datas))
-  print('[AutoPOS] - JDA[{}] create files completed..'.format(store))
+  print('[RBS AutoPOS] - JDA[{}] create files completed..'.format(store))
   return [file_name]
 
 

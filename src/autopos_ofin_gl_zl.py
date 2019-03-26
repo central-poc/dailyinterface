@@ -6,7 +6,7 @@ import os, sys, traceback
 def is_debit_equals_credit(data):
   sum_debit = sum([row[5] for row in data])
   sum_credit = sum([row[6] for row in data])
-  print('[AutoPOS] - ZL Debit: {}, Credit: {}'.format(sum_debit, sum_credit))
+  print('[RBS AutoPOS] - ZL Debit: {}, Credit: {}'.format(sum_debit, sum_credit))
   return False if sum_debit != sum_credit else True
 
 
@@ -52,7 +52,7 @@ def generate_data_file(output_path, str_date, data):
     dat.write("\n".join(result))
     val.write('{:15}{:0>10}{:015.2f}{:015.2f}'.format(dat_file, len(result),
                                                       debit, credit))
-    print('[AutoPOS] - ZL .DAT & .VAL Completed..')
+    print('[RBS AutoPOS] - ZL .DAT & .VAL Completed..')
     return [dat_file, val_file]
 
 
@@ -82,7 +82,7 @@ def main():
       destination = 'incoming/ofin/gl'
       sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path, destination, files)
   except Exception as e:
-    print('[AutoPOS] - ZL Error: %s' % str(e))
+    print('[RBS AutoPOS] - ZL Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
 
 

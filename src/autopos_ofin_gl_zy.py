@@ -45,7 +45,7 @@ def generate_data_file(output_path, str_date, bu, data):
     dat.write("\n".join(result))
     val.write('{:15}{:0>10}{:015.2f}{:015.2f}'.format(dat_file, len(result),
                                                       debit, credit))
-  print('[AutoPOS] - OFIN[{}] create files completed..'.format(bu))
+  print('[RBS AutoPOS] - OFIN[{}] create files completed..'.format(bu))
   return [dat_file, val_file]
 
 
@@ -74,7 +74,7 @@ def main():
       sql_insert = "insert into transaction_ofin_zy {}".format(sql)
       insert_transaction(cfg['fms'], sql_insert)
   except Exception as e:
-    print('[AutoPOS] - OFIN Error: %s' % str(e))
+    print('[RBS AutoPOS] - OFIN Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
 
 

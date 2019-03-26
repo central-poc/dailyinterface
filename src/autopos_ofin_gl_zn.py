@@ -6,7 +6,7 @@ import os, sys, traceback
 def is_debit_equals_credit(data_zn):
   sum_debit = sum([row['debit'] for row in data_zn])
   sum_credit = sum([row['credit'] for row in data_zn])
-  print('[AutoPOS] - ZN Debit: {}, Credit: {}'.format(sum_debit, sum_credit))
+  print('[RBS AutoPOS] - ZN Debit: {}, Credit: {}'.format(sum_debit, sum_credit))
   return False if sum_debit != sum_credit else True
 
 
@@ -52,7 +52,7 @@ def generate_data_file(output_path, str_date, data):
     dat.write("\n".join(result))
     val.write('{:15}{:0>10}{:015.2f}{:015.2f}'.format(dat_file, len(result),
                                                       debit, credit))
-  print('[AutoPOS] - ZN .DAT & .VAL Completed..')
+  print('[RBS AutoPOS] - ZN .DAT & .VAL Completed..')
   return [dat_file, val_file]
 
 
@@ -82,7 +82,7 @@ def main():
     sql_insert = "insert into transaction_ofin_zn {}".format(sql)
     insert_transaction(cfg['fms'], sql_insert)
   except Exception as e:
-    print('[AutoPOS] - ZN Error: %s' % str(e))
+    print('[RBS AutoPOS] - ZN Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
 
 

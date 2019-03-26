@@ -40,7 +40,7 @@ def generate_data_file(output_path, str_date, data):
     result, sum_amount = prepare_data(data)
     dat.write("\n".join(result))
     val.write('{:20}{:0>10}{:015.2f}'.format(dat_file, len(result), sum_amount))
-  print('[AutoPOS] - L create file .MER completed..')
+  print('[RBS AutoPOS] - L create file .MER completed..')
   return [dat_file, val_file]
 
 
@@ -66,7 +66,7 @@ def main():
     sql_insert = "insert into transaction_ofin_line_cgo {}".format(sql)
     insert_transaction(cfg['fms'], sql_insert)
   except Exception as e:
-    print('[AutoPOS] - L CGO Error: %s' % str(e))
+    print('[RBS AutoPOS] - L CGO Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
 
 
