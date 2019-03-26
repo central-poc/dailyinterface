@@ -21,55 +21,17 @@ def ofin_gl_rbs():
     zn_val = '{}/ZN{}RB1.VAL'.format(gl_path, yesterday) in gl_files
     zycd_dat = '{}/ZY{}RB1.DAT'.format(gl_path, yesterday) in gl_files
     zycd_val = '{}/ZY{}RB1.VAL'.format(gl_path, yesterday) in gl_files
-    zycb_dat = '{}/ZY{}RB1.DAT'.format(gl_path, yesterday) in gl_files
-    zycb_val = '{}/ZY{}RB1.VAL'.format(gl_path, yesterday) in gl_files
+
+    # zycb_dat = '{}/ZY{}RB1.DAT'.format(gl_path, yesterday) in gl_files
+    # zycb_val = '{}/ZY{}RB1.VAL'.format(gl_path, yesterday) in gl_files
 
     notify('[AutoPOS] - ZN RBS Successfully') if zn_dat & zn_val else notify(
         '[AutoPOS] - ZN RBS not found !!')
     notify('[AutoPOS] - ZY RBS Successfully') if zycd_dat & zycd_val else notify(
         '[AutoPOS] - ZY RBS not found !!')
-    notify('[AutoPOS] - ZY RBS9 Successfully') if zycb_dat & zycb_val else notify(
-        '[AutoPOS] - ZY RBS9 not found !!')
-  except Exception as e:
-    traceback.print_tb(e.__traceback__)
-    notify('[AutoPOS] - FTP Checker error: {}'.format(e))
-  finally:
-    ftp.quit()
 
-
-def ofin_gl_ssp():
-  try:
-    yesterday = (date.today() - timedelta(days=1)).strftime('%y%m%d')
-    gl_path = '/p3/fnp/sps/epos/data_in'
-    ftp = ftplib.FTP('10.101.25.21')
-    ftp.login('spshopos', 'hopos')
-    gl_files = ftp.nlst(gl_path)
-
-    zy_dat = '{}/ZY{}SP1.DAT'.format(gl_path, yesterday) in gl_files
-    zy_val = '{}/ZY{}SP1.VAL'.format(gl_path, yesterday) in gl_files
-
-    notify('[AutoPOS] - ZY SSP Successfully') if zy_dat & zy_val else notify(
-        '[AutoPOS] - ZY SSP not found !!')
-  except Exception as e:
-    traceback.print_tb(e.__traceback__)
-    notify('[AutoPOS] - FTP Checker error: {}'.format(e))
-  finally:
-    ftp.quit()
-
-
-def ofin_gl_b2s():
-  try:
-    yesterday = (date.today() - timedelta(days=1)).strftime('%y%m%d')
-    gl_path = '/p3/fnp/b2s/epos/data_in'
-    ftp = ftplib.FTP('10.101.25.21')
-    ftp.login('b2shopos', 'hopos')
-    gl_files = ftp.nlst(gl_path)
-
-    zy_dat = '{}/ZY{}B21.DAT'.format(gl_path, yesterday) in gl_files
-    zy_val = '{}/ZY{}B21.VAL'.format(gl_path, yesterday) in gl_files
-
-    notify('[AutoPOS] - ZY B2S Successfully') if zy_dat & zy_val else notify(
-        '[AutoPOS] - ZY B2S not found !!')
+    # notify('[AutoPOS] - ZY RBS9 Successfully') if zycb_dat & zycb_val else notify(
+    #     '[AutoPOS] - ZY RBS9 not found !!')
   except Exception as e:
     traceback.print_tb(e.__traceback__)
     notify('[AutoPOS] - FTP Checker error: {}'.format(e))
@@ -82,7 +44,7 @@ def ofin_ap_rbs():
     yesterday = (date.today() - timedelta(days=1)).strftime('%y%m%d')
     ap_path = '/p3/fnp/rbs/invoice/data_in'
     ftp = ftplib.FTP('10.0.173.26')
-    ftp.login('rbshoinv', 'hoinv')
+    ftp.login('rbshoinv', 'rbshoinv')
 
     ap_files = ftp.nlst(ap_path)
 
