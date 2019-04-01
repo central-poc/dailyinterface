@@ -106,7 +106,7 @@ def tender(data, amount, is_t1c):
 def generate_data_file(output_path, bu, sale_transactions):
   total_row = len(sale_transactions)
 
-  interface_name = 'BCH_{}CTO_T1C_NRTSales'.format(bu)
+  interface_name = 'BCH_{}ONL_T1C_NRTSales'.format(bu)
   now = datetime.now()
   batchdatetime = now.strftime('%d%m%Y_%H:%M:%S:%f')[:-3]
   filedatetime = now.strftime('%d%m%Y_%H%M%S')
@@ -123,7 +123,7 @@ def generate_data_file(output_path, bu, sale_transactions):
   attribute1 = ""
   attribute2 = ""
   with open(filepath, 'w') as outfile:
-    outfile.write('{}|{}|001|1|{}|{}|{}-CTO|{}|{}'.format(
+    outfile.write('{}|{}|001|1|{}|{}|{}-ONL|{}|{}'.format(
         interface_name, bu, total_row, batchdatetime, bu, attribute1,
         attribute2))
   print(
