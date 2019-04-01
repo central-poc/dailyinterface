@@ -46,7 +46,7 @@ prod:
     password: 'Zxcv123!'
     db: 'DBMKP'
   fms:
-    host: 'localhost'
+    host: 'rbs-fms-prod.cgw4wzzpiccf.ap-southeast-1.rds.amazonaws.com'
     port: 5432
     user: 'postgres'
     password: 'Zxcv123!autopos'
