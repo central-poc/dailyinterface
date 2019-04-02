@@ -116,15 +116,15 @@ def main():
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
   target_path_payment = os.path.join(
-      parent_path, 'output/autopos/{}/birbs/payment'.format(env), str_date)
+      parent_path, 'output/autopos/{}/birbs/payment'.format(env), query_date)
   if not os.path.exists(target_path_payment):
     os.makedirs(target_path_payment)
   target_path_promotion = os.path.join(
-      parent_path, 'output/autopos/{}/birbs/promotion'.format(env), str_date)
+      parent_path, 'output/autopos/{}/birbs/promotion'.format(env), query_date)
   if not os.path.exists(target_path_promotion):
     os.makedirs(target_path_promotion)
   target_path_discount = os.path.join(
-      parent_path, 'output/autopos/{}/birbs/discount'.format(env), str_date)
+      parent_path, 'output/autopos/{}/birbs/discount'.format(env), query_date)
   if not os.path.exists(target_path_discount):
     os.makedirs(target_path_discount)
 
