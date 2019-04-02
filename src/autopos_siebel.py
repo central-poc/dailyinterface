@@ -103,7 +103,7 @@ def tender(data, amount, is_t1c):
   return t
 
 
-def generate_data_file(output_path, bu, sale_transactions):
+def generate_data_file(output_path, bu, sale_transactions, batch_date):
   total_row = len(sale_transactions)
 
   interface_name = 'BCH_{}ONL_T1C_NRTSales'.format(bu)
@@ -148,7 +148,7 @@ def main():
     # ]
     bus = ['RBS', 'RBS9']
     for bu in bus:
-      target_path = os.path.join(parent_path, 'output/autopos/{}/siebel/{}'.format(env, bu.lower()), now.strftime('%Y%m%d'))
+      target_path = os.path.join(parent_path, 'output/autopos/{}/siebel/{}'.format(env, bu.lower()), batch_date)
       if not os.path.exists(target_path):
         os.makedirs(target_path)
       refresh_view = "refresh materialized view mv_autopos_siebel"
@@ -156,7 +156,7 @@ def main():
           bu, batch_date)
       datas = query_matview(cfg['fms'], refresh_view, sql)
       data_list = [gen_sale_tran_data(data) for data in datas]
-      files = generate_data_file(target_path, bu, gen_tender(data_list))
+      files = generate_data_file(target_path, bu, gen_tender(data_list), batch_date)
 
       if cfg['ftp']['is_enable']:
         destination = 'incoming/siebel/{}'.format(bu.lower())
