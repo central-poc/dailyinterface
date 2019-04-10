@@ -50,7 +50,7 @@ def notifySlack(message):
   data = json.dumps(payload)
   response = requests.post(SLACK_URL, data=data)
   print(
-      'Slack Response: {status_code}'.format(status_code=response.status_code))
+      'Slakc Response: {status_code}'.format(status_code=response.status_code))
 
 
 def sftp(host, owner, source, destination, files):
@@ -129,7 +129,6 @@ def insert_transaction(env, sql):
       cursor.execute(sql)
       count = cursor.rowcount
       print (count, "Record inserted successfully !!")
-
 
 def ftp(host, user, pwd, src, dest):
   print('[FTP] - host: {}, user: {}, source: {}, destination: {}'.format(
