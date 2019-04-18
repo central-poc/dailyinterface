@@ -3,29 +3,83 @@ from datetime import datetime, timedelta
 import os, sys, traceback
 
 text_format = {
-    'promo': [
-        'transaction_date', 'store_code', 'barcode', 'brand_id', 'vendor_id',
-        'dept_id', 'subdept_id', 'global_campaing_id',
-        'discount_code1', 'discount_amt_excvat1', 'discount_amt_incvat1', 
-        'discount_code2', 'discount_amt_excvat2', 'discount_amt_incvat2', 
-        'discount_code3', 'discount_amt_excvat3', 'discount_amt_incvat3', 
-        'discount_code4', 'discount_amt_excvat4', 'discount_amt_incvat4', 
-        'discount_code5', 'discount_amt_excvat5', 'discount_amt_incvat5', 
-        'discount_code6', 'discount_amt_excvat6', 'discount_amt_incvat6', 
-        'discount_code7', 'discount_amt_excvat7', 'discount_amt_incvat7', 
-        'discount_code8', 'discount_amt_excvat8', 'discount_amt_incvat8', 
-        'discount_code9', 'discount_amt_excvat9', 'discount_amt_incvat9', 
-        'discount_code10', 'discount_amt_excvat10', 'discount_amt_incvat10', 
-        'net_amt_excvat', 'net_amt_incvat'
+    'sale_detail': [
+        'store_code',
+        'receipt_date',
+        'receipt_time',
+        'transaction_type',
+        'pos_id',
+        'receipt_no',
+        'line_number',
+        'sku',
+        'quantity',
+        'price_before_override',
+        'price_after_override',
+        'price_override_flag',
+        'total_sale',
+        'vat_rate',
+        'vat_amt',
+        'discount_code1',
+        'discount_amt1',
+        'discoune_flag1',
+        'discount_code2',
+        'discount_amt2',
+        'discoune_flag2',
+        'discount_code3',
+        'discount_amt3',
+        'discoune_flag3',
+        'discount_code4',
+        'discount_amt4',
+        'discoune_flag4',
+        'discount_code5',
+        'discount_amt5',
+        'discoune_flag5',
+        'discount_code6',
+        'discount_amt6',
+        'discoune_flag6',
+        'discount_code7',
+        'discount_amt7',
+        'discoune_flag7',
+        'discount_code8',
+        'discount_amt8',
+        'discoune_flag8',
+        'discount_code9',
+        'discount_amt9',
+        'discoune_flag9',
+        'discount_code10',
+        'discount_amt10',
+        'discoune_flag10',
+        'ref_receipt_no',
+        'ref_date',
+        'return_reason_code',
+        'dept_id',
+        'subdept_id',
+        'class_id',
+        'subclass_id',
+        'vendor_id',
+        'brand_id',
+        'itemized',
+        'dtype',
+        'member_id',
+        'cashier_id',
+        'sale_id',
+        'guide_id',
+        'last_modify_date',
     ],
-    'discount': [
-        'transaction_date', 'store_code', 'barcode', 'brand_id', 'vendor_id',
-        'dept_id', 'subdept_id', 'discount_host_code', 'global_campaing_id',
-        'discount_amt_excvat', 'discount_amt_incvat'
+    'tendor_detail': [
+        'store_code', 'receipt_date', 'receipt_time', 'transaction_type',
+        'pos_id', 'receipt_no', 'line_number', 'media_member_code',
+        'media_member_desc', 'tendor_amt', 'credit_cardno'
     ],
-    'payment': [
-        'transaction_date', 'store_code', 'media_member_code',
-        'pay_amt_incvat', 'pay_amt_excvat'
+    'installment': [
+        'store_code', 'receipt_date', 'receipt_time', 'transaction_type',
+        'pos_id', 'receipt_no', 'vendor_id', 'brand_id', 'dept_id',
+        'subdept_id', 'sku', 'tendor_type', 'installment_period',
+        'credit_cardno', 'interest_rate', 'tendor_amt'
+    ],
+    'dcpn': [
+        'store_code', 'receipt_date', 'receipt_time', 'transaction_type',
+        'pos_id', 'receipt_no', 'coupon_id'
     ],
 }
 
@@ -40,131 +94,153 @@ def prepare_data(data, fields, str_date):
   return "|".join(result)
 
 
-def generate_trans_payment(output_path, str_date, store, data):
-  bu = 'BIRBS_'
-  prefix = bu + store + '_Payment_' + str_date + "_"
-  seq = get_file_seq(prefix, output_path, '.TXT')
-  file_name = prefix + str(seq) + '.TXT'
+def generate_trans_sale_detail(output_path, str_date, store, data):
+  prefix = 'BIRBS_' + store + '_Sales_' + str_date[:12] + "_"
+  seq = get_file_seq(prefix, output_path, '.DATA')
+  file_name = '{}{:0>2}.DATA'.format(prefix, seq)
   file_fullpath = os.path.join(output_path, file_name)
-  log_name = prefix + str(seq) + '.LOG'
+  log_name = '{}{:0>2}.LOG'.format(prefix, seq)
   log_fullpath = os.path.join(output_path, log_name)
-  result = [prepare_data(d, text_format['payment'], str_date[:8]) for d in data]
+  result = [
+      prepare_data(d, text_format['sale_detail'], '') for d in data
+  ]
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
-    if len(result) > 0:
-      f.write("\n".join(result))
-    else:
-      f.write("NO RECORD")
+    f.write("\n".join(result))
     f.write("\n")
-    l.write('{:8}|{:4}|{}'.format(str_date[:8], str_date[-4:], len(result)))
+    l.write('{}|{}|{}'.format(str_date[:8], str_date[-6:], len(result)))
     l.write("\n")
-  print('[RBS AutoPOS] - BI RBS[{}] payment create files completed..'.format(store))
+  print('[RBS AutoPOS] - BI RBS[{}] transaction sale detail create files completed..'.format(store))
   return [file_name, log_name]
 
 
-def generate_trans_promo(output_path, str_date, store, data):
-  bu = 'BIRBS_'
-  prefix = bu + store + '_Promotion_' + str_date + "_"
-  seq = get_file_seq(prefix, output_path, '.TXT')
-  file_name = prefix + str(seq) + '.TXT'
+def generate_trans_tendor_detail(output_path, str_date, store, data):
+  prefix = 'BIRBS_' + store + '_Tendor_' + str_date[:12] + "_"
+  seq = get_file_seq(prefix, output_path, '.DATA')
+  file_name = '{}{:0>2}.DATA'.format(prefix, seq)
   file_fullpath = os.path.join(output_path, file_name)
-  log_name = prefix + str(seq) + '.LOG'
+  log_name = '{}{:0>2}.LOG'.format(prefix, seq)
   log_fullpath = os.path.join(output_path, log_name)
-  result = [prepare_data(d, text_format['promo'], str_date[:8]) for d in data]
+  result = [
+      prepare_data(d, text_format['tendor_detail'], str_date[:8]) for d in data
+  ]
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
-    if len(result) > 0:
-      f.write("\n".join(result))
-    else:
-      f.write("NO RECORD")
+    f.write("\n".join(result))
     f.write("\n")
-    l.write('{:8}|{:4}|{}'.format(str_date[:8], str_date[-4:], len(result)))
+    l.write('{}|{}|{}'.format(str_date[:8], str_date[-6:], len(result)))
     l.write("\n")
-  print('[RBS AutoPOS] - BI RBS[{}] promotion create files completed..'.format(store))
+  print('[RBS AutoPOS] - BI RBS[{}] transaction tendor detail create files completed..'.format(store))
   return [file_name, log_name]
 
 
-def generate_trans_discount(output_path, str_date, store, data):
-  bu = 'BIRBS_'
-  prefix = bu + store + '_Discount_' + str_date + "_"
-  seq = get_file_seq(prefix, output_path, '.TXT')
-  file_name = prefix + str(seq) + '.TXT'
+def generate_trans_installment(output_path, str_date, store, data):
+  prefix = 'BIRBS_' + store + '_Installment_' + str_date[:12] + "_"
+  seq = get_file_seq(prefix, output_path, '.DATA')
+  file_name = '{}{:0>2}.DATA'.format(prefix, seq)
   file_fullpath = os.path.join(output_path, file_name)
-  log_name = prefix + str(seq) + '.LOG'
+  log_name = '{}{:0>2}.LOG'.format(prefix, seq)
   log_fullpath = os.path.join(output_path, log_name)
-  result = [prepare_data(d, text_format['discount'], str_date[:8]) for d in data]
+  result = [
+      prepare_data(d, text_format['installment'], str_date[:8]) for d in data
+  ]
 
   with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
-    if len(result) > 0:
-      f.write("\n".join(result))
-    else:
-      f.write("NO RECORD")
+    f.write("\n".join(result))
     f.write("\n")
-    l.write('{:8}|{:4}|{}'.format(str_date[:8], str_date[-4:], len(result)))
+    l.write('{}|{}|{}'.format(str_date[:8], str_date[-6:], len(result)))
     l.write("\n")
-  print('[RBS AutoPOS] - BI RBS[{}] discount create files completed..'.format(store))
+  print('[RBS AutoPOS] - BI RBS[{}] transaction installment create files completed..'.format(store))
+  return [file_name, log_name]
+
+
+def generate_trans_dcpn(output_path, str_date, store, data):
+  prefix = 'BIRBS_' + store + '_DCPN_' + str_date[:12] + "_"
+  seq = get_file_seq(prefix, output_path, '.DATA')
+  file_name = '{}{:0>2}.DATA'.format(prefix, seq)
+  file_fullpath = os.path.join(output_path, file_name)
+  log_name = '{}{:0>2}.LOG'.format(prefix, seq)
+  log_fullpath = os.path.join(output_path, log_name)
+  result = [prepare_data(d, text_format['dcpn'], str_date[:8]) for d in data]
+
+  with open(file_fullpath, 'w') as f, open(log_fullpath, 'w') as l:
+    f.write("\n".join(result))
+    f.write("\n")
+    l.write('{}|{}|{}'.format(str_date[:8], str_date[-6:], len(result)))
+    l.write("\n")
+  print('[RBS AutoPOS] - BI RBS[{}] transaction dpcn create files completed..'.format(store))
   return [file_name, log_name]
 
 
 def main():
   env = sys.argv[1] if len(sys.argv) > 1 else 'local'
-  print("\n===== Start Siebel [{}] =====".format(env))
+  print("\n===== Start BI [{}] =====".format(env))
   cfg = config(env)
   now = datetime.now()
   query_date = cfg['run_date'] if cfg['run_date'] else (now - timedelta(days=1)).strftime('%Y%m%d')
-  str_date = cfg['birbs_date'] if cfg['birbs_date'] else now.strftime('%Y%m%d%H%M')
+  str_date = cfg['birbs_date'] if cfg['birbs_date'] else now.strftime('%Y%m%d%H%M%S')
+  
   dir_path = os.path.dirname(os.path.realpath(__file__))
   parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
-  target_path_payment = os.path.join(
-      parent_path, 'output/autopos/{}/birbs/payment'.format(env), query_date)
-  if not os.path.exists(target_path_payment):
-    os.makedirs(target_path_payment)
-  target_path_promotion = os.path.join(
-      parent_path, 'output/autopos/{}/birbs/promotion'.format(env), query_date)
-  if not os.path.exists(target_path_promotion):
-    os.makedirs(target_path_promotion)
-  target_path_discount = os.path.join(
-      parent_path, 'output/autopos/{}/birbs/discount'.format(env), query_date)
-  if not os.path.exists(target_path_discount):
-    os.makedirs(target_path_discount)
+  target_path_tendor = os.path.join(parent_path, 'output/autopos/{}/birbs/tendor'.format(env), str_date)
+  if not os.path.exists(target_path_tendor):
+    os.makedirs(target_path_tendor)
+  target_path_sale = os.path.join(parent_path, 'output/autopos/{}/birbs/sale'.format(env), str_date)
+  if not os.path.exists(target_path_sale):
+    os.makedirs(target_path_sale)
+  target_path_installment = os.path.join(parent_path, 'output/autopos/{}/birbs/installment'.format(env), str_date)
+  if not os.path.exists(target_path_installment):
+    os.makedirs(target_path_installment)
+  target_path_dcpn = os.path.join(parent_path, 'output/autopos/{}/birbs/dcpn'.format(env), str_date)
+  if not os.path.exists(target_path_dcpn):
+    os.makedirs(target_path_dcpn)
 
   try:
     dbfms = cfg['fms']
     stores = [
         x['store_code']
-        for x in query_all(dbfms,
-            "select store_code from businessunit where businessunit_code in ('RBS') and status = 'AT' group by store_code"
+        for x in query_all(dbfms, 
+            "select store_code from businessunit where businessunit_code = 'RBS' and status = 'AT' group by store_code"
         )
     ]
     for store in stores:
-      refresh_view = "refresh materialized view mv_autopos_bi_rbs_trans_payment"
-      sql = "select * from mv_autopos_bi_rbs_trans_payment where interface_date = '{}' and store_code = '{}'".format(
-          query_date, store)
+      refresh_view = "refresh materialized view mv_autopos_bi_rbs_trans_sale_detail"
+      sql = "select * from mv_autopos_bi_rbs_trans_sale_detail where store_code = '{}' and interface_date = '{}'".format(
+          store, query_date)
       data = query_matview(dbfms, refresh_view, sql)
-      payment = generate_trans_payment(target_path_payment, str_date, store, data)
-      sql_insert = "insert into transaction_bi_rbs_payment {}".format(sql)
+      sale = generate_trans_sale_detail(target_path_sale, str_date, store, data)
+      sql_insert = "insert into transaction_bi_rbs_sale_detail {}".format(sql)
       insert_transaction(dbfms, sql_insert)
 
-      refresh_view = "refresh materialized view mv_autopos_bi_rbs_trans_promo"
-      sql = "select * from mv_autopos_bi_rbs_trans_promo where interface_date = '{}' and store_code = '{}'".format(
-          query_date, store)
+      refresh_view = "refresh materialized view mv_autopos_bi_rbs_trans_tendor_detail"
+      sql = "select * from mv_autopos_bi_rbs_trans_tendor_detail where store_code = '{}' and interface_date = '{}'".format(
+          store, query_date)
       data = query_matview(dbfms, refresh_view, sql)
-      promo = generate_trans_promo(target_path_promotion, str_date, store, data)
-      sql_insert = "insert into transaction_bi_rbs_promo {}".format(sql)
+      tendor = generate_trans_tendor_detail(target_path_tendor, str_date, store, data)
+      sql_insert = "insert into transaction_bi_rbs_tendor_detail {}".format(sql)
       insert_transaction(dbfms, sql_insert)
 
-      refresh_view = "refresh materialized view mv_autopos_bi_rbs_trans_discount"
-      sql = "select * from mv_autopos_bi_rbs_trans_discount where interface_date = '{}' and store_code = '{}'".format(
-          query_date, store)
+      refresh_view = "refresh materialized view mv_autopos_bi_rbs_trans_installment"
+      sql = "select * from mv_autopos_bi_rbs_trans_installment where store_code = '{}' and interface_date = '{}'".format(
+          store, query_date)
       data = query_matview(dbfms, refresh_view, sql)
-      discount = generate_trans_discount(target_path_discount, str_date, store, data)
-      sql_insert = "insert into transaction_bi_rbs_discount {}".format(sql)
+      installment = generate_trans_installment(target_path_installment, str_date, store, data)
+      sql_insert = "insert into transaction_bi_rbs_installment {}".format(sql)
+      insert_transaction(dbfms, sql_insert)
+
+      refresh_view = "refresh materialized view mv_autopos_bi_rbs_trans_dpcn"
+      sql = "select * from mv_autopos_bi_rbs_trans_dpcn where store_code = '{}' and interface_date = '{}'".format(
+          store, query_date)
+      data = query_matview(dbfms, refresh_view, sql)
+      dcpn = generate_trans_dcpn(target_path_dcpn, str_date, store, data)
+      sql_insert = "insert into transaction_bi_rbs_dpcn {}".format(sql)
       insert_transaction(dbfms, sql_insert)
 
       if cfg['ftp']['is_enable']:
-        sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_payment, 'incoming/birbs/payment', payment)
-        sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_promotion, 'incoming/birbs/promotion', promo)
-        sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_discount, 'incoming/birbs/discount', discount)
+        sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_tendor, 'incoming/birbs/tendor', tendor)
+        sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_sale, 'incoming/birbs/sale', sale)
+        sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_installment,'incoming/birbs/installment', installment)
+        sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path_dcpn, 'incoming/birbs/dcpn', dcpn)
   except Exception as e:
     print('[RBS AutoPOS] - BI RBS Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
