@@ -57,7 +57,9 @@ def prepare_data(datas):
     temp.append("{:8}".format(data['cashier_id'][:8]))
     temp.append("{:8}".format(data['sale_person'][:8]))
 
-    result.append("".join(temp))
+    gen_text = "".join(temp)
+    print(gen_text)
+    result.append(gen_text)
 
   return result
 
@@ -113,7 +115,7 @@ def prepare_data_b2s(datas):
 def query_data(env, store, str_date):
   refresh_view = "refresh materialized view mv_autopos_jda"
   sql = """
-    select * from mv_autopos_jda 
+    select * from mv_autopos_jda
     where store_code = '{}' 
     and interface_date = '{}'
     and not (
@@ -135,7 +137,7 @@ def query_data(env, store, str_date):
   return query_matview(env, refresh_view, sql)
 
 
-def generate_data_file(output_path, store, datas):
+def generate_data_file(str_date, output_path, store, datas):
   file_name = 'SD' + store + '.TXT'
   file_fullpath = os.path.join(output_path, file_name)
 
@@ -152,7 +154,8 @@ def process(env, bu, store, cfg, run_date):
   if not os.path.exists(target_path):
     os.makedirs(target_path)
 
-  files = generate_data_file(target_path, store, prepare_data(query_data(cfg['fms'], store, run_date)))
+  #files = generate_data_file(target_path, store, prepare_data(query_data(cfg['fms'], store, run_date)))
+  files = generate_data_file(run_date, target_path, store, prepare_data(query_data(cfg['fms'], store, run_date)))
   if cfg['ftp']['is_enable']:
       destination = 'incoming/jda/{}'.format(bu)
       sftp(cfg['ftp']['host'], cfg['ftp']['user'], target_path, destination, files)

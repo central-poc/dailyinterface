@@ -78,6 +78,7 @@ def main():
   except Exception as e:
     print('[AutoPOS] - H Error: %s' % str(e))
     traceback.print_tb(e.__traceback__)
+    sys.exit(1)
 
 
 if __name__ == '__main__':
