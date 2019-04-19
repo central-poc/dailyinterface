@@ -460,7 +460,7 @@ create materialized view mv_autopos_bi_rbs_trans_dpcn as
       LEFT JOIN sale_order_discount c ON ((
     ((c.order_id) :: text = (b.order_id) :: text) AND (c.line_number = b.line_number) AND
     ((c.line_id) :: text = (b.line_id) :: text) AND (length((c.jda_discount_code) :: text) > 0))))
-  WHERE (b.is_genticket = true)
+  WHERE (b.is_genticket = true) AND (COALESCE(c.discount_amt_incvat, (0)::numeric) > (0)::numeric)
   GROUP BY b.store_code, b.ticket_date, b.ticket_no, d.active_posno, c.jda_short_name
   UNION ALL
   SELECT a.store_code,
