@@ -1,8 +1,8 @@
-import _mssql
+#import _mssql
+#import pymssql
 import ftplib
 import psycopg2
 import psycopg2.extras
-import pymssql
 import requests, json
 import time
 import urllib.parse
