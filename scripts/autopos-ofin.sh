@@ -11,7 +11,7 @@ python src/autopos_ofin_gl_zn.py $1
 # RPT-31
 python src/autopos_ofin_gl_zy.py $1
 
-python src/autopos_ofin_ap_head.py $1
-python src/autopos_ofin_ap_line.py $1
+# python src/autopos_ofin_ap_head.py $1
+# python src/autopos_ofin_ap_line.py $1
 echo "===== END"
 
