@@ -40,7 +40,7 @@ def prepare_data(data):
 
 
 def generate_data_file(output_path, str_date, data):
-  prefix = 'ZN' + str_date + 'CD'
+  prefix = 'ZN' + str_date + 'RB'
   seq = get_file_seq(prefix, output_path, '.DAT')
   dat_file = prefix + str(seq) + '.DAT'
   dat_file_path = os.path.join(output_path, dat_file)
