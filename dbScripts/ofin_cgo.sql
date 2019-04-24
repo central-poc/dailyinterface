@@ -64,76 +64,73 @@ create table transaction_ofin_line_cgo
 
 
 create materialized view mv_autopos_ofin_head_cgo as
-  SELECT 'FMS' :: text                                                                          AS source,
-         b.doc_no                                                                               AS invoice_no,
-         d.vendor_id,
-         to_char(timezone('Asia/Bangkok' :: text, b.confirm_received_date), 'DDMMYY' :: text)   AS invoice_date,
-         sum(((b.quantity) :: numeric * b.total_amt))                                           AS invoice_total,
-         '010138' :: text                                                                       AS store_id,
-         CASE
-           WHEN ((c.status) :: text <> 'Canceled' :: text) THEN 'A' :: text
-           WHEN ((c.status) :: text = 'Canceled' :: text) THEN 'F' :: text
-           ELSE '0' :: text
-             END                                                                                AS invoice_type,
-         'N' :: text                                                                            AS imported_goods,
-         '' :: text                                                                             AS hold_reason01,
-         '00.00' :: text                                                                        AS invoice_tax_name,
-         '' :: text                                                                             AS tax_inv_running_no,
-         '' :: text                                                                             AS blank1,
-         '' :: text                                                                             AS rtv_auth_no,
-         'THB' :: text                                                                          AS currency_code,
-         d.term_of_payment                                                                      AS terms,
-         '' :: text                                                                             AS blank2,
-         b.doc_no                                                                               AS gr_tran_no,
-         '' :: text                                                                             AS ass_tax_invoice_num,
-         '' :: text                                                                             AS blank3,
-         '' :: text                                                                             AS tax_invoice_date,
-         '' :: text                                                                             AS invoice_rtv_type,
-         '' :: text                                                                             AS currency_rate,
-         to_char(timezone('Asia/Bangkok' :: text, b.confirm_received_date), 'YYYYMMDD' :: text) AS interface_date
-  FROM ((((sale_order a
-      JOIN sale_order_detail b ON (((a.order_id) :: text = (b.order_id) :: text)))
-      JOIN ticket c ON (((c.ticket_no) :: text = (b.ticket_no) :: text)))
-      JOIN vendor d ON (((d.store_code) :: text = (b.store_code) :: text)))
-      JOIN payment e ON ((((e.payment_code) :: text = (a.payment_code) :: text) AND (e.is_online_payment = false))))
-  WHERE ((b.is_genticket = true) AND (b.is_confirm_paid = true) AND ((b.doc_no) :: text <> '' :: text))
-  GROUP BY b.doc_no, (to_char(timezone('Asia/Bangkok' :: text, b.confirm_received_date), 'DDMMYY' :: text)), c.status,
-           d.vendor_id, b.is_salereturn, b.is_rtc,
-           (to_char(timezone('Asia/Bangkok' :: text, b.confirm_received_date), 'YYYYMMDD' :: text)), d.term_of_payment
-  UNION ALL
-  SELECT 'FMS' :: text                                                                AS source,
-         a.doc_no                                                                     AS invoice_no,
-         d.vendor_id,
-         to_char(timezone('Asia/Bangkok' :: text, a.settle_date), 'DDMMYY' :: text)   AS invoice_date,
-         (a.total_amt * ('-1' :: integer) :: numeric)                                 AS invoice_total,
-         '010138' :: text                                                             AS store_id,
-         CASE
-           WHEN ((c.status) :: text <> 'Canceled' :: text) THEN 'D' :: text
-           WHEN ((c.status) :: text = 'Canceled' :: text) THEN 'H' :: text
-           ELSE '0' :: text
-             END                                                                      AS invoice_type,
-         'N' :: text                                                                  AS imported_goods,
-         '' :: text                                                                   AS hold_reason01,
-         '00.00' :: text                                                              AS invoice_tax_name,
-         '' :: text                                                                   AS tax_inv_running_no,
-         '' :: text                                                                   AS blank1,
-         '' :: text                                                                   AS rtv_auth_no,
-         'THB' :: text                                                                AS currency_code,
-         d.term_of_payment                                                            AS terms,
-         '' :: text                                                                   AS blank2,
-         a.doc_no                                                                     AS gr_tran_no,
-         a.ticket_sale_no                                                             AS ass_tax_invoice_num,
-         '' :: text                                                                   AS blank3,
-         '' :: text                                                                   AS tax_invoice_date,
-         '' :: text                                                                   AS invoice_rtv_type,
-         '' :: text                                                                   AS currency_rate,
-         to_char(timezone('Asia/Bangkok' :: text, a.settle_date), 'YYYYMMDD' :: text) AS interface_date
-  FROM (((sale_return a
-      JOIN ticket c ON ((((c.ticket_no) :: text = (a.ticket_no) :: text) AND
-                         ((c.order_id) :: text = (a.order_id) :: text))))
-      JOIN vendor d ON (((d.store_code) :: text = (a.store_code) :: text)))
-      JOIN payment e ON ((((e.payment_code) :: text = (a.payment_code) :: text) AND (e.is_online_payment = false))))
-  WHERE ((a.is_settled = true) AND ((a.doc_no) :: text <> '' :: text));
+    SELECT 'FMS'::text                                                                        AS source,
+           b.tracking_no                                                                      AS invoice_no,
+           '700003'::character varying                                                        AS vendor_id,
+           to_char(timezone('Asia/Bangkok'::text, b.confirm_received_date), 'DDMMYY'::text)   AS invoice_date,
+           sum(((b.quantity)::numeric * b.total_amt))                                         AS invoice_total,
+           '056401'::text                                                                     AS store_id,
+           CASE
+               WHEN ((c.status)::text <> 'Canceled'::text) THEN 'A'::text
+               WHEN ((c.status)::text = 'Canceled'::text) THEN 'F'::text
+               ELSE '0'::text
+               END                                                                            AS invoice_type,
+           'N'::text                                                                          AS imported_goods,
+           ''::text                                                                           AS hold_reason01,
+           '00.00'::text                                                                      AS invoice_tax_name,
+           ''::text                                                                           AS tax_inv_running_no,
+           ''::text                                                                           AS blank1,
+           ''::text                                                                           AS rtv_auth_no,
+           'THB'::text                                                                        AS currency_code,
+           '1030'::text                                                                       AS terms,
+           ''::text                                                                           AS blank2,
+           ''::text                                                                           AS gr_tran_no,
+           ''::text                                                                           AS ass_tax_invoice_num,
+           ''::text                                                                           AS blank3,
+           ''::text                                                                           AS tax_invoice_date,
+           ''::text                                                                           AS invoice_rtv_type,
+           ''::text                                                                           AS currency_rate,
+           to_char(timezone('Asia/Bangkok'::text, b.confirm_received_date), 'YYYYMMDD'::text) AS interface_date
+    FROM (((sale_order a
+        JOIN sale_order_detail b ON (((a.order_id)::text = (b.order_id)::text)))
+        JOIN ticket c ON (((c.ticket_no)::text = (b.ticket_no)::text)))
+             JOIN payment e ON ((((e.payment_code)::text = (a.payment_code)::text) AND (e.is_online_payment = false))))
+    WHERE ((b.is_genticket = true) AND (b.is_confirm_paid = true))
+    GROUP BY b.tracking_no, (to_char(timezone('Asia/Bangkok'::text, b.confirm_received_date), 'DDMMYY'::text)),
+             c.status, b.is_salereturn, b.is_rtc,
+             (to_char(timezone('Asia/Bangkok'::text, b.confirm_received_date), 'YYYYMMDD'::text))
+    UNION ALL
+    SELECT 'FMS'::text                                                              AS source,
+           ''::character varying                                                    AS invoice_no,
+           '700003'::character varying                                              AS vendor_id,
+           to_char(timezone('Asia/Bangkok'::text, a.settle_date), 'DDMMYY'::text)   AS invoice_date,
+           (a.total_amt * ('-1'::integer)::numeric)                                 AS invoice_total,
+           '056401'::text                                                           AS store_id,
+           CASE
+               WHEN ((c.status)::text <> 'Canceled'::text) THEN 'D'::text
+               WHEN ((c.status)::text = 'Canceled'::text) THEN 'H'::text
+               ELSE '0'::text
+               END                                                                  AS invoice_type,
+           'N'::text                                                                AS imported_goods,
+           ''::text                                                                 AS hold_reason01,
+           '00.00'::text                                                            AS invoice_tax_name,
+           ''::text                                                                 AS tax_inv_running_no,
+           ''::text                                                                 AS blank1,
+           ''::text                                                                 AS rtv_auth_no,
+           'THB'::text                                                              AS currency_code,
+           '1030'::text                                                             AS terms,
+           ''::text                                                                 AS blank2,
+           ''::text                                                                 AS gr_tran_no,
+           a.ticket_sale_no                                                         AS ass_tax_invoice_num,
+           ''::text                                                                 AS blank3,
+           ''::text                                                                 AS tax_invoice_date,
+           ''::text                                                                 AS invoice_rtv_type,
+           ''::text                                                                 AS currency_rate,
+           to_char(timezone('Asia/Bangkok'::text, a.settle_date), 'YYYYMMDD'::text) AS interface_date
+    FROM ((sale_return a
+        JOIN ticket c ON ((((c.ticket_no)::text = (a.ticket_no)::text) AND ((c.order_id)::text = (a.order_id)::text))))
+             JOIN payment e ON ((((e.payment_code)::text = (a.payment_code)::text) AND (e.is_online_payment = false))))
+    WHERE (a.is_settled = true);
 
 
 create materialized view mv_autopos_ofin_line_cgo as
@@ -188,7 +185,7 @@ create materialized view mv_autopos_ofin_line_cgo as
       JOIN payment e ON ((((e.payment_code) :: text = (a.payment_code) :: text) AND (e.is_online_payment = false))))
   WHERE ((a.is_settled = true) AND ((a.doc_no) :: text <> '' :: text));
 
--- RPT 03
+
 create materialized view mv_autopos_ofin_zn_cgo as
   SELECT a.branch_id                                                                                           AS ofin_branch_code,
          a.cost_center                                                                                         AS ofin_cost_profit_center,
