@@ -32,7 +32,8 @@ def prepare_data(data):
     temp.append("{:6}".format(d['tax_invoice_date'][:6]))
     temp.append("{:10}".format(d['invoice_rtv_type'][:10]))
     temp.append("{:50}".format(d['currency_rate'][:50]))
-
+    temp.append("{:6}".format(d['due_date'][:6]))
+    temp.append("{:240}".format(d['head_desc'][:240]))
     result.append("".join(temp))
 
   return result, sum_invoice
