@@ -41,7 +41,7 @@ def prepare_data(data, fields, str_date):
 
 
 def generate_trans_payment(output_path, str_date, store, data):
-  bu = 'BIMS_' if store == '17016' else 'BICDS_'
+  bu = 'BIMS_' if store == '17016' or store == '17002' else 'BICDS_'
   prefix = bu + store + '_Payment_' + str_date + "_"
   seq = get_file_seq(prefix, output_path, '.TXT')
   file_name = prefix + str(seq) + '.TXT'
@@ -63,7 +63,7 @@ def generate_trans_payment(output_path, str_date, store, data):
 
 
 def generate_trans_promo(output_path, str_date, store, data):
-  bu = 'BIMS_' if store == '17016' else 'BICDS_'
+  bu = 'BIMS_' if store == '17016' or store == '17002' else 'BICDS_'
   prefix = bu + store + '_Promotion_' + str_date + "_"
   seq = get_file_seq(prefix, output_path, '.TXT')
   file_name = prefix + str(seq) + '.TXT'
@@ -85,7 +85,7 @@ def generate_trans_promo(output_path, str_date, store, data):
 
 
 def generate_trans_discount(output_path, str_date, store, data):
-  bu = 'BIMS_' if store == '17016' else 'BICDS_'
+  bu = 'BIMS_' if store == '17016' or store == '17002' else 'BICDS_'
   prefix = bu + store + '_Discount_' + str_date + "_"
   seq = get_file_seq(prefix, output_path, '.TXT')
   file_name = prefix + str(seq) + '.TXT'
