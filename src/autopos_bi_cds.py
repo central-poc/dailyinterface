@@ -128,14 +128,21 @@ def main():
   if not os.path.exists(target_path_discount):
     os.makedirs(target_path_discount)
 
+  print("Path: {}".format(dir_path))
+  print("Parent path: {}".format(parent_path))
+  print("Target path payment: {}".format(target_path_payment))
+  print("Target path promotion: {}".format(target_path_promotion))
+  print("Target path discount: {}".format(target_path_discount))
+
   try:
     dbfms = cfg['fms']
     stores = [
         x['store_code']
         for x in query_all(dbfms,
-            "select store_code from businessunit where businessunit_code in ('CDS', 'MSL') and status = 'AT' group by store_code"
+            "select store_code from businessunit where status = 'Active' and store_code in ('10138','15002','15014','15016','15017','15025','15044','15514','17002','17016') group by store_code "
         )
     ]
+    print("Stores: {}".format(stores))
     for store in stores:
       refresh_view = "refresh materialized view mv_autopos_bi_cds_trans_payment"
       sql = "select * from mv_autopos_bi_cds_trans_payment where interface_date = '{}' and store_code = '{}'".format(
