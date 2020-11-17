@@ -139,7 +139,7 @@ def main():
     stores = [
         x['store_code']
         for x in query_all(dbfms,
-            "select store_code from businessunit where status = 'Active' and store_code in ('10138','15002','15014','15016','15017','15025','15044','15514','17002','17016', '15020','15027','15036','15037','15049','15051','15021','15003','15004','15010','15005','15007','15043','15052','15058','15053','15160') group by store_code "
+            "select store_code from businessunit where status = 'Active' and store_code in is_store = true group by store_code "
         )
     ]
     print("Stores: {}".format(stores))
